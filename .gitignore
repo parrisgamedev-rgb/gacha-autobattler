@@ -33,5 +33,5 @@ Thumbs.db
 *.swo
 *~
 
-# Export templates
-export_presets.cfg
+# Export builds folder
+builds/
