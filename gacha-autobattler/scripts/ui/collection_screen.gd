@@ -39,6 +39,7 @@ var pending_fodder_id: String = ""
 var current_gear_slot: int = -1  # 0=weapon, 1=armor, 2=acc1, 3=acc2
 
 func _ready():
+	_apply_theme()
 	back_btn.pressed.connect(_on_back)
 	close_detail_btn.pressed.connect(_on_close_detail)
 	imprint_btn.pressed.connect(_on_imprint_pressed)
@@ -91,33 +92,36 @@ func _create_unit_card(unit_entry: Dictionary) -> Control:
 	var instance_id = unit_entry.instance_id as String
 
 	var card = Panel.new()
-	card.custom_minimum_size = Vector2(180, 220)
+	card.custom_minimum_size = UITheme.UNIT_CARD_SIZE
 
-	# Background color based on rarity
+	# Create styled card with rarity-colored border
 	var style = StyleBoxFlat.new()
-	match unit_data.star_rating:
-		5:
-			style.bg_color = Color(0.3, 0.25, 0.1, 1)  # Gold
-		4:
-			style.bg_color = Color(0.25, 0.15, 0.3, 1)  # Purple
-		_:
-			style.bg_color = Color(0.15, 0.15, 0.2, 1)  # Default
-	style.corner_radius_top_left = 8
-	style.corner_radius_top_right = 8
-	style.corner_radius_bottom_left = 8
-	style.corner_radius_bottom_right = 8
+	style.bg_color = UITheme.BG_MEDIUM
+	style.corner_radius_top_left = UITheme.CARD_RADIUS
+	style.corner_radius_top_right = UITheme.CARD_RADIUS
+	style.corner_radius_bottom_left = UITheme.CARD_RADIUS
+	style.corner_radius_bottom_right = UITheme.CARD_RADIUS
+	style.border_width_left = 3
+	style.border_width_right = 3
+	style.border_width_top = 3
+	style.border_width_bottom = 3
+	style.border_color = UITheme.get_rarity_color(unit_data.star_rating)
 	card.add_theme_stylebox_override("panel", style)
+
+	# Card dimensions based on UNIT_CARD_SIZE
+	var card_width = UITheme.UNIT_CARD_SIZE.x
+	var card_height = UITheme.UNIT_CARD_SIZE.y
 
 	# Unit display
 	var display_container = Control.new()
 	display_container.set_anchors_preset(Control.PRESET_TOP_WIDE)
-	display_container.custom_minimum_size = Vector2(180, 120)
+	display_container.custom_minimum_size = Vector2(card_width, 100)
 	card.add_child(display_container)
 
 	var display = UnitDisplayScene.instantiate()
 	display_container.add_child(display)
-	display.position = Vector2(90, 60)
-	display.scale = Vector2(0.5, 0.5)
+	display.position = Vector2(card_width / 2, 55)
+	display.scale = Vector2(0.45, 0.45)
 	display.drag_enabled = false
 
 	# Defer setup until the node is ready
@@ -128,36 +132,37 @@ func _create_unit_card(unit_entry: Dictionary) -> Control:
 	var level_label = Label.new()
 	level_label.text = "Lv." + str(unit_level)
 	level_label.position = Vector2(8, 5)
-	level_label.add_theme_font_size_override("font_size", 16)
-	level_label.add_theme_color_override("font_color", Color(0.9, 0.9, 1.0))
+	level_label.add_theme_font_size_override("font_size", UITheme.FONT_CAPTION)
+	level_label.add_theme_color_override("font_color", UITheme.SUCCESS)
 	card.add_child(level_label)
 
 	# Imprint level (top right if > 0)
 	if imprint_level > 0:
 		var imprint_label = Label.new()
 		imprint_label.text = "+" + str(imprint_level)
-		imprint_label.position = Vector2(145, 5)
-		imprint_label.add_theme_font_size_override("font_size", 16)
-		imprint_label.add_theme_color_override("font_color", Color(0.5, 1.0, 0.5))
+		imprint_label.position = Vector2(card_width - 30, 5)
+		imprint_label.add_theme_font_size_override("font_size", UITheme.FONT_CAPTION)
+		imprint_label.add_theme_color_override("font_color", UITheme.SECONDARY)
 		card.add_child(imprint_label)
 
 	# Name label
 	var name_label = Label.new()
 	name_label.text = unit_data.unit_name
-	name_label.position = Vector2(0, 130)
-	name_label.size = Vector2(180, 25)
+	name_label.position = Vector2(0, 110)
+	name_label.size = Vector2(card_width, 25)
 	name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	name_label.add_theme_font_size_override("font_size", 16)
+	name_label.add_theme_font_size_override("font_size", UITheme.FONT_TITLE_SMALL)
+	name_label.add_theme_color_override("font_color", UITheme.TEXT_PRIMARY)
 	card.add_child(name_label)
 
 	# Stars label
 	var stars_label = Label.new()
 	stars_label.text = "★".repeat(unit_data.star_rating)
-	stars_label.position = Vector2(0, 155)
-	stars_label.size = Vector2(180, 20)
+	stars_label.position = Vector2(0, 132)
+	stars_label.size = Vector2(card_width, 20)
 	stars_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	stars_label.add_theme_color_override("font_color", Color(1.0, 0.85, 0.3))
-	stars_label.add_theme_font_size_override("font_size", 14)
+	stars_label.add_theme_color_override("font_color", UITheme.GOLD)
+	stars_label.add_theme_font_size_override("font_size", UITheme.FONT_BODY)
 	card.add_child(stars_label)
 
 	# XP bar
@@ -168,33 +173,33 @@ func _create_unit_card(unit_entry: Dictionary) -> Control:
 		var xp_ratio = float(xp) / float(xp_needed) if xp_needed > 0 else 0.0
 
 		var xp_bg = ColorRect.new()
-		xp_bg.position = Vector2(10, 180)
-		xp_bg.size = Vector2(160, 8)
-		xp_bg.color = Color(0.2, 0.2, 0.25, 1)
+		xp_bg.position = Vector2(10, 160)
+		xp_bg.size = Vector2(card_width - 20, 8)
+		xp_bg.color = UITheme.BG_DARK
 		card.add_child(xp_bg)
 
 		var xp_fill = ColorRect.new()
-		xp_fill.position = Vector2(10, 180)
-		xp_fill.size = Vector2(160 * xp_ratio, 8)
-		xp_fill.color = Color(0.3, 0.7, 1.0, 1)
+		xp_fill.position = Vector2(10, 160)
+		xp_fill.size = Vector2((card_width - 20) * xp_ratio, 8)
+		xp_fill.color = UITheme.PRIMARY
 		card.add_child(xp_fill)
 
 		var xp_label = Label.new()
 		xp_label.text = str(xp) + "/" + str(xp_needed)
-		xp_label.position = Vector2(0, 190)
-		xp_label.size = Vector2(180, 20)
+		xp_label.position = Vector2(0, 170)
+		xp_label.size = Vector2(card_width, 20)
 		xp_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		xp_label.add_theme_font_size_override("font_size", 10)
-		xp_label.add_theme_color_override("font_color", Color(0.6, 0.6, 0.7))
+		xp_label.add_theme_font_size_override("font_size", UITheme.FONT_SMALL)
+		xp_label.add_theme_color_override("font_color", UITheme.TEXT_SECONDARY)
 		card.add_child(xp_label)
 	else:
 		var max_label = Label.new()
 		max_label.text = "MAX LEVEL"
-		max_label.position = Vector2(0, 180)
-		max_label.size = Vector2(180, 25)
+		max_label.position = Vector2(0, 160)
+		max_label.size = Vector2(card_width, 25)
 		max_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		max_label.add_theme_font_size_override("font_size", 12)
-		max_label.add_theme_color_override("font_color", Color(1.0, 0.85, 0.3))
+		max_label.add_theme_font_size_override("font_size", UITheme.FONT_SMALL)
+		max_label.add_theme_color_override("font_color", UITheme.GOLD)
 		card.add_child(max_label)
 
 	# Make clickable
@@ -452,7 +457,9 @@ func _on_level_up_pressed():
 
 func _update_currency_display():
 	if currency_label:
-		currency_label.text = str(PlayerData.gold) + " Gold  |  " + str(PlayerData.level_materials) + " Materials  |  " + str(PlayerData.enhancement_stones) + " Stones  |  " + str(PlayerData.gems) + " Gems"
+		currency_label.text = str(PlayerData.gold) + " G  |  " + str(PlayerData.level_materials) + " M  |  " + str(PlayerData.enhancement_stones) + " S  |  " + str(PlayerData.gems) + " D"
+		currency_label.add_theme_font_size_override("font_size", UITheme.FONT_BODY)
+		currency_label.add_theme_color_override("font_color", UITheme.GOLD)
 
 # --- Cheat Functions ---
 
@@ -634,3 +641,249 @@ func _on_cancel_gear_select():
 		gear_select_panel.visible = false
 	detail_panel.visible = true
 	current_gear_slot = -1
+
+# === THEME FUNCTIONS ===
+
+func _apply_theme():
+	# Background
+	var bg = get_node_or_null("Background")
+	if bg:
+		bg.color = UITheme.BG_DARK
+
+	# Top bar
+	var top_bar = get_node_or_null("TopBar")
+	if top_bar:
+		# Style top bar background
+		var top_style = StyleBoxFlat.new()
+		top_style.bg_color = UITheme.BG_MEDIUM
+		top_style.border_color = UITheme.BG_LIGHT
+		top_style.border_width_bottom = 2
+		top_style.content_margin_left = UITheme.SPACING_MD
+		top_style.content_margin_right = UITheme.SPACING_MD
+		top_style.content_margin_top = UITheme.SPACING_SM
+		top_style.content_margin_bottom = UITheme.SPACING_SM
+		# Create a Panel as parent for TopBar if needed
+
+	# Title
+	var title = get_node_or_null("TopBar/Title")
+	if title:
+		title.add_theme_font_size_override("font_size", UITheme.FONT_TITLE_LARGE)
+		title.add_theme_color_override("font_color", UITheme.TEXT_PRIMARY)
+
+	# Back button
+	var back_btn_node = get_node_or_null("TopBar/BackButton")
+	if back_btn_node:
+		back_btn_node.add_theme_stylebox_override("normal", UITheme.create_button_style(UITheme.BG_LIGHT))
+		back_btn_node.add_theme_stylebox_override("hover", UITheme.create_button_style(UITheme.BG_LIGHT.lightened(0.1)))
+		back_btn_node.add_theme_stylebox_override("pressed", UITheme.create_button_style(UITheme.BG_DARK))
+		back_btn_node.add_theme_color_override("font_color", UITheme.TEXT_SECONDARY)
+		back_btn_node.add_theme_color_override("font_hover_color", UITheme.TEXT_PRIMARY)
+
+	# Unit count label
+	var count_label = get_node_or_null("TopBar/UnitCountLabel")
+	if count_label:
+		count_label.add_theme_font_size_override("font_size", UITheme.FONT_BODY)
+		count_label.add_theme_color_override("font_color", UITheme.TEXT_SECONDARY)
+
+	# Style detail panel
+	if detail_panel and detail_panel is Panel:
+		detail_panel.add_theme_stylebox_override("panel", UITheme.create_panel_style(UITheme.BG_MEDIUM, UITheme.PRIMARY, UITheme.MODAL_RADIUS))
+
+	# Detail panel background
+	var detail_bg = get_node_or_null("DetailPanel/DetailBackground")
+	if detail_bg:
+		detail_bg.color = UITheme.BG_MEDIUM
+
+	# Style labels in detail panel
+	_style_detail_panel_labels()
+
+	# Style action buttons
+	_style_action_buttons()
+
+	# Style imprint panel
+	_style_imprint_panel()
+
+	# Style confirm panel
+	_style_confirm_panel()
+
+	# Style gear select panel
+	_style_gear_select_panel()
+
+func _style_detail_panel_labels():
+	if not detail_panel:
+		return
+
+	# Unit name label
+	if detail_name:
+		detail_name.add_theme_font_size_override("font_size", UITheme.FONT_TITLE_MEDIUM)
+		detail_name.add_theme_color_override("font_color", UITheme.TEXT_PRIMARY)
+
+	# Stars label
+	if detail_stars:
+		detail_stars.add_theme_font_size_override("font_size", UITheme.FONT_TITLE_SMALL)
+		detail_stars.add_theme_color_override("font_color", UITheme.GOLD)
+
+	# Element label
+	if detail_element:
+		detail_element.add_theme_font_size_override("font_size", UITheme.FONT_BODY)
+
+	# Stats label
+	if detail_stats:
+		detail_stats.add_theme_font_size_override("font_size", UITheme.FONT_BODY)
+		detail_stats.add_theme_color_override("font_color", UITheme.TEXT_SECONDARY)
+
+	# Copies label
+	if detail_copies:
+		detail_copies.add_theme_font_size_override("font_size", UITheme.FONT_CAPTION)
+		detail_copies.add_theme_color_override("font_color", UITheme.TEXT_SECONDARY)
+
+	# Imprint label
+	if detail_imprint:
+		detail_imprint.add_theme_font_size_override("font_size", UITheme.FONT_BODY)
+		detail_imprint.add_theme_color_override("font_color", UITheme.SUCCESS)
+
+	# Level label
+	if detail_level:
+		detail_level.add_theme_font_size_override("font_size", UITheme.FONT_BODY)
+		detail_level.add_theme_color_override("font_color", UITheme.PRIMARY)
+
+	# Level cost label
+	if level_cost_label:
+		level_cost_label.add_theme_font_size_override("font_size", UITheme.FONT_CAPTION)
+
+	# Gear label
+	var gear_label = get_node_or_null("DetailPanel/GearLabel")
+	if gear_label:
+		gear_label.add_theme_font_size_override("font_size", UITheme.FONT_BODY)
+		gear_label.add_theme_color_override("font_color", UITheme.GOLD)
+
+func _style_action_buttons():
+	# Level up button
+	if level_up_btn:
+		level_up_btn.add_theme_stylebox_override("normal", UITheme.create_button_style(UITheme.PRIMARY))
+		level_up_btn.add_theme_stylebox_override("hover", UITheme.create_button_style(UITheme.PRIMARY.lightened(0.15)))
+		level_up_btn.add_theme_stylebox_override("pressed", UITheme.create_button_style(UITheme.PRIMARY.darkened(0.15)))
+		level_up_btn.add_theme_stylebox_override("disabled", UITheme.create_button_style(UITheme.BG_DARK))
+		level_up_btn.add_theme_font_size_override("font_size", UITheme.FONT_BODY)
+		level_up_btn.add_theme_color_override("font_color", UITheme.TEXT_PRIMARY)
+		level_up_btn.add_theme_color_override("font_disabled_color", UITheme.TEXT_DISABLED)
+
+	# Imprint button
+	if imprint_btn:
+		imprint_btn.add_theme_stylebox_override("normal", UITheme.create_button_style(UITheme.SECONDARY))
+		imprint_btn.add_theme_stylebox_override("hover", UITheme.create_button_style(UITheme.SECONDARY.lightened(0.15)))
+		imprint_btn.add_theme_stylebox_override("pressed", UITheme.create_button_style(UITheme.SECONDARY.darkened(0.15)))
+		imprint_btn.add_theme_stylebox_override("disabled", UITheme.create_button_style(UITheme.BG_DARK))
+		imprint_btn.add_theme_font_size_override("font_size", UITheme.FONT_BODY)
+		imprint_btn.add_theme_color_override("font_color", UITheme.TEXT_PRIMARY)
+		imprint_btn.add_theme_color_override("font_disabled_color", UITheme.TEXT_DISABLED)
+
+	# Close button
+	if close_detail_btn:
+		close_detail_btn.add_theme_stylebox_override("normal", UITheme.create_button_style(UITheme.BG_LIGHT))
+		close_detail_btn.add_theme_stylebox_override("hover", UITheme.create_button_style(UITheme.BG_LIGHT.lightened(0.1)))
+		close_detail_btn.add_theme_stylebox_override("pressed", UITheme.create_button_style(UITheme.BG_DARK))
+		close_detail_btn.add_theme_font_size_override("font_size", UITheme.FONT_BODY)
+		close_detail_btn.add_theme_color_override("font_color", UITheme.TEXT_SECONDARY)
+
+	# Cheat buttons
+	if max_level_btn:
+		max_level_btn.add_theme_stylebox_override("normal", UITheme.create_button_style(UITheme.DANGER.darkened(0.5)))
+		max_level_btn.add_theme_stylebox_override("hover", UITheme.create_button_style(UITheme.DANGER.darkened(0.3)))
+		max_level_btn.add_theme_font_size_override("font_size", UITheme.FONT_CAPTION)
+		max_level_btn.add_theme_color_override("font_color", UITheme.DANGER)
+
+	if reset_level_btn:
+		reset_level_btn.add_theme_stylebox_override("normal", UITheme.create_button_style(UITheme.DANGER.darkened(0.5)))
+		reset_level_btn.add_theme_stylebox_override("hover", UITheme.create_button_style(UITheme.DANGER.darkened(0.3)))
+		reset_level_btn.add_theme_font_size_override("font_size", UITheme.FONT_CAPTION)
+		reset_level_btn.add_theme_color_override("font_color", UITheme.DANGER)
+
+	# Cheat label
+	var cheat_label = get_node_or_null("DetailPanel/CheatButtons/CheatLabel")
+	if cheat_label:
+		cheat_label.add_theme_font_size_override("font_size", UITheme.FONT_SMALL)
+		cheat_label.add_theme_color_override("font_color", UITheme.DANGER.darkened(0.3))
+
+func _style_imprint_panel():
+	if not imprint_panel:
+		return
+
+	imprint_panel.add_theme_stylebox_override("panel", UITheme.create_panel_style(UITheme.BG_MEDIUM, UITheme.SECONDARY, UITheme.MODAL_RADIUS))
+
+	var imprint_bg = get_node_or_null("ImprintPanel/ImprintBackground")
+	if imprint_bg:
+		imprint_bg.color = UITheme.BG_MEDIUM
+
+	var imprint_title = get_node_or_null("ImprintPanel/ImprintTitle")
+	if imprint_title:
+		imprint_title.add_theme_font_size_override("font_size", UITheme.FONT_TITLE_MEDIUM)
+		imprint_title.add_theme_color_override("font_color", UITheme.TEXT_PRIMARY)
+
+	var imprint_info = get_node_or_null("ImprintPanel/ImprintInfo")
+	if imprint_info:
+		imprint_info.add_theme_font_size_override("font_size", UITheme.FONT_BODY)
+		imprint_info.add_theme_color_override("font_color", UITheme.TEXT_SECONDARY)
+
+	if cancel_imprint_btn:
+		cancel_imprint_btn.add_theme_stylebox_override("normal", UITheme.create_button_style(UITheme.BG_LIGHT))
+		cancel_imprint_btn.add_theme_stylebox_override("hover", UITheme.create_button_style(UITheme.BG_LIGHT.lightened(0.1)))
+		cancel_imprint_btn.add_theme_font_size_override("font_size", UITheme.FONT_BODY)
+		cancel_imprint_btn.add_theme_color_override("font_color", UITheme.TEXT_SECONDARY)
+
+func _style_confirm_panel():
+	if not confirm_panel:
+		return
+
+	confirm_panel.add_theme_stylebox_override("panel", UITheme.create_panel_style(UITheme.BG_MEDIUM, UITheme.DANGER, UITheme.MODAL_RADIUS))
+
+	var confirm_bg = get_node_or_null("ConfirmPanel/ConfirmBackground")
+	if confirm_bg:
+		confirm_bg.color = UITheme.BG_MEDIUM
+
+	var confirm_title = get_node_or_null("ConfirmPanel/ConfirmTitle")
+	if confirm_title:
+		confirm_title.add_theme_font_size_override("font_size", UITheme.FONT_TITLE_MEDIUM)
+		confirm_title.add_theme_color_override("font_color", UITheme.TEXT_PRIMARY)
+
+	if confirm_message:
+		confirm_message.add_theme_font_size_override("font_size", UITheme.FONT_BODY)
+		confirm_message.add_theme_color_override("font_color", UITheme.TEXT_SECONDARY)
+
+	var warning_label = get_node_or_null("ConfirmPanel/WarningLabel")
+	if warning_label:
+		warning_label.add_theme_font_size_override("font_size", UITheme.FONT_BODY)
+		warning_label.add_theme_color_override("font_color", UITheme.DANGER)
+
+	if confirm_btn:
+		confirm_btn.add_theme_stylebox_override("normal", UITheme.create_button_style(UITheme.DANGER))
+		confirm_btn.add_theme_stylebox_override("hover", UITheme.create_button_style(UITheme.DANGER.lightened(0.15)))
+		confirm_btn.add_theme_font_size_override("font_size", UITheme.FONT_BODY)
+		confirm_btn.add_theme_color_override("font_color", UITheme.TEXT_PRIMARY)
+
+	if cancel_confirm_btn:
+		cancel_confirm_btn.add_theme_stylebox_override("normal", UITheme.create_button_style(UITheme.BG_LIGHT))
+		cancel_confirm_btn.add_theme_stylebox_override("hover", UITheme.create_button_style(UITheme.BG_LIGHT.lightened(0.1)))
+		cancel_confirm_btn.add_theme_font_size_override("font_size", UITheme.FONT_BODY)
+		cancel_confirm_btn.add_theme_color_override("font_color", UITheme.TEXT_SECONDARY)
+
+func _style_gear_select_panel():
+	if not gear_select_panel:
+		return
+
+	gear_select_panel.add_theme_stylebox_override("panel", UITheme.create_panel_style(UITheme.BG_MEDIUM, UITheme.GOLD, UITheme.MODAL_RADIUS))
+
+	var gear_bg = get_node_or_null("GearSelectPanel/GearSelectBackground")
+	if gear_bg:
+		gear_bg.color = UITheme.BG_MEDIUM
+
+	var gear_title = get_node_or_null("GearSelectPanel/GearSelectTitle")
+	if gear_title:
+		gear_title.add_theme_font_size_override("font_size", UITheme.FONT_TITLE_MEDIUM)
+		gear_title.add_theme_color_override("font_color", UITheme.TEXT_PRIMARY)
+
+	if cancel_gear_btn:
+		cancel_gear_btn.add_theme_stylebox_override("normal", UITheme.create_button_style(UITheme.BG_LIGHT))
+		cancel_gear_btn.add_theme_stylebox_override("hover", UITheme.create_button_style(UITheme.BG_LIGHT.lightened(0.1)))
+		cancel_gear_btn.add_theme_font_size_override("font_size", UITheme.FONT_BODY)
+		cancel_gear_btn.add_theme_color_override("font_color", UITheme.TEXT_SECONDARY)
