@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="UnitData" load_steps=2 format=3 uid="uid://b4yn5m2k8p7wx"]
+
+[ext_resource type="Script" path="res://scripts/data/unit_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+unit_name = "Aqua"
+unit_id = "water_mage_001"
+star_rating = 4
+element = "water"
+max_hp = 85
+attack = 30
+defense = 8
+speed = 14
+ability_ids = Array[String](["basic_attack", "tidal_wave", "ice_shield"])
+portrait_color = Color(0.2, 0.5, 0.9, 1)

@@ -1,0 +1,101 @@
+[gd_scene load_steps=2 format=3 uid="uid://d2kram4n7p3wy"]
+
+[ext_resource type="Script" path="res://scripts/battle/unit_display.gd" id="1_unit"]
+
+[node name="UnitDisplay" type="Node2D"]
+script = ExtResource("1_unit")
+
+[node name="Body" type="ColorRect" parent="."]
+mouse_filter = 2
+offset_left = -50.0
+offset_top = -50.0
+offset_right = 50.0
+offset_bottom = 50.0
+color = Color(0.5, 0.5, 0.5, 1)
+
+[node name="ElementRing" type="ColorRect" parent="."]
+mouse_filter = 2
+offset_left = -55.0
+offset_top = -55.0
+offset_right = 55.0
+offset_bottom = -45.0
+color = Color(1, 0.4, 0.2, 1)
+
+[node name="ElementRing2" type="ColorRect" parent="."]
+mouse_filter = 2
+offset_left = -55.0
+offset_top = 45.0
+offset_right = 55.0
+offset_bottom = 55.0
+color = Color(1, 0.4, 0.2, 1)
+
+[node name="ElementRing3" type="ColorRect" parent="."]
+mouse_filter = 2
+offset_left = -55.0
+offset_top = -55.0
+offset_right = -45.0
+offset_bottom = 55.0
+color = Color(1, 0.4, 0.2, 1)
+
+[node name="ElementRing4" type="ColorRect" parent="."]
+mouse_filter = 2
+offset_left = 45.0
+offset_top = -55.0
+offset_right = 55.0
+offset_bottom = 55.0
+color = Color(1, 0.4, 0.2, 1)
+
+[node name="StarLabel" type="Label" parent="."]
+mouse_filter = 2
+offset_left = -50.0
+offset_top = -45.0
+offset_right = 50.0
+offset_bottom = -25.0
+horizontal_alignment = 1
+vertical_alignment = 1
+text = "★★★"
+
+[node name="NameLabel" type="Label" parent="."]
+mouse_filter = 2
+offset_left = -50.0
+offset_top = 25.0
+offset_right = 50.0
+offset_bottom = 50.0
+horizontal_alignment = 1
+vertical_alignment = 1
+text = "Unit"
+
+[node name="HPBar" type="ColorRect" parent="."]
+mouse_filter = 2
+offset_left = -45.0
+offset_top = 55.0
+offset_right = 45.0
+offset_bottom = 65.0
+color = Color(0.2, 0.2, 0.2, 1)
+
+[node name="HPFill" type="ColorRect" parent="HPBar"]
+mouse_filter = 2
+offset_left = 0.0
+offset_top = 0.0
+offset_right = 90.0
+offset_bottom = 10.0
+color = Color(0.2, 0.8, 0.2, 1)
+
+[node name="CooldownOverlay" type="ColorRect" parent="."]
+visible = false
+mouse_filter = 2
+offset_left = -50.0
+offset_top = -50.0
+offset_right = 50.0
+offset_bottom = 50.0
+color = Color(0, 0, 0, 0.6)
+
+[node name="CooldownLabel" type="Label" parent="CooldownOverlay"]
+mouse_filter = 2
+offset_left = 0.0
+offset_top = 30.0
+offset_right = 100.0
+offset_bottom = 70.0
+horizontal_alignment = 1
+vertical_alignment = 1
+text = "CD"

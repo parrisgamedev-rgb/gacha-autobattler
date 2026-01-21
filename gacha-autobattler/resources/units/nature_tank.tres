@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="UnitData" load_steps=2 format=3 uid="uid://d8zp6n3k9q5ty"]
+
+[ext_resource type="Script" path="res://scripts/data/unit_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+unit_name = "Gaia"
+unit_id = "nature_tank_001"
+star_rating = 5
+element = "nature"
+max_hp = 150
+attack = 18
+defense = 20
+speed = 8
+ability_ids = Array[String](["basic_attack", "vine_whip", "earth_wall"])
+portrait_color = Color(0.3, 0.7, 0.3, 1)
