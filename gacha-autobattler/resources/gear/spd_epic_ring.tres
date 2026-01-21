@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="GearData" load_steps=2 format=3 uid="uid://gear_spd_epic_flat"]
+
+[ext_resource type="Script" path="res://scripts/data/gear_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+gear_id = "spd_epic_flat"
+gear_name = "Gale Circlet"
+gear_type = 2
+rarity = 2
+stat_type = 3
+is_percentage = false
+base_value = 10.0

@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="GearData" load_steps=2 format=3 uid="uid://gear_hp_epic_pct"]
+
+[ext_resource type="Script" path="res://scripts/data/gear_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+gear_id = "hp_epic_pct"
+gear_name = "Vitality Charm"
+gear_type = 2
+rarity = 2
+stat_type = 0
+is_percentage = true
+base_value = 5.0

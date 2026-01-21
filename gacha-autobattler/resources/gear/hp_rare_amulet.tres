@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="GearData" load_steps=2 format=3 uid="uid://gear_hp_rare_flat"]
+
+[ext_resource type="Script" path="res://scripts/data/gear_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+gear_id = "hp_rare_flat"
+gear_name = "Silver Pendant"
+gear_type = 2
+rarity = 1
+stat_type = 0
+is_percentage = false
+base_value = 100.0

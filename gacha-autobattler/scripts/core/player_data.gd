@@ -584,8 +584,29 @@ func add_gear_to_inventory(gear_data: GearData) -> Dictionary:
 func get_gear_by_instance_id(instance_id: String) -> Dictionary:
 	for gear in owned_gear:
 		if gear.instance_id == instance_id:
-			return gear
+			# Return with gear_id for template lookup
+			var result = gear.duplicate()
+			result["gear_id"] = (gear.gear_data as GearData).gear_id
+			return result
 	return {}
+
+func get_gear_template(gear_id: String) -> GearData:
+	# Find the gear template by gear_id
+	for stat_type in gear_templates:
+		for rarity in gear_templates[stat_type]:
+			for gear in gear_templates[stat_type][rarity]:
+				if gear.gear_id == gear_id:
+					return gear
+	return null
+
+func get_gear_equipped_unit(gear_instance_id: String) -> String:
+	for gear in owned_gear:
+		if gear.instance_id == gear_instance_id:
+			return gear.equipped_to
+	return ""
+
+func get_owned_unit(instance_id: String) -> Dictionary:
+	return get_unit_by_instance_id(instance_id)
 
 func get_equipped_gear(unit_instance_id: String) -> Array:
 	var equipped = []
@@ -601,92 +622,115 @@ func get_unequipped_gear() -> Array:
 			unequipped.append(gear)
 	return unequipped
 
-func equip_gear(gear_instance_id: String, unit_instance_id: String) -> bool:
-	var gear = get_gear_by_instance_id(gear_instance_id)
-	var unit = get_unit_by_instance_id(unit_instance_id)
+func equip_gear(unit_instance_id: String, gear_instance_id: String, slot_key: String = "") -> bool:
+	# Find unit and gear
+	var unit_idx = -1
+	for i in range(owned_units.size()):
+		if owned_units[i].instance_id == unit_instance_id:
+			unit_idx = i
+			break
 
-	if gear.is_empty() or unit.is_empty():
+	if unit_idx == -1:
 		return false
 
-	var gear_data = gear.gear_data as GearData
-
-	# Check if unit already has gear in this slot
-	var equipped = get_equipped_gear(unit_instance_id)
-	for eq in equipped:
-		var eq_data = eq.gear_data as GearData
-		# Weapons go in weapon slot, armor in armor, accessories can stack (2 max)
-		if gear_data.gear_type == eq_data.gear_type:
-			if gear_data.gear_type != GearData.GearType.ACCESSORY:
-				print("Slot already occupied!")
-				return false
-			else:
-				# Count accessories
-				var acc_count = 0
-				for e in equipped:
-					if (e.gear_data as GearData).gear_type == GearData.GearType.ACCESSORY:
-						acc_count += 1
-				if acc_count >= 2:
-					print("Max accessories equipped!")
-					return false
-
-	# Unequip from previous owner if any
-	if gear.equipped_to != "":
-		unequip_gear(gear_instance_id)
-
-	# Equip to new owner
+	var gear_idx = -1
 	for i in range(owned_gear.size()):
 		if owned_gear[i].instance_id == gear_instance_id:
-			owned_gear[i].equipped_to = unit_instance_id
-			print("Equipped ", gear_data.gear_name, " to ", unit.unit_data.unit_name)
-			save_game()
-			return true
+			gear_idx = i
+			break
 
+	if gear_idx == -1:
+		return false
+
+	var gear_data = owned_gear[gear_idx].gear_data as GearData
+
+	# Initialize equipped_gear dict if needed
+	if not owned_units[unit_idx].has("equipped_gear"):
+		owned_units[unit_idx]["equipped_gear"] = {}
+
+	# Unequip any gear currently in this slot
+	var current_gear_in_slot = owned_units[unit_idx].equipped_gear.get(slot_key, "")
+	if current_gear_in_slot != "":
+		unequip_gear(unit_instance_id, slot_key)
+
+	# Unequip gear from previous owner if it was equipped elsewhere
+	if owned_gear[gear_idx].equipped_to != "":
+		var old_owner = owned_gear[gear_idx].equipped_to
+		# Find which slot it was in on the old owner
+		for i in range(owned_units.size()):
+			if owned_units[i].instance_id == old_owner:
+				if owned_units[i].has("equipped_gear"):
+					for key in owned_units[i].equipped_gear.keys():
+						if owned_units[i].equipped_gear[key] == gear_instance_id:
+							owned_units[i].equipped_gear[key] = ""
+							break
+				break
+
+	# Equip gear
+	owned_gear[gear_idx].equipped_to = unit_instance_id
+	owned_units[unit_idx].equipped_gear[slot_key] = gear_instance_id
+
+	print("Equipped ", gear_data.gear_name, " to slot ", slot_key)
+	save_game()
+	return true
+
+func unequip_gear(unit_instance_id: String, slot_key: String) -> bool:
+	# Find unit
+	for i in range(owned_units.size()):
+		if owned_units[i].instance_id == unit_instance_id:
+			if owned_units[i].has("equipped_gear"):
+				var gear_id = owned_units[i].equipped_gear.get(slot_key, "")
+				if gear_id != "":
+					# Clear the gear's equipped_to
+					for j in range(owned_gear.size()):
+						if owned_gear[j].instance_id == gear_id:
+							owned_gear[j].equipped_to = ""
+							break
+					# Clear the slot
+					owned_units[i].equipped_gear[slot_key] = ""
+					print("Unequipped gear from slot ", slot_key)
+					save_game()
+					return true
+			break
 	return false
 
-func unequip_gear(gear_instance_id: String) -> bool:
-	for i in range(owned_gear.size()):
-		if owned_gear[i].instance_id == gear_instance_id:
-			owned_gear[i].equipped_to = ""
-			print("Unequipped ", (owned_gear[i].gear_data as GearData).gear_name)
-			save_game()
-			return true
-	return false
-
-func can_enhance_gear(gear_instance_id: String) -> Dictionary:
+func can_enhance_gear(gear_instance_id: String) -> bool:
 	var gear = get_gear_by_instance_id(gear_instance_id)
 	if gear.is_empty():
-		return {"can_enhance": false, "reason": "Gear not found"}
+		return false
 
-	var gear_data = gear.gear_data as GearData
+	var template = get_gear_template(gear.gear_id)
+	if template == null:
+		return false
+
 	var current_level = gear.level
-	var max_level = gear_data.get_max_level()
+	var max_level = template.get_max_level()
 
 	if current_level >= max_level:
-		return {"can_enhance": false, "reason": "Already at max level"}
+		return false
 
-	var cost = gear_data.get_enhance_cost(current_level)
+	var cost = template.get_enhance_cost(current_level)
 
 	if gold < cost.gold:
-		return {"can_enhance": false, "reason": "Not enough gold", "cost": cost}
+		return false
 	if enhancement_stones < cost.stones:
-		return {"can_enhance": false, "reason": "Not enough stones", "cost": cost}
+		return false
 
-	return {"can_enhance": true, "cost": cost}
+	return true
 
 func enhance_gear(gear_instance_id: String) -> bool:
-	var check = can_enhance_gear(gear_instance_id)
-	if not check.can_enhance:
-		print("Cannot enhance: ", check.reason)
+	if not can_enhance_gear(gear_instance_id):
+		print("Cannot enhance gear")
 		return false
 
 	for i in range(owned_gear.size()):
 		if owned_gear[i].instance_id == gear_instance_id:
-			var cost = check.cost
+			var gear_data = owned_gear[i].gear_data as GearData
+			var cost = gear_data.get_enhance_cost(owned_gear[i].level)
 			gold -= cost.gold
 			enhancement_stones -= cost.stones
 			owned_gear[i].level += 1
 
-			var gear_data = owned_gear[i].gear_data as GearData
 			print("Enhanced ", gear_data.gear_name, " to +", owned_gear[i].level)
 			save_game()
 			return true
@@ -697,29 +741,61 @@ func add_enhancement_stones(amount: int):
 	enhancement_stones += amount
 	print("+", amount, " Enhancement Stones (Total: ", enhancement_stones, ")")
 
-# Calculate gear stat bonuses for a unit
-func get_gear_bonuses(unit_instance_id: String) -> Dictionary:
+# Calculate gear stat bonuses for a unit (can accept unit instance_id or gear instance_id)
+func get_gear_bonuses(id: String) -> Dictionary:
 	var bonuses = {
 		"flat_hp": 0, "flat_attack": 0, "flat_defense": 0, "flat_speed": 0,
 		"percent_hp": 0.0, "percent_attack": 0.0, "percent_defense": 0.0, "percent_speed": 0.0
 	}
 
-	var equipped = get_equipped_gear(unit_instance_id)
-	for gear in equipped:
-		var gear_data = gear.gear_data as GearData
-		var stat_value = gear_data.get_stat_at_level(gear.level)
+	# Check if this is a gear instance ID (starts with 'g')
+	if id.begins_with("g"):
+		var gear = get_gear_by_instance_id(id)
+		if gear.is_empty():
+			return bonuses
+		var template = get_gear_template(gear.gear_id)
+		if template == null:
+			return bonuses
 
+		var stat_value = template.get_stat_at_level(gear.level)
 		var stat_key = ""
-		match gear_data.stat_type:
+		match template.stat_type:
 			GearData.StatType.HP: stat_key = "hp"
 			GearData.StatType.ATTACK: stat_key = "attack"
 			GearData.StatType.DEFENSE: stat_key = "defense"
 			GearData.StatType.SPEED: stat_key = "speed"
 
-		if gear_data.is_percentage:
-			bonuses["percent_" + stat_key] += stat_value / 100.0  # Convert to decimal
+		if template.is_percentage:
+			bonuses["percent_" + stat_key] += stat_value / 100.0
 		else:
 			bonuses["flat_" + stat_key] += int(stat_value)
+		return bonuses
+
+	# Otherwise, treat as unit instance ID and sum all equipped gear
+	var unit = get_unit_by_instance_id(id)
+	if unit.is_empty():
+		return bonuses
+
+	var equipped_gear = unit.get("equipped_gear", {})
+	for slot_key in equipped_gear:
+		var gear_instance_id = equipped_gear[slot_key]
+		if gear_instance_id != "":
+			var gear = get_gear_by_instance_id(gear_instance_id)
+			if not gear.is_empty():
+				var template = get_gear_template(gear.gear_id)
+				if template:
+					var stat_value = template.get_stat_at_level(gear.level)
+					var stat_key = ""
+					match template.stat_type:
+						GearData.StatType.HP: stat_key = "hp"
+						GearData.StatType.ATTACK: stat_key = "attack"
+						GearData.StatType.DEFENSE: stat_key = "defense"
+						GearData.StatType.SPEED: stat_key = "speed"
+
+					if template.is_percentage:
+						bonuses["percent_" + stat_key] += stat_value / 100.0
+					else:
+						bonuses["flat_" + stat_key] += int(stat_value)
 
 	return bonuses
 

@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="DungeonData" load_steps=6 format=3 uid="uid://dungeon_wind_temple"]
+
+[ext_resource type="Script" path="res://scripts/data/dungeon_data.gd" id="1_script"]
+[ext_resource type="Resource" uid="uid://shadow_scout_001" path="res://resources/units/shadow_scout.tres" id="2_unit"]
+[ext_resource type="Resource" uid="uid://fire_imp_001" path="res://resources/units/fire_imp.tres" id="3_unit"]
+[ext_resource type="Resource" uid="uid://water_sprite_001" path="res://resources/units/water_sprite.tres" id="4_unit"]
+[ext_resource type="Resource" uid="uid://nature_wisp_001" path="res://resources/units/nature_wisp.tres" id="5_unit"]
+
+[resource]
+script = ExtResource("1_script")
+dungeon_id = "wind_temple"
+dungeon_name = "Wind Temple"
+description = "Swift spirits guard this ancient temple. Drops SPD gear."
+drops_stat_type = 3
+enemy_units = Array[Resource]([ExtResource("2_unit"), ExtResource("3_unit"), ExtResource("4_unit"), ExtResource("5_unit")])
+tier_enemy_levels = Array[int]([3, 6, 10])
+tier_names = Array[String](["Easy", "Normal", "Hard"])

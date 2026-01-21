@@ -1,0 +1,149 @@
+[gd_scene load_steps=2 format=3 uid="uid://dungeon_select_001"]
+
+[ext_resource type="Script" path="res://scripts/ui/dungeon_select_screen.gd" id="1_script"]
+
+[node name="DungeonSelectScreen" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_script")
+
+[node name="Background" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.06, 0.06, 0.1, 1)
+
+[node name="TopBar" type="HBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_left = 20.0
+offset_top = 20.0
+offset_right = -20.0
+offset_bottom = 70.0
+grow_horizontal = 2
+
+[node name="BackButton" type="Button" parent="TopBar"]
+custom_minimum_size = Vector2(120, 50)
+layout_mode = 2
+text = "< BACK"
+
+[node name="Spacer" type="Control" parent="TopBar"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="Title" type="Label" parent="TopBar"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 36
+text = "GEAR DUNGEONS"
+vertical_alignment = 1
+
+[node name="Spacer2" type="Control" parent="TopBar"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="StonesLabel" type="Label" parent="TopBar"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+theme_override_colors/font_color = Color(0.8, 0.6, 1, 1)
+text = "0 Stones"
+vertical_alignment = 1
+
+[node name="ScrollContainer" type="ScrollContainer" parent="."]
+layout_mode = 1
+anchors_preset = -1
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 20.0
+offset_top = 90.0
+offset_right = -420.0
+offset_bottom = -20.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="DungeonsContainer" type="HBoxContainer" parent="ScrollContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 0
+theme_override_constants/separation = 20
+
+[node name="DungeonInfoPanel" type="Panel" parent="."]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -400.0
+offset_top = 90.0
+offset_right = -20.0
+offset_bottom = -20.0
+grow_horizontal = 0
+grow_vertical = 2
+
+[node name="PanelBg" type="ColorRect" parent="DungeonInfoPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.1, 0.1, 0.18, 1)
+
+[node name="VBox" type="VBoxContainer" parent="DungeonInfoPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 20.0
+offset_top = 20.0
+offset_right = -20.0
+offset_bottom = -20.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 15
+
+[node name="InfoTitle" type="Label" parent="DungeonInfoPanel/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+text = "Dungeon Info"
+horizontal_alignment = 1
+
+[node name="Separator" type="HSeparator" parent="DungeonInfoPanel/VBox"]
+layout_mode = 2
+
+[node name="DungeonNameLabel" type="Label" parent="DungeonInfoPanel/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 22
+text = "Power Sanctum"
+
+[node name="DescriptionLabel" type="Label" parent="DungeonInfoPanel/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.8, 0.8, 0.9, 1)
+text = "Dungeon description..."
+autowrap_mode = 2
+
+[node name="DropsLabel" type="Label" parent="DungeonInfoPanel/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.5, 1, 0.5, 1)
+text = "Drops: ATK gear + Enhancement Stones"
+
+[node name="Separator2" type="HSeparator" parent="DungeonInfoPanel/VBox"]
+layout_mode = 2
+
+[node name="TierTitle" type="Label" parent="DungeonInfoPanel/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "Select Difficulty"
+horizontal_alignment = 1
+
+[node name="TierButtons" type="VBoxContainer" parent="DungeonInfoPanel/VBox"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 10

@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="GearData" load_steps=2 format=3 uid="uid://gear_def_epic_pct"]
+
+[ext_resource type="Script" path="res://scripts/data/gear_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+gear_id = "def_epic_pct"
+gear_name = "Guardian's Resolve"
+gear_type = 1
+rarity = 2
+stat_type = 2
+is_percentage = true
+base_value = 5.0

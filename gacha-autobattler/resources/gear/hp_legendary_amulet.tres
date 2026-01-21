@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="GearData" load_steps=2 format=3 uid="uid://gear_hp_legendary_flat"]
+
+[ext_resource type="Script" path="res://scripts/data/gear_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+gear_id = "hp_legendary_flat"
+gear_name = "Heart of the Titan"
+gear_type = 2
+rarity = 3
+stat_type = 0
+is_percentage = false
+base_value = 300.0

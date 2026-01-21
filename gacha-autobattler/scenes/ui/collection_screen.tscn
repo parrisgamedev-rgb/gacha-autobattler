@@ -95,9 +95,9 @@ anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
 offset_left = -280.0
-offset_top = -250.0
+offset_top = -300.0
 offset_right = 280.0
-offset_bottom = 250.0
+offset_bottom = 300.0
 grow_horizontal = 2
 grow_vertical = 2
 
@@ -202,6 +202,30 @@ theme_override_colors/font_color = Color(0.7, 0.7, 0.8, 1)
 text = "Cost: 50 Gold, 2 Materials"
 horizontal_alignment = 1
 
+[node name="GearLabel" type="Label" parent="DetailPanel"]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_top = 345.0
+offset_bottom = 370.0
+grow_horizontal = 2
+theme_override_font_sizes/font_size = 16
+theme_override_colors/font_color = Color(0.8, 0.7, 0.5, 1)
+text = "Equipped Gear:"
+horizontal_alignment = 1
+
+[node name="GearSlotsContainer" type="HBoxContainer" parent="DetailPanel"]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_left = 20.0
+offset_top = 375.0
+offset_right = -20.0
+offset_bottom = 430.0
+grow_horizontal = 2
+alignment = 1
+theme_override_constants/separation = 10
+
 [node name="LevelUpButton" type="Button" parent="DetailPanel"]
 layout_mode = 1
 anchors_preset = 12
@@ -209,9 +233,9 @@ anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
 offset_left = 20.0
-offset_top = -120.0
+offset_top = -130.0
 offset_right = -290.0
-offset_bottom = -75.0
+offset_bottom = -85.0
 grow_horizontal = 2
 grow_vertical = 0
 text = "LEVEL UP"
@@ -223,9 +247,9 @@ anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
 offset_left = 200.0
-offset_top = -120.0
+offset_top = -130.0
 offset_right = -200.0
-offset_bottom = -75.0
+offset_bottom = -85.0
 grow_horizontal = 2
 grow_vertical = 0
 text = "IMPRINT"
@@ -237,9 +261,9 @@ anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
 offset_left = 290.0
-offset_top = -120.0
+offset_top = -130.0
 offset_right = -20.0
-offset_bottom = -75.0
+offset_bottom = -85.0
 grow_horizontal = 2
 grow_vertical = 0
 text = "CLOSE"
@@ -251,9 +275,9 @@ anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
 offset_left = 20.0
-offset_top = -60.0
+offset_top = -70.0
 offset_right = -20.0
-offset_bottom = -15.0
+offset_bottom = -25.0
 grow_horizontal = 2
 grow_vertical = 0
 alignment = 1
@@ -446,3 +470,72 @@ layout_mode = 2
 custom_minimum_size = Vector2(150, 45)
 layout_mode = 2
 text = "CONFIRM"
+
+[node name="GearSelectPanel" type="Panel" parent="."]
+visible = false
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -300.0
+offset_top = -250.0
+offset_right = 300.0
+offset_bottom = 250.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="GearSelectBackground" type="ColorRect" parent="GearSelectPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.1, 0.12, 0.15, 1)
+
+[node name="GearSelectTitle" type="Label" parent="GearSelectPanel"]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_top = 15.0
+offset_bottom = 55.0
+grow_horizontal = 2
+theme_override_font_sizes/font_size = 24
+text = "Select Gear to Equip"
+horizontal_alignment = 1
+
+[node name="ScrollContainer" type="ScrollContainer" parent="GearSelectPanel"]
+layout_mode = 1
+anchors_preset = -1
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 20.0
+offset_top = 70.0
+offset_right = -20.0
+offset_bottom = -70.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="GearGrid" type="GridContainer" parent="GearSelectPanel/ScrollContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/h_separation = 15
+theme_override_constants/v_separation = 15
+columns = 4
+
+[node name="CancelButton" type="Button" parent="GearSelectPanel"]
+layout_mode = 1
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 200.0
+offset_top = -55.0
+offset_right = -200.0
+offset_bottom = -15.0
+grow_horizontal = 2
+grow_vertical = 0
+text = "CANCEL"

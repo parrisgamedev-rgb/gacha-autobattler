@@ -2,6 +2,49 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.4] - Gear System
+
+### Added
+- **Gear System**
+  - Units can equip gear in 4 slots: Weapon, Armor, Accessory 1, Accessory 2
+  - Gear provides flat or percentage bonuses to HP, ATK, DEF, or SPD
+  - 4 rarity tiers: Common (gray), Rare (blue), Epic (purple), Legendary (gold)
+  - Each rarity has different max enhancement levels: +6, +9, +12, +15
+  - Gear stats scale with enhancement level
+
+- **Gear Enhancement**
+  - Level up gear using Gold and Enhancement Stones
+  - Enhancement costs scale with gear rarity
+  - View and enhance gear from the Gear Inventory screen
+
+- **Gear Dungeons**
+  - 4 dungeons, each dropping gear for a specific stat:
+    - Power Sanctum (ATK gear)
+    - Fortress Ruins (DEF gear)
+    - Vitality Caves (HP gear)
+    - Wind Temple (SPD gear)
+  - 3 difficulty tiers: Easy, Normal, Hard
+  - Higher difficulty = better gear drop rates + more Enhancement Stones
+  - No stamina cost (unlimited runs for testing/early development)
+
+- **New Currency**
+  - Enhancement Stones: Used to enhance gear, dropped from dungeons
+  - Starting amount: 50 stones
+
+- **UI Changes**
+  - Main menu: Added "DUNGEONS" and "GEAR" buttons
+  - Collection screen: Units now show equipped gear, click gear slots to equip
+  - Gear Inventory screen: View all gear, filter by type, enhance gear
+  - Dungeon Select screen: Choose dungeon and difficulty tier
+  - Currency display now shows Enhancement Stones
+
+### Changed
+- Battle system supports dungeon mode with randomized enemies
+- Victory in dungeons grants gear drops and Enhancement Stones
+- Unit stats now include gear bonuses in battle calculation
+
+---
+
 ## [0.3] - Unit Level System
 
 ### Added

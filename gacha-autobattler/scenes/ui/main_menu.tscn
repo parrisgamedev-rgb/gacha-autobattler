@@ -56,6 +56,13 @@ size_flags_horizontal = 4
 theme_override_font_sizes/font_size = 28
 text = "CAMPAIGN"
 
+[node name="DungeonsButton" type="Button" parent="CenterContainer/VBoxContainer"]
+custom_minimum_size = Vector2(300, 60)
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_font_sizes/font_size = 28
+text = "DUNGEONS"
+
 [node name="StartButton" type="Button" parent="CenterContainer/VBoxContainer"]
 custom_minimum_size = Vector2(300, 60)
 layout_mode = 2
@@ -77,6 +84,13 @@ size_flags_horizontal = 4
 theme_override_font_sizes/font_size = 28
 text = "SUMMON"
 
+[node name="GearButton" type="Button" parent="CenterContainer/VBoxContainer"]
+custom_minimum_size = Vector2(300, 60)
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_font_sizes/font_size = 28
+text = "GEAR"
+
 [node name="CollectionButton" type="Button" parent="CenterContainer/VBoxContainer"]
 custom_minimum_size = Vector2(300, 60)
 layout_mode = 2
@@ -94,5 +108,5 @@ offset_top = -40.0
 grow_horizontal = 2
 grow_vertical = 0
 theme_override_colors/font_color = Color(0.4, 0.4, 0.5, 1)
-text = "v0.2 - Development Build"
+text = "v0.4 - Development Build"
 horizontal_alignment = 1

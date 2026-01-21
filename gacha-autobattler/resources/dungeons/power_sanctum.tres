@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="DungeonData" load_steps=6 format=3 uid="uid://dungeon_power_sanctum"]
+
+[ext_resource type="Script" path="res://scripts/data/dungeon_data.gd" id="1_script"]
+[ext_resource type="Resource" uid="uid://c7xm3k8n2p4ry" path="res://resources/units/fire_warrior.tres" id="2_unit"]
+[ext_resource type="Resource" uid="uid://fire_imp_001" path="res://resources/units/fire_imp.tres" id="3_unit"]
+[ext_resource type="Resource" uid="uid://dark_knight_001" path="res://resources/units/dark_knight.tres" id="4_unit"]
+[ext_resource type="Resource" uid="uid://radiant_paladin_001" path="res://resources/units/radiant_paladin.tres" id="5_unit"]
+
+[resource]
+script = ExtResource("1_script")
+dungeon_id = "power_sanctum"
+dungeon_name = "Power Sanctum"
+description = "A temple where ancient warriors trained. Drops ATK gear."
+drops_stat_type = 1
+enemy_units = Array[Resource]([ExtResource("2_unit"), ExtResource("3_unit"), ExtResource("4_unit"), ExtResource("5_unit")])
+tier_enemy_levels = Array[int]([3, 6, 10])
+tier_names = Array[String](["Easy", "Normal", "Hard"])

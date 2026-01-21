@@ -1,0 +1,219 @@
+[gd_scene load_steps=2 format=3 uid="uid://gear_inventory_001"]
+
+[ext_resource type="Script" path="res://scripts/ui/gear_inventory_screen.gd" id="1_script"]
+
+[node name="GearInventoryScreen" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_script")
+
+[node name="Background" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.06, 0.06, 0.1, 1)
+
+[node name="TopBar" type="HBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_left = 20.0
+offset_top = 20.0
+offset_right = -20.0
+offset_bottom = 70.0
+grow_horizontal = 2
+
+[node name="BackButton" type="Button" parent="TopBar"]
+custom_minimum_size = Vector2(120, 50)
+layout_mode = 2
+text = "< BACK"
+
+[node name="Spacer" type="Control" parent="TopBar"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="Title" type="Label" parent="TopBar"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 36
+text = "GEAR INVENTORY"
+vertical_alignment = 1
+
+[node name="Spacer2" type="Control" parent="TopBar"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="CurrencyLabel" type="Label" parent="TopBar"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 16
+theme_override_colors/font_color = Color(0.8, 0.8, 0.5, 1)
+text = "0 Gold | 0 Stones"
+vertical_alignment = 1
+
+[node name="FilterBar" type="HBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_left = 20.0
+offset_top = 80.0
+offset_right = -20.0
+offset_bottom = 120.0
+grow_horizontal = 2
+theme_override_constants/separation = 10
+
+[node name="FilterLabel" type="Label" parent="FilterBar"]
+layout_mode = 2
+text = "Filter:"
+vertical_alignment = 1
+
+[node name="AllButton" type="Button" parent="FilterBar"]
+custom_minimum_size = Vector2(80, 35)
+layout_mode = 2
+disabled = true
+text = "ALL"
+
+[node name="WeaponButton" type="Button" parent="FilterBar"]
+custom_minimum_size = Vector2(100, 35)
+layout_mode = 2
+text = "WEAPON"
+
+[node name="ArmorButton" type="Button" parent="FilterBar"]
+custom_minimum_size = Vector2(100, 35)
+layout_mode = 2
+text = "ARMOR"
+
+[node name="AccessoryButton" type="Button" parent="FilterBar"]
+custom_minimum_size = Vector2(120, 35)
+layout_mode = 2
+text = "ACCESSORY"
+
+[node name="ScrollContainer" type="ScrollContainer" parent="."]
+layout_mode = 1
+anchors_preset = -1
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 20.0
+offset_top = 130.0
+offset_right = -20.0
+offset_bottom = -20.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="GearGrid" type="GridContainer" parent="ScrollContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/h_separation = 15
+theme_override_constants/v_separation = 15
+columns = 7
+
+[node name="DetailPanel" type="Panel" parent="."]
+visible = false
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -200.0
+offset_top = -220.0
+offset_right = 200.0
+offset_bottom = 220.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="DetailBackground" type="ColorRect" parent="DetailPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.1, 0.1, 0.15, 1)
+
+[node name="VBox" type="VBoxContainer" parent="DetailPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 20.0
+offset_top = 20.0
+offset_right = -20.0
+offset_bottom = -20.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 15
+
+[node name="TitleLabel" type="Label" parent="DetailPanel/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 20
+text = "Gear Details"
+horizontal_alignment = 1
+
+[node name="Separator" type="HSeparator" parent="DetailPanel/VBox"]
+layout_mode = 2
+
+[node name="GearNameLabel" type="Label" parent="DetailPanel/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+text = "Iron Sword"
+horizontal_alignment = 1
+
+[node name="GearTypeLabel" type="Label" parent="DetailPanel/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.7, 0.7, 0.8, 1)
+text = "Weapon"
+horizontal_alignment = 1
+
+[node name="GearStatLabel" type="Label" parent="DetailPanel/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 22
+theme_override_colors/font_color = Color(0.5, 1, 0.5, 1)
+text = "ATK: +15"
+horizontal_alignment = 1
+
+[node name="GearLevelLabel" type="Label" parent="DetailPanel/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "Level: +0/6"
+horizontal_alignment = 1
+
+[node name="EnhanceCostLabel" type="Label" parent="DetailPanel/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.8, 0.8, 0.5, 1)
+text = "Cost: 100 Gold, 2 Stones"
+horizontal_alignment = 1
+
+[node name="EquippedLabel" type="Label" parent="DetailPanel/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.8, 0.3, 1)
+text = "Equipped: Kael"
+horizontal_alignment = 1
+
+[node name="Spacer" type="Control" parent="DetailPanel/VBox"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="ButtonContainer" type="HBoxContainer" parent="DetailPanel/VBox"]
+layout_mode = 2
+alignment = 1
+
+[node name="EnhanceButton" type="Button" parent="DetailPanel/VBox/ButtonContainer"]
+custom_minimum_size = Vector2(140, 50)
+layout_mode = 2
+text = "ENHANCE"
+
+[node name="Spacer" type="Control" parent="DetailPanel/VBox/ButtonContainer"]
+custom_minimum_size = Vector2(20, 0)
+layout_mode = 2
+
+[node name="CloseButton" type="Button" parent="DetailPanel/VBox/ButtonContainer"]
+custom_minimum_size = Vector2(140, 50)
+layout_mode = 2
+text = "CLOSE"

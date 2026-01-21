@@ -22,7 +22,7 @@ func _ready():
 	back_btn.pressed.connect(_on_back)
 	start_btn.pressed.connect(_on_start)
 	_populate_units()
-	_setup_campaign_ui()
+	_setup_mode_ui()
 	_update_ui()
 
 func _populate_units():
@@ -210,11 +210,14 @@ func _on_back():
 	if PlayerData.is_campaign_mode():
 		PlayerData.end_campaign_stage()
 		get_tree().change_scene_to_file("res://scenes/ui/campaign_select_screen.tscn")
+	elif PlayerData.is_dungeon_mode():
+		PlayerData.end_dungeon()
+		get_tree().change_scene_to_file("res://scenes/ui/dungeon_select_screen.tscn")
 	else:
 		get_tree().change_scene_to_file("res://scenes/ui/main_menu.tscn")
 
-func _setup_campaign_ui():
-	# Show/hide campaign-specific UI based on mode
+func _setup_mode_ui():
+	# Show/hide mode-specific UI
 	if PlayerData.is_campaign_mode():
 		var stage = PlayerData.current_stage
 		if stage and title_label:
@@ -227,6 +230,20 @@ func _setup_campaign_ui():
 		if stage_info_panel:
 			stage_info_panel.visible = true
 			_update_stage_info_panel(stage)
+	elif PlayerData.is_dungeon_mode():
+		var dungeon = PlayerData.current_dungeon
+		var tier = PlayerData.current_dungeon_tier
+		if dungeon and title_label:
+			var tier_name = dungeon.tier_names[tier] if tier < dungeon.tier_names.size() else "Unknown"
+			title_label.text = dungeon.dungeon_name + " - " + tier_name
+
+		if start_btn:
+			start_btn.text = "START DUNGEON"
+
+		# Show dungeon info panel
+		if stage_info_panel:
+			stage_info_panel.visible = true
+			_update_dungeon_info_panel(dungeon, tier)
 	else:
 		if title_label:
 			title_label.text = "SELECT YOUR TEAM"
@@ -262,3 +279,34 @@ func _update_stage_info_panel(stage):
 
 	if enemies_label:
 		enemies_label.text = "Enemies: " + str(stage.enemy_units.size()) + " units (Lv." + str(stage.enemy_level) + ")"
+
+func _update_dungeon_info_panel(dungeon, tier: int):
+	if dungeon == null or stage_info_panel == null:
+		return
+
+	var stage_label = stage_info_panel.get_node_or_null("VBox/StageLabel")
+	var difficulty_label = stage_info_panel.get_node_or_null("VBox/DifficultyLabel")
+	var rewards_label = stage_info_panel.get_node_or_null("VBox/RewardsLabel")
+	var enemies_label = stage_info_panel.get_node_or_null("VBox/EnemiesLabel")
+
+	var tier_name = dungeon.tier_names[tier] if tier < dungeon.tier_names.size() else "Unknown"
+	var enemy_level = dungeon.get_enemy_level(tier)
+	var stone_range = dungeon.get_stone_drop_range(tier)
+
+	if stage_label:
+		stage_label.text = dungeon.dungeon_name + " - " + tier_name
+
+	if difficulty_label:
+		var stat_name = ""
+		match dungeon.drops_stat_type:
+			GearData.StatType.ATTACK: stat_name = "ATK"
+			GearData.StatType.DEFENSE: stat_name = "DEF"
+			GearData.StatType.HP: stat_name = "HP"
+			GearData.StatType.SPEED: stat_name = "SPD"
+		difficulty_label.text = "Drops: " + stat_name + " Gear"
+
+	if rewards_label:
+		rewards_label.text = "Stones: " + str(stone_range[0]) + "-" + str(stone_range[1])
+
+	if enemies_label:
+		enemies_label.text = "Enemies: Lv." + str(enemy_level)

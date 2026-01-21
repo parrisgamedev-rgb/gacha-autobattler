@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="GearData" load_steps=2 format=3 uid="uid://gear_atk_common_flat"]
+
+[ext_resource type="Script" path="res://scripts/data/gear_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+gear_id = "atk_common_flat"
+gear_name = "Iron Sword"
+gear_type = 0
+rarity = 0
+stat_type = 1
+is_percentage = false
+base_value = 8.0

@@ -26,12 +26,17 @@ extends Control
 @onready var confirm_message = $ConfirmPanel/ConfirmMessage
 @onready var confirm_btn = $ConfirmPanel/ButtonContainer/ConfirmButton
 @onready var cancel_confirm_btn = $ConfirmPanel/ButtonContainer/CancelConfirmButton
+@onready var gear_slots_container = $DetailPanel/GearSlotsContainer
+@onready var gear_select_panel = $GearSelectPanel
+@onready var gear_select_grid = $GearSelectPanel/ScrollContainer/GearGrid
+@onready var cancel_gear_btn = $GearSelectPanel/CancelButton
 
 var UnitDisplayScene = preload("res://scenes/battle/unit_display.tscn")
 
 # Currently selected unit for viewing/imprinting
 var current_unit_entry: Dictionary = {}
 var pending_fodder_id: String = ""
+var current_gear_slot: int = -1  # 0=weapon, 1=armor, 2=acc1, 3=acc2
 
 func _ready():
 	back_btn.pressed.connect(_on_back)
@@ -46,9 +51,13 @@ func _ready():
 	cancel_imprint_btn.pressed.connect(_on_cancel_imprint)
 	confirm_btn.pressed.connect(_on_confirm_imprint)
 	cancel_confirm_btn.pressed.connect(_on_cancel_confirm)
+	if cancel_gear_btn:
+		cancel_gear_btn.pressed.connect(_on_cancel_gear_select)
 	detail_panel.visible = false
 	imprint_panel.visible = false
 	confirm_panel.visible = false
+	if gear_select_panel:
+		gear_select_panel.visible = false
 	_update_currency_display()
 	_populate_collection()
 
@@ -254,6 +263,9 @@ func _on_unit_clicked(unit_entry: Dictionary):
 				level_cost_label.text = "Need: " + str(check.cost.gold) + " Gold, " + str(check.cost.materials) + " Materials"
 				level_cost_label.add_theme_color_override("font_color", Color(1.0, 0.5, 0.5))
 
+	# Update gear slots display
+	_update_gear_slots()
+
 func _on_close_detail():
 	detail_panel.visible = false
 	current_unit_entry = {}
@@ -440,7 +452,7 @@ func _on_level_up_pressed():
 
 func _update_currency_display():
 	if currency_label:
-		currency_label.text = str(PlayerData.gold) + " Gold  |  " + str(PlayerData.level_materials) + " Materials  |  " + str(PlayerData.gems) + " Gems"
+		currency_label.text = str(PlayerData.gold) + " Gold  |  " + str(PlayerData.level_materials) + " Materials  |  " + str(PlayerData.enhancement_stones) + " Stones  |  " + str(PlayerData.gems) + " Gems"
 
 # --- Cheat Functions ---
 
@@ -490,3 +502,135 @@ func _on_reset_level_pressed():
 	current_unit_entry = PlayerData.get_unit_by_instance_id(instance_id)
 	if not current_unit_entry.is_empty():
 		_on_unit_clicked(current_unit_entry)
+
+# --- Gear Functions ---
+
+func _update_gear_slots():
+	if not gear_slots_container:
+		return
+
+	# Clear existing slot buttons
+	for child in gear_slots_container.get_children():
+		child.queue_free()
+
+	await get_tree().process_frame
+
+	if current_unit_entry.is_empty():
+		return
+
+	var unit_instance_id = current_unit_entry.instance_id as String
+	var equipped_gear = current_unit_entry.get("equipped_gear", {})
+
+	var slot_names = ["Weapon", "Armor", "Acc 1", "Acc 2"]
+	var slot_keys = ["weapon", "armor", "accessory_1", "accessory_2"]
+
+	for i in range(4):
+		var slot_btn = Button.new()
+		slot_btn.custom_minimum_size = Vector2(120, 50)
+
+		var gear_id = equipped_gear.get(slot_keys[i], "")
+		if gear_id != "":
+			var gear_entry = PlayerData.get_gear_by_instance_id(gear_id)
+			if not gear_entry.is_empty():
+				var template = PlayerData.get_gear_template(gear_entry.gear_id)
+				if template:
+					slot_btn.text = slot_names[i] + "\n" + template.gear_name
+					slot_btn.modulate = template.get_rarity_color()
+				else:
+					slot_btn.text = slot_names[i] + "\n[Unknown]"
+			else:
+				slot_btn.text = slot_names[i] + "\n[Empty]"
+		else:
+			slot_btn.text = slot_names[i] + "\n[Empty]"
+
+		slot_btn.pressed.connect(_on_gear_slot_clicked.bind(i))
+		gear_slots_container.add_child(slot_btn)
+
+func _on_gear_slot_clicked(slot_index: int):
+	current_gear_slot = slot_index
+	_populate_gear_select_grid()
+	if gear_select_panel:
+		gear_select_panel.visible = true
+		detail_panel.visible = false
+
+func _populate_gear_select_grid():
+	if not gear_select_grid:
+		return
+
+	# Clear existing
+	for child in gear_select_grid.get_children():
+		child.queue_free()
+
+	await get_tree().process_frame
+
+	# First add "Unequip" option
+	var unequip_btn = Button.new()
+	unequip_btn.text = "UNEQUIP"
+	unequip_btn.custom_minimum_size = Vector2(140, 60)
+	unequip_btn.pressed.connect(_on_gear_selected.bind(""))
+	gear_select_grid.add_child(unequip_btn)
+
+	# Get gear that can go in this slot
+	var slot_type = -1
+	match current_gear_slot:
+		0: slot_type = GearData.GearType.WEAPON
+		1: slot_type = GearData.GearType.ARMOR
+		2, 3: slot_type = GearData.GearType.ACCESSORY
+
+	# Get unequipped gear of the right type
+	var available_gear = PlayerData.get_unequipped_gear()
+	for gear_entry in available_gear:
+		var template = PlayerData.get_gear_template(gear_entry.gear_id)
+		if template and template.gear_type == slot_type:
+			var gear_btn = _create_gear_select_button(gear_entry)
+			gear_select_grid.add_child(gear_btn)
+
+func _create_gear_select_button(gear_entry: Dictionary) -> Button:
+	var template = PlayerData.get_gear_template(gear_entry.gear_id)
+
+	var btn = Button.new()
+	btn.custom_minimum_size = Vector2(140, 80)
+
+	var stat_value = template.get_stat_at_level(gear_entry.level)
+	var stat_text = template.get_stat_name() + ": "
+	if template.is_percentage:
+		stat_text += "+" + str(snapped(stat_value, 0.1)) + "%"
+	else:
+		stat_text += "+" + str(int(stat_value))
+
+	btn.text = template.gear_name + "\n" + stat_text + "\n+" + str(gear_entry.level)
+	btn.modulate = template.get_rarity_color().lightened(0.3)
+	btn.pressed.connect(_on_gear_selected.bind(gear_entry.instance_id))
+
+	return btn
+
+func _on_gear_selected(gear_instance_id: String):
+	if current_unit_entry.is_empty():
+		return
+
+	var unit_instance_id = current_unit_entry.instance_id as String
+	var slot_keys = ["weapon", "armor", "accessory_1", "accessory_2"]
+	var slot_key = slot_keys[current_gear_slot]
+
+	if gear_instance_id == "":
+		# Unequip
+		PlayerData.unequip_gear(unit_instance_id, slot_key)
+	else:
+		# Equip
+		PlayerData.equip_gear(unit_instance_id, gear_instance_id, slot_key)
+
+	# Close gear select panel
+	if gear_select_panel:
+		gear_select_panel.visible = false
+	current_gear_slot = -1
+
+	# Refresh unit entry and display
+	current_unit_entry = PlayerData.get_owned_unit(unit_instance_id)
+	if not current_unit_entry.is_empty():
+		_on_unit_clicked(current_unit_entry)
+
+func _on_cancel_gear_select():
+	if gear_select_panel:
+		gear_select_panel.visible = false
+	detail_panel.visible = true
+	current_gear_slot = -1
