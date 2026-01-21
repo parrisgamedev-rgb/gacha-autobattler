@@ -9,6 +9,9 @@ var unit_data: UnitData
 var level: int = 1
 var imprint_level: int = 0
 
+# Reference to player's unit instance for gear lookup
+var gear_instance_id: String = ""
+
 # Scaled stats (calculated from level/imprint)
 var max_hp: int = 100
 var attack: int = 10
@@ -65,11 +68,12 @@ func process_ability_cooldowns():
 		if ability_cooldowns[ability_id] <= 0:
 			ability_cooldowns.erase(ability_id)
 
-func _init(data: UnitData = null, unit_owner: int = 1, unit_level: int = 1, unit_imprint: int = 0):
+func _init(data: UnitData = null, unit_owner: int = 1, unit_level: int = 1, unit_imprint: int = 0, unit_gear_id: String = ""):
 	if data:
 		unit_data = data
 		level = unit_level
 		imprint_level = unit_imprint
+		gear_instance_id = unit_gear_id
 		_calculate_stats()
 		current_hp = max_hp
 	owner = unit_owner
@@ -79,16 +83,37 @@ func _calculate_stats():
 		return
 
 	# Calculate stat multiplier based on level and imprint
-	# Level: 3% per level above 1
-	# Imprint: 5% per imprint level
 	var level_mult = 1.0 + (0.03 * (level - 1))
 	var imprint_mult = 1.0 + (0.05 * imprint_level)
 	var total_mult = level_mult * imprint_mult
 
-	max_hp = int(unit_data.max_hp * total_mult)
-	attack = int(unit_data.attack * total_mult)
-	defense = int(unit_data.defense * total_mult)
-	speed = int(unit_data.speed * total_mult)
+	# Base stats with level/imprint multiplier
+	var base_hp = int(unit_data.max_hp * total_mult)
+	var base_attack = int(unit_data.attack * total_mult)
+	var base_defense = int(unit_data.defense * total_mult)
+	var base_speed = int(unit_data.speed * total_mult)
+
+	# Apply gear bonuses if we have an instance_id to look up
+	# Note: gear_instance_id must be set externally when creating from player data
+	if gear_instance_id != "":
+		var gear_bonuses = PlayerData.get_gear_bonuses(gear_instance_id)
+
+		# Add flat bonuses first
+		base_hp += gear_bonuses.flat_hp
+		base_attack += gear_bonuses.flat_attack
+		base_defense += gear_bonuses.flat_defense
+		base_speed += gear_bonuses.flat_speed
+
+		# Then apply percentage bonuses
+		base_hp = int(base_hp * (1.0 + gear_bonuses.percent_hp))
+		base_attack = int(base_attack * (1.0 + gear_bonuses.percent_attack))
+		base_defense = int(base_defense * (1.0 + gear_bonuses.percent_defense))
+		base_speed = int(base_speed * (1.0 + gear_bonuses.percent_speed))
+
+	max_hp = base_hp
+	attack = base_attack
+	defense = base_defense
+	speed = base_speed
 
 func is_alive() -> bool:
 	return current_hp > 0
