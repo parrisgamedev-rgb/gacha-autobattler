@@ -1,8 +1,8 @@
 extends Control
 ## Gear inventory management screen
 
-@onready var back_btn = $TopBar/BackButton
-@onready var currency_label = $TopBar/CurrencyLabel
+@onready var back_btn = $TopBar/HBox/BackButton
+@onready var currency_label = $TopBar/HBox/CurrencyLabel
 @onready var gear_grid = $ScrollContainer/GearGrid
 @onready var detail_panel = $DetailPanel
 @onready var gear_name_label = $DetailPanel/VBox/GearNameLabel
@@ -35,18 +35,14 @@ func _ready():
 
 	detail_panel.visible = false
 
+	_apply_theme()
 	_update_currency_display()
 	_build_gear_grid()
 
 func _set_filter(filter_type: int):
 	current_filter = filter_type
 	_build_gear_grid()
-
-	# Update button states
-	filter_all_btn.disabled = (filter_type == -1)
-	filter_weapon_btn.disabled = (filter_type == 0)
-	filter_armor_btn.disabled = (filter_type == 1)
-	filter_accessory_btn.disabled = (filter_type == 2)
+	_update_filter_tab_styles()
 
 func _build_gear_grid():
 	# Clear existing
@@ -91,38 +87,39 @@ func _create_gear_card(gear_entry: Dictionary) -> Control:
 		return placeholder
 
 	var card = Panel.new()
-	card.custom_minimum_size = Vector2(150, 180)
+	card.custom_minimum_size = Vector2(120, 150)
 
 	var card_style = StyleBoxFlat.new()
-	card_style.bg_color = template.get_rarity_color().darkened(0.5)
+	card_style.bg_color = UITheme.BG_MEDIUM
 	card_style.border_width_left = 3
 	card_style.border_width_right = 3
 	card_style.border_width_top = 3
 	card_style.border_width_bottom = 3
 	card_style.border_color = template.get_rarity_color()
-	card_style.corner_radius_top_left = 8
-	card_style.corner_radius_top_right = 8
-	card_style.corner_radius_bottom_left = 8
-	card_style.corner_radius_bottom_right = 8
+	card_style.corner_radius_top_left = UITheme.CARD_RADIUS
+	card_style.corner_radius_top_right = UITheme.CARD_RADIUS
+	card_style.corner_radius_bottom_left = UITheme.CARD_RADIUS
+	card_style.corner_radius_bottom_right = UITheme.CARD_RADIUS
 	card.add_theme_stylebox_override("panel", card_style)
 
 	var vbox = VBoxContainer.new()
 	vbox.set_anchors_preset(Control.PRESET_FULL_RECT)
-	vbox.add_theme_constant_override("separation", 5)
+	vbox.add_theme_constant_override("separation", UITheme.SPACING_XS)
 
 	var margin = MarginContainer.new()
 	margin.set_anchors_preset(Control.PRESET_FULL_RECT)
-	margin.add_theme_constant_override("margin_left", 8)
-	margin.add_theme_constant_override("margin_right", 8)
-	margin.add_theme_constant_override("margin_top", 8)
-	margin.add_theme_constant_override("margin_bottom", 8)
+	margin.add_theme_constant_override("margin_left", UITheme.SPACING_SM)
+	margin.add_theme_constant_override("margin_right", UITheme.SPACING_SM)
+	margin.add_theme_constant_override("margin_top", UITheme.SPACING_SM)
+	margin.add_theme_constant_override("margin_bottom", UITheme.SPACING_SM)
 	margin.add_child(vbox)
 	card.add_child(margin)
 
 	# Gear name
 	var name_label = Label.new()
 	name_label.text = template.gear_name
-	name_label.add_theme_font_size_override("font_size", 14)
+	name_label.add_theme_font_size_override("font_size", UITheme.FONT_CAPTION)
+	name_label.add_theme_color_override("font_color", UITheme.TEXT_PRIMARY)
 	name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	name_label.autowrap_mode = TextServer.AUTOWRAP_WORD
 	vbox.add_child(name_label)
@@ -130,9 +127,9 @@ func _create_gear_card(gear_entry: Dictionary) -> Control:
 	# Type
 	var type_label = Label.new()
 	type_label.text = template.get_type_name()
-	type_label.add_theme_font_size_override("font_size", 12)
+	type_label.add_theme_font_size_override("font_size", UITheme.FONT_SMALL)
 	type_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	type_label.add_theme_color_override("font_color", Color(0.7, 0.7, 0.8))
+	type_label.add_theme_color_override("font_color", UITheme.TEXT_SECONDARY)
 	vbox.add_child(type_label)
 
 	# Stat value
@@ -144,15 +141,16 @@ func _create_gear_card(gear_entry: Dictionary) -> Control:
 		stat_text += "+" + str(int(stat_value))
 	var stat_label = Label.new()
 	stat_label.text = stat_text
-	stat_label.add_theme_font_size_override("font_size", 16)
+	stat_label.add_theme_font_size_override("font_size", UITheme.FONT_BODY)
 	stat_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	stat_label.add_theme_color_override("font_color", Color(0.5, 1, 0.5))
+	stat_label.add_theme_color_override("font_color", UITheme.SUCCESS)
 	vbox.add_child(stat_label)
 
 	# Level
 	var level_label = Label.new()
 	level_label.text = "+" + str(gear_entry.level) + "/" + str(template.get_max_level())
-	level_label.add_theme_font_size_override("font_size", 14)
+	level_label.add_theme_font_size_override("font_size", UITheme.FONT_CAPTION)
+	level_label.add_theme_color_override("font_color", UITheme.TEXT_PRIMARY)
 	level_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	vbox.add_child(level_label)
 
@@ -161,9 +159,9 @@ func _create_gear_card(gear_entry: Dictionary) -> Control:
 	if equipped_unit != "":
 		var eq_label = Label.new()
 		eq_label.text = "[EQUIPPED]"
-		eq_label.add_theme_font_size_override("font_size", 12)
+		eq_label.add_theme_font_size_override("font_size", UITheme.FONT_SMALL)
 		eq_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		eq_label.add_theme_color_override("font_color", Color(1, 0.8, 0.3))
+		eq_label.add_theme_color_override("font_color", UITheme.GOLD)
 		vbox.add_child(eq_label)
 
 	# Make it clickable
@@ -251,6 +249,129 @@ func _on_close_detail():
 
 func _update_currency_display():
 	currency_label.text = str(PlayerData.gold) + " Gold | " + str(PlayerData.enhancement_stones) + " Stones"
+	currency_label.add_theme_font_size_override("font_size", UITheme.FONT_BODY)
+	currency_label.add_theme_color_override("font_color", UITheme.GOLD)
 
 func _on_back():
 	get_tree().change_scene_to_file("res://scenes/ui/main_menu.tscn")
+
+func _apply_theme():
+	# Background
+	var bg = get_node_or_null("Background")
+	if bg:
+		bg.color = UITheme.BG_DARK
+
+	# Top bar
+	var top_bar = get_node_or_null("TopBar")
+	if top_bar and top_bar is Panel:
+		top_bar.add_theme_stylebox_override("panel", UITheme.create_panel_style(UITheme.BG_MEDIUM))
+
+	# Title
+	var title = get_node_or_null("TopBar/HBox/Title")
+	if title:
+		title.text = "GEAR"
+		title.add_theme_font_size_override("font_size", UITheme.FONT_TITLE_LARGE)
+		title.add_theme_color_override("font_color", UITheme.TEXT_PRIMARY)
+
+	# Back button
+	if back_btn:
+		back_btn.add_theme_stylebox_override("normal", UITheme.create_button_style(Color.TRANSPARENT))
+		back_btn.add_theme_stylebox_override("hover", UITheme.create_button_style(UITheme.BG_LIGHT))
+		back_btn.add_theme_stylebox_override("pressed", UITheme.create_button_style(UITheme.BG_MEDIUM))
+		back_btn.add_theme_color_override("font_color", UITheme.TEXT_SECONDARY)
+		back_btn.add_theme_color_override("font_hover_color", UITheme.TEXT_PRIMARY)
+
+	# Filter label
+	var filter_label = get_node_or_null("FilterBar/FilterLabel")
+	if filter_label:
+		filter_label.add_theme_font_size_override("font_size", UITheme.FONT_CAPTION)
+		filter_label.add_theme_color_override("font_color", UITheme.TEXT_SECONDARY)
+
+	# Filter tabs
+	_style_filter_tabs()
+	_update_filter_tab_styles()
+
+	# Detail panel
+	if detail_panel and detail_panel is Panel:
+		detail_panel.add_theme_stylebox_override("panel", UITheme.create_panel_style(UITheme.BG_MEDIUM))
+
+	# Style detail panel content
+	_style_detail_panel()
+
+func _style_filter_tabs():
+	var tabs = [filter_all_btn, filter_weapon_btn, filter_armor_btn, filter_accessory_btn]
+	var tab_labels = ["ALL", "WEAPON", "ARMOR", "ACCESSORY"]
+
+	for i in range(tabs.size()):
+		var tab = tabs[i]
+		if tab:
+			tab.text = tab_labels[i]
+			tab.add_theme_font_size_override("font_size", UITheme.FONT_CAPTION)
+
+func _update_filter_tab_styles():
+	var tabs = [filter_all_btn, filter_weapon_btn, filter_armor_btn, filter_accessory_btn]
+	var filter_values = [-1, 0, 1, 2]
+
+	for i in range(tabs.size()):
+		var tab = tabs[i]
+		if tab:
+			if current_filter == filter_values[i]:
+				tab.add_theme_stylebox_override("normal", UITheme.create_button_style(UITheme.PRIMARY))
+				tab.add_theme_stylebox_override("hover", UITheme.create_button_style(UITheme.PRIMARY.lightened(0.1)))
+				tab.add_theme_color_override("font_color", UITheme.TEXT_PRIMARY)
+				tab.add_theme_color_override("font_hover_color", UITheme.TEXT_PRIMARY)
+			else:
+				tab.add_theme_stylebox_override("normal", UITheme.create_button_style(UITheme.BG_LIGHT))
+				tab.add_theme_stylebox_override("hover", UITheme.create_button_style(UITheme.BG_LIGHT.lightened(0.1)))
+				tab.add_theme_color_override("font_color", UITheme.TEXT_SECONDARY)
+				tab.add_theme_color_override("font_hover_color", UITheme.TEXT_PRIMARY)
+
+func _style_detail_panel():
+	# Gear name label
+	if gear_name_label:
+		gear_name_label.add_theme_font_size_override("font_size", UITheme.FONT_TITLE_MEDIUM)
+
+	# Type label
+	if gear_type_label:
+		gear_type_label.add_theme_font_size_override("font_size", UITheme.FONT_BODY)
+		gear_type_label.add_theme_color_override("font_color", UITheme.TEXT_SECONDARY)
+
+	# Stat label
+	if gear_stat_label:
+		gear_stat_label.add_theme_font_size_override("font_size", UITheme.FONT_TITLE_SMALL)
+		gear_stat_label.add_theme_color_override("font_color", UITheme.SUCCESS)
+
+	# Level label
+	if gear_level_label:
+		gear_level_label.add_theme_font_size_override("font_size", UITheme.FONT_BODY)
+		gear_level_label.add_theme_color_override("font_color", UITheme.TEXT_PRIMARY)
+
+	# Cost label
+	if enhance_cost_label:
+		enhance_cost_label.add_theme_font_size_override("font_size", UITheme.FONT_CAPTION)
+		enhance_cost_label.add_theme_color_override("font_color", UITheme.TEXT_SECONDARY)
+
+	# Equipped label
+	if equipped_label:
+		equipped_label.add_theme_font_size_override("font_size", UITheme.FONT_CAPTION)
+		equipped_label.add_theme_color_override("font_color", UITheme.GOLD)
+
+	# Enhance button
+	if enhance_btn:
+		enhance_btn.add_theme_stylebox_override("normal", UITheme.create_button_style(UITheme.PRIMARY))
+		enhance_btn.add_theme_stylebox_override("hover", UITheme.create_button_style(UITheme.PRIMARY.lightened(0.1)))
+		enhance_btn.add_theme_stylebox_override("pressed", UITheme.create_button_style(UITheme.PRIMARY.darkened(0.1)))
+		enhance_btn.add_theme_stylebox_override("disabled", UITheme.create_button_style(UITheme.BG_DARK))
+		enhance_btn.add_theme_font_size_override("font_size", UITheme.FONT_BODY)
+		enhance_btn.add_theme_color_override("font_color", UITheme.TEXT_PRIMARY)
+		enhance_btn.add_theme_color_override("font_hover_color", UITheme.TEXT_PRIMARY)
+		enhance_btn.add_theme_color_override("font_disabled_color", UITheme.TEXT_DISABLED)
+
+	# Close button
+	if close_btn:
+		close_btn.add_theme_stylebox_override("normal", UITheme.create_button_style(UITheme.BG_LIGHT))
+		close_btn.add_theme_stylebox_override("hover", UITheme.create_button_style(UITheme.BG_LIGHT.lightened(0.1)))
+		close_btn.add_theme_stylebox_override("pressed", UITheme.create_button_style(UITheme.BG_MEDIUM))
+		close_btn.add_theme_font_size_override("font_size", UITheme.FONT_BODY)
+		close_btn.add_theme_color_override("font_color", UITheme.TEXT_PRIMARY)
+		close_btn.add_theme_color_override("font_hover_color", UITheme.TEXT_PRIMARY)

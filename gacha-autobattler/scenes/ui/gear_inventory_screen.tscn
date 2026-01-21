@@ -20,39 +20,46 @@ grow_horizontal = 2
 grow_vertical = 2
 color = Color(0.06, 0.06, 0.1, 1)
 
-[node name="TopBar" type="HBoxContainer" parent="."]
+[node name="TopBar" type="Panel" parent="."]
 layout_mode = 1
 anchors_preset = 10
 anchor_right = 1.0
-offset_left = 20.0
-offset_top = 20.0
-offset_right = -20.0
-offset_bottom = 70.0
+offset_top = 0.0
+offset_bottom = 64.0
 grow_horizontal = 2
 
-[node name="BackButton" type="Button" parent="TopBar"]
-custom_minimum_size = Vector2(120, 50)
+[node name="HBox" type="HBoxContainer" parent="TopBar"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 20.0
+offset_right = -20.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="BackButton" type="Button" parent="TopBar/HBox"]
+custom_minimum_size = Vector2(100, 40)
 layout_mode = 2
 text = "< BACK"
 
-[node name="Spacer" type="Control" parent="TopBar"]
+[node name="Spacer" type="Control" parent="TopBar/HBox"]
 layout_mode = 2
 size_flags_horizontal = 3
 
-[node name="Title" type="Label" parent="TopBar"]
+[node name="Title" type="Label" parent="TopBar/HBox"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 36
-text = "GEAR INVENTORY"
+theme_override_font_sizes/font_size = 32
+text = "GEAR"
 vertical_alignment = 1
 
-[node name="Spacer2" type="Control" parent="TopBar"]
+[node name="Spacer2" type="Control" parent="TopBar/HBox"]
 layout_mode = 2
 size_flags_horizontal = 3
 
-[node name="CurrencyLabel" type="Label" parent="TopBar"]
+[node name="CurrencyLabel" type="Label" parent="TopBar/HBox"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 16
-theme_override_colors/font_color = Color(0.8, 0.8, 0.5, 1)
 text = "0 Gold | 0 Stones"
 vertical_alignment = 1
 
@@ -61,9 +68,9 @@ layout_mode = 1
 anchors_preset = 10
 anchor_right = 1.0
 offset_left = 20.0
-offset_top = 80.0
+offset_top = 74.0
 offset_right = -20.0
-offset_bottom = 120.0
+offset_bottom = 114.0
 grow_horizontal = 2
 theme_override_constants/separation = 10
 
@@ -99,7 +106,7 @@ anchors_preset = -1
 anchor_right = 1.0
 anchor_bottom = 1.0
 offset_left = 20.0
-offset_top = 130.0
+offset_top = 124.0
 offset_right = -20.0
 offset_bottom = -20.0
 grow_horizontal = 2
@@ -109,9 +116,9 @@ grow_vertical = 2
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
-theme_override_constants/h_separation = 15
-theme_override_constants/v_separation = 15
-columns = 7
+theme_override_constants/h_separation = 12
+theme_override_constants/v_separation = 12
+columns = 5
 
 [node name="DetailPanel" type="Panel" parent="."]
 visible = false
