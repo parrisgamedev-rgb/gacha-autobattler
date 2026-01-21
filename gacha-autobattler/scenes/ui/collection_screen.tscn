@@ -226,7 +226,7 @@ grow_horizontal = 2
 alignment = 1
 theme_override_constants/separation = 10
 
-[node name="LevelUpButton" type="Button" parent="DetailPanel"]
+[node name="ActionButtons" type="HBoxContainer" parent="DetailPanel"]
 layout_mode = 1
 anchors_preset = 12
 anchor_top = 1.0
@@ -234,38 +234,26 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 offset_left = 20.0
 offset_top = -130.0
-offset_right = -290.0
-offset_bottom = -85.0
-grow_horizontal = 2
-grow_vertical = 0
-text = "LEVEL UP"
-
-[node name="ImprintButton" type="Button" parent="DetailPanel"]
-layout_mode = 1
-anchors_preset = 12
-anchor_top = 1.0
-anchor_right = 1.0
-anchor_bottom = 1.0
-offset_left = 200.0
-offset_top = -130.0
-offset_right = -200.0
-offset_bottom = -85.0
-grow_horizontal = 2
-grow_vertical = 0
-text = "IMPRINT"
-
-[node name="CloseButton" type="Button" parent="DetailPanel"]
-layout_mode = 1
-anchors_preset = 12
-anchor_top = 1.0
-anchor_right = 1.0
-anchor_bottom = 1.0
-offset_left = 290.0
-offset_top = -130.0
 offset_right = -20.0
 offset_bottom = -85.0
 grow_horizontal = 2
 grow_vertical = 0
+alignment = 1
+theme_override_constants/separation = 16
+
+[node name="LevelUpButton" type="Button" parent="DetailPanel/ActionButtons"]
+custom_minimum_size = Vector2(150, 45)
+layout_mode = 2
+text = "LEVEL UP"
+
+[node name="ImprintButton" type="Button" parent="DetailPanel/ActionButtons"]
+custom_minimum_size = Vector2(150, 45)
+layout_mode = 2
+text = "IMPRINT"
+
+[node name="CloseButton" type="Button" parent="DetailPanel/ActionButtons"]
+custom_minimum_size = Vector2(150, 45)
+layout_mode = 2
 text = "CLOSE"
 
 [node name="CheatButtons" type="HBoxContainer" parent="DetailPanel"]

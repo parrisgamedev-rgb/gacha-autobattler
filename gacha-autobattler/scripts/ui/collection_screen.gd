@@ -11,9 +11,9 @@ extends Control
 @onready var detail_stats = $DetailPanel/DetailStats
 @onready var detail_copies = $DetailPanel/DetailCopies
 @onready var detail_imprint = $DetailPanel/DetailImprint
-@onready var close_detail_btn = $DetailPanel/CloseButton
-@onready var imprint_btn = $DetailPanel/ImprintButton
-@onready var level_up_btn = $DetailPanel/LevelUpButton
+@onready var close_detail_btn = $DetailPanel/ActionButtons/CloseButton
+@onready var imprint_btn = $DetailPanel/ActionButtons/ImprintButton
+@onready var level_up_btn = $DetailPanel/ActionButtons/LevelUpButton
 @onready var max_level_btn = $DetailPanel/CheatButtons/MaxLevelButton
 @onready var reset_level_btn = $DetailPanel/CheatButtons/ResetLevelButton
 @onready var detail_level = $DetailPanel/DetailLevel
