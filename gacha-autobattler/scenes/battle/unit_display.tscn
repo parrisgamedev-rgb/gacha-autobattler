@@ -1,6 +1,9 @@
-[gd_scene load_steps=2 format=3 uid="uid://d2kram4n7p3wy"]
+[gd_scene load_steps=3 format=3 uid="uid://d2kram4n7p3wy"]
 
 [ext_resource type="Script" path="res://scripts/battle/unit_display.gd" id="1_unit"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_click"]
+size = Vector2(110, 130)
 
 [node name="UnitDisplay" type="Node2D"]
 script = ExtResource("1_unit")
@@ -99,3 +102,9 @@ offset_bottom = 70.0
 horizontal_alignment = 1
 vertical_alignment = 1
 text = "CD"
+
+[node name="ClickArea" type="Area2D" parent="."]
+input_pickable = true
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="ClickArea"]
+shape = SubResource("RectangleShape2D_click")

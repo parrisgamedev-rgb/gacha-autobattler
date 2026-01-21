@@ -97,7 +97,7 @@ offset_top = 920.0
 offset_right = 1360.0
 offset_bottom = 1060.0
 horizontal_alignment = 1
-text = "1-5: Select unit | Q/W/E: Choose ability | Click grid: Place
+text = "Click unit: Select | Drag unit: Place on grid | Click ability: Choose
 Click pending: Cancel | ESC: Deselect | SPACE: End turn"
 
 [node name="AbilityPanel" type="Panel" parent="UI"]
@@ -120,21 +120,21 @@ offset_left = 10.0
 offset_top = 35.0
 offset_right = 130.0
 offset_bottom = 95.0
-text = "[Q] Strike"
+text = "Strike"
 
 [node name="Ability2" type="Button" parent="UI/AbilityPanel"]
 offset_left = 140.0
 offset_top = 35.0
 offset_right = 260.0
 offset_bottom = 95.0
-text = "[W] Guard"
+text = "Guard"
 
 [node name="Ability3" type="Button" parent="UI/AbilityPanel"]
 offset_left = 270.0
 offset_top = 35.0
 offset_right = 390.0
 offset_bottom = 95.0
-text = "[E] Special"
+text = "Special"
 
 [node name="AbilityDesc" type="Label" parent="UI/AbilityPanel"]
 offset_left = 10.0

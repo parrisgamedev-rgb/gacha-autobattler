@@ -1,7 +1,12 @@
 extends Node2D
 ## Visual representation of a unit on the battle grid
 
+signal unit_clicked(unit_instance: UnitInstance, display: Node2D)
+signal unit_drag_started(unit_instance: UnitInstance, display: Node2D)
+
 var unit_instance: UnitInstance
+var is_dragging: bool = false
+var drag_enabled: bool = true  # Can be disabled for certain contexts
 
 # Visual references
 @onready var body = $Body
@@ -11,6 +16,22 @@ var unit_instance: UnitInstance
 @onready var hp_bar = $HPBar
 @onready var hp_fill = $HPBar/HPFill
 @onready var cooldown_overlay = $CooldownOverlay
+@onready var click_area = $ClickArea
+
+func _ready():
+	if click_area:
+		click_area.input_event.connect(_on_input_event)
+
+func _on_input_event(_viewport: Node, event: InputEvent, _shape_idx: int):
+	if event is InputEventMouseButton:
+		if event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
+			# Mouse pressed - check if this starts a drag or is a click
+			if drag_enabled and unit_instance and unit_instance.can_act():
+				is_dragging = true
+				unit_drag_started.emit(unit_instance, self)
+			elif unit_instance:
+				# Can't drag (on cooldown or already placed), just click
+				unit_clicked.emit(unit_instance, self)
 
 func setup(instance: UnitInstance):
 	unit_instance = instance

@@ -39,6 +39,15 @@ var selected_unit: UnitInstance = null
 var moving_unit: UnitInstance = null  # Unit being moved from grid
 var moving_from: Dictionary = {}  # {row, col} of unit being moved
 
+# Drag and drop state
+var dragging_unit: UnitInstance = null
+var dragging_from_grid: bool = false
+var dragging_from_pos: Dictionary = {}  # {row, col} if from grid
+var drag_preview: Node2D = null
+
+# Roster display references (for click detection)
+var roster_displays: Array = []
+
 # Pending actions for simultaneous resolution
 var player_pending_placements: Array = []  # [{unit, row, col}]
 var player_pending_moves: Array = []  # [{unit, from_row, from_col, to_row, to_col}]
@@ -150,6 +159,12 @@ func _create_roster_displays():
 		display.position = Vector2(60, 60 + y_offset)
 		display.setup(unit)
 		display.scale = Vector2(0.7, 0.7)
+
+		# Connect click and drag signals for player roster units
+		display.unit_clicked.connect(_on_roster_unit_clicked)
+		display.unit_drag_started.connect(_on_roster_drag_started)
+		roster_displays.append(display)
+
 		y_offset += 110
 
 	y_offset = 0
@@ -159,6 +174,7 @@ func _create_roster_displays():
 		display.position = Vector2(60, 60 + y_offset)
 		display.setup(unit)
 		display.scale = Vector2(0.7, 0.7)
+		display.drag_enabled = false  # Enemies can't be dragged
 		y_offset += 110
 
 func _on_cell_clicked(row: int, col: int):
@@ -659,6 +675,13 @@ func _confirm_placement(unit: UnitInstance, row: int, col: int, owner: int):
 	display.setup(unit)
 	display.modulate = Color(1, 1, 1, 1)  # Full opacity for confirmed
 
+	# Connect drag signals for player units on the grid
+	if owner == 1:
+		display.unit_drag_started.connect(_on_grid_unit_drag_started.bind(row, col))
+		display.unit_clicked.connect(_on_grid_unit_clicked.bind(row, col))
+	else:
+		display.drag_enabled = false  # Enemies can't be dragged
+
 	grid_unit_displays[row][col] = display
 
 func _check_win_condition() -> int:
@@ -697,35 +720,59 @@ func _update_ui():
 		actions_label.text = "Actions: " + str(actions_remaining) + "/" + str(ACTIONS_PER_TURN)
 
 func _input(event):
+	# Handle mouse release for drag-and-drop globally
+	if event is InputEventMouseButton:
+		if event.button_index == MOUSE_BUTTON_LEFT and not event.pressed:
+			if dragging_unit:
+				_handle_drag_release()
+
 	if current_phase != GamePhase.PLAYER_TURN:
 		return
 
 	if event is InputEventKey and event.pressed:
 		match event.keycode:
-			KEY_1:
-				_try_select_unit(0)
-			KEY_2:
-				_try_select_unit(1)
-			KEY_3:
-				_try_select_unit(2)
-			KEY_4:
-				_try_select_unit(3)
-			KEY_5:
-				_try_select_unit(4)
-			KEY_Q:
-				_on_ability_selected(0)
-			KEY_W:
-				_on_ability_selected(1)
-			KEY_E:
-				_on_ability_selected(2)
 			KEY_ESCAPE:
 				selected_unit = null
 				moving_unit = null
 				moving_from = {}
+				_clear_drag_state()
 				_update_ability_panel()
+				_update_roster_selection()
 				print("Deselected")
 			KEY_ENTER, KEY_SPACE:
 				_on_end_turn_pressed()
+
+func _handle_drag_release():
+	# Find and restore the source display
+	if dragging_from_grid:
+		# Restore grid display
+		var row = dragging_from_pos.row
+		var col = dragging_from_pos.col
+		if grid_unit_displays[row][col]:
+			grid_unit_displays[row][col].modulate = Color(1, 1, 1, 1)
+	else:
+		# Restore roster display
+		for display in roster_displays:
+			if display.unit_instance == dragging_unit:
+				display.modulate = Color(1, 1, 1, 1)
+				display.is_dragging = false
+				break
+
+	# Check if dropped on a valid cell
+	var drop_cell = _get_cell_at_mouse()
+	if drop_cell:
+		if dragging_from_grid:
+			if drop_cell.row != dragging_from_pos.row or drop_cell.col != dragging_from_pos.col:
+				_handle_drop_on_cell(drop_cell.row, drop_cell.col)
+			else:
+				print("Dropped on same cell - cancelled")
+		else:
+			_handle_drop_on_cell(drop_cell.row, drop_cell.col)
+	else:
+		print("Dropped outside grid - cancelled")
+
+	# Clean up drag state
+	_clear_drag_state()
 
 func _on_ability_selected(index: int):
 	var active_unit = selected_unit if selected_unit else moving_unit
@@ -745,8 +792,7 @@ func _update_ability_panel():
 			var btn = ability_buttons[i]
 			if btn and active_unit.unit_data.abilities.size() > i:
 				var ability = active_unit.unit_data.abilities[i]
-				var key = ["Q", "W", "E"][i]
-				btn.text = "[" + key + "] " + ability.ability_name
+				btn.text = ability.ability_name
 				btn.disabled = false
 
 				# Highlight selected ability
@@ -755,7 +801,7 @@ func _update_ability_panel():
 				else:
 					btn.modulate = Color(1, 1, 1)
 			elif btn:
-				btn.text = "[" + ["Q", "W", "E"][i] + "] ---"
+				btn.text = "---"
 				btn.disabled = true
 				btn.modulate = Color(0.5, 0.5, 0.5)
 
@@ -782,3 +828,173 @@ func _try_select_unit(index: int):
 			print(unit.unit_data.unit_name, " is already on the grid")
 		elif unit.is_on_cooldown:
 			print(unit.unit_data.unit_name, " is on cooldown")
+
+# --- Roster Click and Drag Handlers ---
+
+func _on_roster_unit_clicked(unit: UnitInstance, _display: Node2D):
+	if current_phase != GamePhase.PLAYER_TURN:
+		print("Not your turn!")
+		return
+
+	if unit.can_act() and not unit.is_placed():
+		selected_unit = unit
+		moving_unit = null
+		moving_from = {}
+		_update_ability_panel()
+		_update_roster_selection()
+		print("Selected: ", unit.unit_data.unit_name)
+	else:
+		if unit.is_placed():
+			print(unit.unit_data.unit_name, " is already on the grid")
+		elif unit.is_on_cooldown:
+			print(unit.unit_data.unit_name, " is on cooldown")
+
+func _on_roster_drag_started(unit: UnitInstance, display: Node2D):
+	if current_phase != GamePhase.PLAYER_TURN:
+		return
+
+	if actions_remaining <= 0:
+		print("No actions remaining!")
+		return
+
+	if unit.can_act() and not unit.is_placed():
+		dragging_unit = unit
+		dragging_from_grid = false
+		dragging_from_pos = {}
+
+		# Create drag preview
+		_create_drag_preview(unit)
+
+		# Dim the source display
+		display.modulate = Color(1, 1, 1, 0.4)
+
+		selected_unit = unit
+		_update_ability_panel()
+		print("Dragging: ", unit.unit_data.unit_name)
+
+func _on_grid_unit_clicked(unit: UnitInstance, _display: Node2D, row: int, col: int):
+	if current_phase != GamePhase.PLAYER_TURN:
+		print("Not your turn!")
+		return
+
+	if unit.owner == 1:
+		# Select this unit for moving
+		moving_unit = unit
+		moving_from = {"row": row, "col": col}
+		selected_unit = null
+		_update_ability_panel()
+		_update_roster_selection()
+		print("Selected ", unit.unit_data.unit_name, " for moving (click grid to move)")
+
+func _on_grid_unit_drag_started(unit: UnitInstance, display: Node2D, row: int, col: int):
+	if current_phase != GamePhase.PLAYER_TURN:
+		return
+
+	if actions_remaining <= 0:
+		print("No actions remaining!")
+		return
+
+	if unit.owner == 1:
+		dragging_unit = unit
+		dragging_from_grid = true
+		dragging_from_pos = {"row": row, "col": col}
+
+		# Create drag preview
+		_create_drag_preview(unit)
+
+		# Dim the source display
+		display.modulate = Color(1, 1, 1, 0.4)
+
+		moving_unit = unit
+		moving_from = {"row": row, "col": col}
+		_update_ability_panel()
+		print("Dragging from grid: ", unit.unit_data.unit_name)
+
+func _create_drag_preview(unit: UnitInstance):
+	if drag_preview:
+		drag_preview.queue_free()
+
+	drag_preview = UnitDisplayScene.instantiate()
+	add_child(drag_preview)
+	drag_preview.setup(unit)
+	drag_preview.scale = Vector2(0.6, 0.6)
+	drag_preview.modulate = Color(1, 1, 1, 0.7)
+	drag_preview.z_index = 100  # Draw on top
+	drag_preview.drag_enabled = false  # Don't intercept input
+	# Disable click area on preview
+	if drag_preview.has_node("ClickArea"):
+		drag_preview.get_node("ClickArea").input_pickable = false
+
+func _clear_drag_state():
+	if drag_preview:
+		drag_preview.queue_free()
+		drag_preview = null
+
+	dragging_unit = null
+	dragging_from_grid = false
+	dragging_from_pos = {}
+
+func _get_cell_at_mouse() -> Dictionary:
+	var mouse_pos = get_global_mouse_position()
+	var grid_pos = grid_container.global_position
+
+	var grid_total_size = (CELL_SIZE * GRID_SIZE) + (CELL_GAP * (GRID_SIZE - 1))
+	var offset = -grid_total_size / 2
+
+	for row in range(GRID_SIZE):
+		for col in range(GRID_SIZE):
+			var cell_x = grid_pos.x + offset + (col * (CELL_SIZE + CELL_GAP))
+			var cell_y = grid_pos.y + offset + (row * (CELL_SIZE + CELL_GAP))
+
+			if mouse_pos.x >= cell_x and mouse_pos.x < cell_x + CELL_SIZE:
+				if mouse_pos.y >= cell_y and mouse_pos.y < cell_y + CELL_SIZE:
+					return {"row": row, "col": col}
+
+	return {}
+
+func _handle_drop_on_cell(row: int, col: int):
+	if dragging_from_grid:
+		# Moving from grid
+		var cell_unit = grid_units[row][col]
+
+		# Check pending placements
+		for pending in player_pending_placements:
+			if pending.row == row and pending.col == col:
+				print("Already have a pending placement there!")
+				return
+
+		# Can't move onto own unit
+		if cell_unit != null and cell_unit.owner == 1:
+			print("Can't move onto your own unit!")
+			return
+
+		# Queue the move
+		_queue_move(dragging_unit, dragging_from_pos.row, dragging_from_pos.col, row, col)
+	else:
+		# Placing from roster
+		var cell_unit = grid_units[row][col]
+
+		# Check pending placements
+		for pending in player_pending_placements:
+			if pending.row == row and pending.col == col:
+				print("Already have a pending placement there!")
+				return
+
+		# Allow empty or enemy cell
+		if cell_unit == null or cell_unit.owner == 2:
+			_queue_placement(dragging_unit, row, col)
+		else:
+			print("Can't place on your own unit!")
+
+func _process(_delta: float):
+	# Update drag preview position
+	if drag_preview and dragging_unit:
+		drag_preview.global_position = get_global_mouse_position()
+
+func _update_roster_selection():
+	# Update visual selection on roster
+	for display in roster_displays:
+		if display.unit_instance == selected_unit:
+			display.set_selected(true)
+		else:
+			display.set_selected(false)
