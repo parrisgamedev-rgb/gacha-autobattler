@@ -17,6 +17,14 @@ var grid_col: int = -1
 # Owner: 1 = player, 2 = enemy
 var owner: int = 1
 
+# Selected ability for next duel (index into unit_data.abilities)
+var selected_ability_index: int = 0
+
+func get_selected_ability() -> AbilityData:
+	if unit_data and unit_data.abilities.size() > selected_ability_index:
+		return unit_data.abilities[selected_ability_index]
+	return null
+
 func _init(data: UnitData = null, unit_owner: int = 1):
 	if data:
 		unit_data = data

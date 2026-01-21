@@ -93,9 +93,53 @@ position = Vector2(1720, 120)
 [node name="Instructions" type="Label" parent="UI"]
 mouse_filter = 2
 offset_left = 560.0
-offset_top = 900.0
+offset_top = 920.0
 offset_right = 1360.0
 offset_bottom = 1060.0
 horizontal_alignment = 1
-text = "1-5: Select from roster | Click placed unit: Move it
-Click pending (faded): Cancel | ESC: Deselect | SPACE: End turn"
+text = "1-5: Select unit | Q/W/E: Choose ability | Click grid: Place
+Click pending: Cancel | ESC: Deselect | SPACE: End turn"
+
+[node name="AbilityPanel" type="Panel" parent="UI"]
+visible = false
+offset_left = 760.0
+offset_top = 750.0
+offset_right = 1160.0
+offset_bottom = 900.0
+
+[node name="AbilityLabel" type="Label" parent="UI/AbilityPanel"]
+offset_left = 10.0
+offset_top = 5.0
+offset_right = 390.0
+offset_bottom = 30.0
+horizontal_alignment = 1
+text = "Select Ability:"
+
+[node name="Ability1" type="Button" parent="UI/AbilityPanel"]
+offset_left = 10.0
+offset_top = 35.0
+offset_right = 130.0
+offset_bottom = 95.0
+text = "[Q] Strike"
+
+[node name="Ability2" type="Button" parent="UI/AbilityPanel"]
+offset_left = 140.0
+offset_top = 35.0
+offset_right = 260.0
+offset_bottom = 95.0
+text = "[W] Guard"
+
+[node name="Ability3" type="Button" parent="UI/AbilityPanel"]
+offset_left = 270.0
+offset_top = 35.0
+offset_right = 390.0
+offset_bottom = 95.0
+text = "[E] Special"
+
+[node name="AbilityDesc" type="Label" parent="UI/AbilityPanel"]
+offset_left = 10.0
+offset_top = 105.0
+offset_right = 390.0
+offset_bottom = 145.0
+horizontal_alignment = 1
+text = "A balanced attack."

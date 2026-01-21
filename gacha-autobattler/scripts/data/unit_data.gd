@@ -16,8 +16,8 @@ class_name UnitData
 @export var defense: int = 10
 @export var speed: int = 10
 
-# Abilities (references to ability data)
-@export var ability_ids: Array[String] = []
+# Abilities (3 abilities per unit)
+@export var abilities: Array[AbilityData] = []
 
 # Visual
 @export var portrait_color: Color = Color.WHITE  # Placeholder until we have art

@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="AbilityData" load_steps=2 format=3 uid="uid://natures_resilience_001"]
+
+[ext_resource type="Script" path="res://scripts/data/ability_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+ability_name = "Nature's Resilience"
+ability_id = "natures_resilience"
+description = "Draw on nature's strength. Cannot be knocked out this duel."
+ability_type = 0
+damage_multiplier = 0.8
+defense_multiplier = 1.0
+heal_amount = 0
+bonus_damage = 0
+ignores_element = false
+guaranteed_survive = true
+counter_attack = false
+piercing = false
+icon_color = Color(0.3, 0.8, 0.3, 1)

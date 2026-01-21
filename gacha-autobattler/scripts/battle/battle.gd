@@ -16,6 +16,9 @@ const ACTIONS_PER_TURN = 2
 @onready var player_roster = $UI/PlayerRoster
 @onready var enemy_roster = $UI/EnemyRoster
 @onready var end_turn_button = $UI/EndTurnButton
+@onready var ability_panel = $UI/AbilityPanel
+@onready var ability_buttons = [$UI/AbilityPanel/Ability1, $UI/AbilityPanel/Ability2, $UI/AbilityPanel/Ability3]
+@onready var ability_desc = $UI/AbilityPanel/AbilityDesc
 
 # Game state
 enum GamePhase { PLAYER_TURN, ENEMY_TURN, RESOLVING, GAME_OVER }
@@ -54,6 +57,12 @@ func _ready():
 	# Connect end turn button
 	if end_turn_button:
 		end_turn_button.pressed.connect(_on_end_turn_pressed)
+
+	# Connect ability buttons
+	for i in range(ability_buttons.size()):
+		var btn = ability_buttons[i]
+		if btn:
+			btn.pressed.connect(_on_ability_selected.bind(i))
 
 func _create_grid():
 	grid_ownership = []
@@ -183,6 +192,7 @@ func _on_cell_clicked(row: int, col: int):
 		moving_unit = cell_unit
 		moving_from = {"row": row, "col": col}
 		selected_unit = null  # Clear roster selection
+		_update_ability_panel()
 		print("Selected ", cell_unit.unit_data.unit_name, " for moving")
 		return
 
@@ -199,24 +209,31 @@ func _on_cell_clicked(row: int, col: int):
 				print("Already have a pending placement there!")
 				return
 
-		# Queue the move
+		# Can't move onto your own unit
+		if cell_unit != null and cell_unit.owner == 1:
+			print("Can't move onto your own unit!")
+			return
+
+		# Queue the move (to empty cell or enemy cell for challenge)
 		_queue_move(moving_unit, moving_from.row, moving_from.col, row, col)
 		moving_unit = null
 		moving_from = {}
 		return
 
-	# If we have a selected unit from roster and the cell is empty
-	if selected_unit and cell_unit == null:
+	# If we have a selected unit from roster
+	if selected_unit:
 		# Check if there's already a pending placement here
 		for pending in player_pending_placements:
 			if pending.row == row and pending.col == col:
 				print("Already have a pending placement there!")
 				return
 
-		_queue_placement(selected_unit, row, col)
-		selected_unit = null
-	elif cell_unit != null and cell_unit.owner == 2:
-		print("Enemy cell - select a unit to challenge it!")
+		# Allow placing on empty cells OR enemy-occupied cells (challenge)
+		if cell_unit == null or cell_unit.owner == 2:
+			_queue_placement(selected_unit, row, col)
+			selected_unit = null
+		else:
+			print("Can't place on your own unit!")
 
 func _queue_placement(unit: UnitInstance, row: int, col: int):
 	# Add to pending placements
@@ -232,10 +249,15 @@ func _queue_placement(unit: UnitInstance, row: int, col: int):
 	# Show preview on grid
 	_show_placement_preview(unit, row, col)
 
+	# Hide ability panel
+	selected_unit = null
+	_update_ability_panel()
+
 	actions_remaining -= 1
 	_update_ui()
 
-	print("Queued ", unit.unit_data.unit_name, " at (", row, ", ", col, ")")
+	var ability_name = unit.unit_data.abilities[unit.selected_ability_index].ability_name if unit.unit_data.abilities.size() > 0 else "Strike"
+	print("Queued ", unit.unit_data.unit_name, " (", ability_name, ") at (", row, ", ", col, ")")
 
 func _queue_move(unit: UnitInstance, from_row: int, from_col: int, to_row: int, to_col: int):
 	# Add to pending moves
@@ -254,13 +276,16 @@ func _queue_move(unit: UnitInstance, from_row: int, from_col: int, to_row: int, 
 	# Show preview at destination
 	_show_placement_preview(unit, to_row, to_col)
 
-	# The original square is now vacated - mark it as available
-	# (we'll handle this in resolution)
+	# Hide ability panel
+	moving_unit = null
+	moving_from = {}
+	_update_ability_panel()
 
 	actions_remaining -= 1
 	_update_ui()
 
-	print("Queued move: ", unit.unit_data.unit_name, " from (", from_row, ",", from_col, ") to (", to_row, ",", to_col, ")")
+	var ability_name = unit.unit_data.abilities[unit.selected_ability_index].ability_name if unit.unit_data.abilities.size() > 0 else "Strike"
+	print("Queued move: ", unit.unit_data.unit_name, " (", ability_name, ") from (", from_row, ",", from_col, ") to (", to_row, ",", to_col, ")")
 
 func _cancel_pending_placement(index: int):
 	var pending = player_pending_placements[index]
@@ -359,6 +384,10 @@ func _do_enemy_turn():
 		var cell = empty_cells[cell_idx]
 		empty_cells.remove_at(cell_idx)
 
+		# Enemy picks a random ability
+		if unit.unit_data.abilities.size() > 0:
+			unit.selected_ability_index = randi() % unit.unit_data.abilities.size()
+
 		enemy_pending_placements.append({
 			"unit": unit,
 			"row": cell.row,
@@ -366,7 +395,8 @@ func _do_enemy_turn():
 		})
 		unit.place_on_grid(cell.row, cell.col)
 
-		print("Enemy queued ", unit.unit_data.unit_name, " at (", cell.row, ", ", cell.col, ")")
+		var ability_name = unit.unit_data.abilities[unit.selected_ability_index].ability_name if unit.unit_data.abilities.size() > 0 else "Strike"
+		print("Enemy queued ", unit.unit_data.unit_name, " (", ability_name, ") at (", cell.row, ", ", cell.col, ")")
 
 	await get_tree().create_timer(0.5).timeout
 
@@ -494,52 +524,102 @@ func _resolve_duel(contest: Dictionary):
 	var row = contest.row
 	var col = contest.col
 
-	print("DUEL at (", row, ", ", col, "): ", p_unit.unit_data.unit_name, " vs ", e_unit.unit_data.unit_name)
+	# Get selected abilities
+	var p_ability = p_unit.get_selected_ability()
+	var e_ability = e_unit.get_selected_ability()
 
-	# Calculate damage with element advantage
-	var p_multiplier = p_unit.unit_data.get_element_multiplier(e_unit.unit_data.element)
-	var e_multiplier = e_unit.unit_data.get_element_multiplier(p_unit.unit_data.element)
+	var p_ability_name = p_ability.ability_name if p_ability else "Strike"
+	var e_ability_name = e_ability.ability_name if e_ability else "Strike"
 
-	var p_damage = int(p_unit.unit_data.attack * p_multiplier)
-	var e_damage = int(e_unit.unit_data.attack * e_multiplier)
+	print("DUEL at (", row, ", ", col, "): ", p_unit.unit_data.unit_name, " (", p_ability_name, ") vs ", e_unit.unit_data.unit_name, " (", e_ability_name, ")")
 
-	print("  Player deals ", p_damage, " (x", p_multiplier, "), Enemy deals ", e_damage, " (x", e_multiplier, ")")
+	# Calculate base damage
+	var p_base_attack = p_unit.unit_data.attack
+	var e_base_attack = e_unit.unit_data.attack
+	var p_base_defense = p_unit.unit_data.defense
+	var e_base_defense = e_unit.unit_data.defense
+
+	# Apply ability modifiers
+	var p_damage_mult = p_ability.damage_multiplier if p_ability else 1.0
+	var e_damage_mult = e_ability.damage_multiplier if e_ability else 1.0
+	var p_defense_mult = p_ability.defense_multiplier if p_ability else 1.0
+	var e_defense_mult = e_ability.defense_multiplier if e_ability else 1.0
+	var p_bonus_damage = p_ability.bonus_damage if p_ability else 0
+	var e_bonus_damage = e_ability.bonus_damage if e_ability else 0
+	var p_piercing = p_ability.piercing if p_ability else false
+	var e_piercing = e_ability.piercing if e_ability else false
+	var p_ignores_element = p_ability.ignores_element if p_ability else false
+	var e_ignores_element = e_ability.ignores_element if e_ability else false
+	var p_guaranteed_survive = p_ability.guaranteed_survive if p_ability else false
+	var e_guaranteed_survive = e_ability.guaranteed_survive if e_ability else false
+	var p_heal = p_ability.heal_amount if p_ability else 0
+	var e_heal = e_ability.heal_amount if e_ability else 0
+
+	# Calculate element multipliers
+	var p_element_mult = 1.0 if p_ignores_element else p_unit.unit_data.get_element_multiplier(e_unit.unit_data.element)
+	var e_element_mult = 1.0 if e_ignores_element else e_unit.unit_data.get_element_multiplier(p_unit.unit_data.element)
+
+	# Calculate final damage
+	var p_attack_power = int(p_base_attack * p_damage_mult * p_element_mult) + p_bonus_damage
+	var e_attack_power = int(e_base_attack * e_damage_mult * e_element_mult) + e_bonus_damage
+
+	# Apply defense (unless piercing)
+	var p_damage_taken = e_attack_power
+	var e_damage_taken = p_attack_power
+
+	if not e_piercing:
+		p_damage_taken = max(1, e_attack_power - int(p_base_defense * p_defense_mult))
+	if not p_piercing:
+		e_damage_taken = max(1, p_attack_power - int(e_base_defense * e_defense_mult))
+
+	print("  Player deals ", e_damage_taken, ", takes ", p_damage_taken)
 
 	# Apply damage
-	e_unit.take_damage(p_damage)
-	p_unit.take_damage(e_damage)
+	e_unit.take_damage(e_damage_taken)
+	p_unit.take_damage(p_damage_taken)
 
-	# Determine winner (who has more HP remaining, or who dealt killing blow)
+	# Apply guaranteed survive
+	if p_guaranteed_survive and p_unit.current_hp <= 0:
+		p_unit.current_hp = 1
+		print("  Player survives with Nature's Resilience!")
+	if e_guaranteed_survive and e_unit.current_hp <= 0:
+		e_unit.current_hp = 1
+		print("  Enemy survives with ability!")
+
+	# Apply healing after combat
+	if p_heal > 0:
+		p_unit.heal(p_heal)
+		print("  Player heals for ", p_heal)
+	if e_heal > 0:
+		e_unit.heal(e_heal)
+		print("  Enemy heals for ", e_heal)
+
+	# Determine winner
 	var winner_unit: UnitInstance = null
 	var winner_owner: int = 0
 
 	if p_unit.current_hp <= 0 and e_unit.current_hp <= 0:
-		# Both died - no one gets the square
 		print("  Both units knocked out! Square remains empty.")
 		p_unit.remove_from_grid()
 		e_unit.remove_from_grid()
 		p_unit.start_cooldown()
 		e_unit.start_cooldown()
-		# Remove preview display
 		if grid_unit_displays[row][col]:
 			grid_unit_displays[row][col].queue_free()
 			grid_unit_displays[row][col] = null
 	elif p_unit.current_hp <= 0:
-		# Enemy wins
 		print("  Enemy wins the duel!")
 		winner_unit = e_unit
 		winner_owner = 2
 		p_unit.remove_from_grid()
 		p_unit.start_cooldown()
 	elif e_unit.current_hp <= 0:
-		# Player wins
 		print("  Player wins the duel!")
 		winner_unit = p_unit
 		winner_owner = 1
 		e_unit.remove_from_grid()
 		e_unit.start_cooldown()
 	else:
-		# Both alive - higher HP wins
 		if p_unit.current_hp >= e_unit.current_hp:
 			print("  Player wins (more HP)!")
 			winner_unit = p_unit
@@ -553,7 +633,6 @@ func _resolve_duel(contest: Dictionary):
 			p_unit.remove_from_grid()
 			p_unit.start_cooldown()
 
-	# Place winner on grid
 	if winner_unit:
 		_confirm_placement(winner_unit, row, col, winner_owner)
 
@@ -633,13 +712,59 @@ func _input(event):
 				_try_select_unit(3)
 			KEY_5:
 				_try_select_unit(4)
+			KEY_Q:
+				_on_ability_selected(0)
+			KEY_W:
+				_on_ability_selected(1)
+			KEY_E:
+				_on_ability_selected(2)
 			KEY_ESCAPE:
 				selected_unit = null
 				moving_unit = null
 				moving_from = {}
+				_update_ability_panel()
 				print("Deselected")
 			KEY_ENTER, KEY_SPACE:
 				_on_end_turn_pressed()
+
+func _on_ability_selected(index: int):
+	var active_unit = selected_unit if selected_unit else moving_unit
+	if active_unit and active_unit.unit_data.abilities.size() > index:
+		active_unit.selected_ability_index = index
+		_update_ability_panel()
+		print("Selected ability: ", active_unit.unit_data.abilities[index].ability_name)
+
+func _update_ability_panel():
+	var active_unit = selected_unit if selected_unit else moving_unit
+
+	if active_unit and ability_panel:
+		ability_panel.visible = true
+
+		# Update button labels and highlight selected
+		for i in range(ability_buttons.size()):
+			var btn = ability_buttons[i]
+			if btn and active_unit.unit_data.abilities.size() > i:
+				var ability = active_unit.unit_data.abilities[i]
+				var key = ["Q", "W", "E"][i]
+				btn.text = "[" + key + "] " + ability.ability_name
+				btn.disabled = false
+
+				# Highlight selected ability
+				if i == active_unit.selected_ability_index:
+					btn.modulate = Color(1, 1, 0.5)  # Yellow tint
+				else:
+					btn.modulate = Color(1, 1, 1)
+			elif btn:
+				btn.text = "[" + ["Q", "W", "E"][i] + "] ---"
+				btn.disabled = true
+				btn.modulate = Color(0.5, 0.5, 0.5)
+
+		# Update description
+		if ability_desc and active_unit.unit_data.abilities.size() > active_unit.selected_ability_index:
+			var ability = active_unit.unit_data.abilities[active_unit.selected_ability_index]
+			ability_desc.text = ability.description
+	elif ability_panel:
+		ability_panel.visible = false
 
 func _try_select_unit(index: int):
 	if index >= player_units.size():
@@ -648,6 +773,9 @@ func _try_select_unit(index: int):
 	var unit = player_units[index]
 	if unit.can_act() and not unit.is_placed():
 		selected_unit = unit
+		moving_unit = null
+		moving_from = {}
+		_update_ability_panel()
 		print("Selected: ", unit.unit_data.unit_name)
 	else:
 		if unit.is_placed():

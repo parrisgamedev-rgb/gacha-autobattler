@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="AbilityData" load_steps=2 format=3 uid="uid://tidal_shield_001"]
+
+[ext_resource type="Script" path="res://scripts/data/ability_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+ability_name = "Tidal Shield"
+ability_id = "tidal_shield"
+description = "Summon water to protect yourself and heal after the duel."
+ability_type = 0
+damage_multiplier = 0.7
+defense_multiplier = 1.5
+heal_amount = 20
+bonus_damage = 0
+ignores_element = false
+guaranteed_survive = false
+counter_attack = false
+piercing = false
+icon_color = Color(0.2, 0.6, 1, 1)

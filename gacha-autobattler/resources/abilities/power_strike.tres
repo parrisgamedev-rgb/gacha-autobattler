@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="AbilityData" load_steps=2 format=3 uid="uid://power_strike_001"]
+
+[ext_resource type="Script" path="res://scripts/data/ability_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+ability_name = "Power Strike"
+ability_id = "power_strike"
+description = "A powerful blow that deals heavy damage but leaves you vulnerable."
+ability_type = 0
+damage_multiplier = 1.5
+defense_multiplier = 0.5
+heal_amount = 0
+bonus_damage = 0
+ignores_element = false
+guaranteed_survive = false
+counter_attack = false
+piercing = false
+icon_color = Color(1, 0.3, 0.3, 1)

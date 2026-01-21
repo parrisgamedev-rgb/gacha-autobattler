@@ -1,6 +1,9 @@
-[gd_resource type="Resource" script_class="UnitData" load_steps=2 format=3 uid="uid://c7xm3k8n2p4ry"]
+[gd_resource type="Resource" script_class="UnitData" load_steps=5 format=3 uid="uid://c7xm3k8n2p4ry"]
 
 [ext_resource type="Script" path="res://scripts/data/unit_data.gd" id="1_script"]
+[ext_resource type="Resource" uid="uid://basic_attack_001" path="res://resources/abilities/basic_attack.tres" id="2_ability"]
+[ext_resource type="Resource" uid="uid://power_strike_001" path="res://resources/abilities/power_strike.tres" id="3_ability"]
+[ext_resource type="Resource" uid="uid://flame_burst_001" path="res://resources/abilities/flame_burst.tres" id="4_ability"]
 
 [resource]
 script = ExtResource("1_script")
@@ -12,5 +15,5 @@ max_hp = 100
 attack = 25
 defense = 10
 speed = 12
-ability_ids = Array[String](["basic_attack", "fire_slash", "flame_guard"])
+abilities = Array[Resource]([ExtResource("2_ability"), ExtResource("3_ability"), ExtResource("4_ability")])
 portrait_color = Color(0.9, 0.3, 0.2, 1)
