@@ -1899,7 +1899,7 @@ func _do_auto_turn():
 		if available_cells.is_empty() or available_units.is_empty():
 			break
 
-		available_units.sort_custom(func(a, b): return a.get_attack() > b.get_attack())
+		available_units.sort_custom(func(a, b): return a.attack > b.attack)
 		var unit = available_units.pop_front()
 
 		var cell = _select_cell_for_auto(available_cells)
@@ -1975,7 +1975,7 @@ func _select_best_ability(unit: UnitInstance):
 
 		if ability.heal_amount > 0:
 			for p_unit in player_units:
-				if p_unit.is_alive() and p_unit.current_hp < p_unit.get_max_hp() * 0.5:
+				if p_unit.is_alive() and p_unit.current_hp < p_unit.max_hp * 0.5:
 					score += 50
 					break
 
