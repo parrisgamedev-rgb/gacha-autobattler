@@ -1,0 +1,123 @@
+[gd_scene load_steps=2 format=3 uid="uid://cheat_menu_001"]
+
+[ext_resource type="Script" path="res://scripts/battle/cheat_menu.gd" id="1_script"]
+
+[node name="CheatMenu" type="CanvasLayer"]
+layer = 100
+script = ExtResource("1_script")
+
+[node name="Panel" type="Panel" parent="."]
+offset_left = 1520.0
+offset_top = 20.0
+offset_right = 1900.0
+offset_bottom = 400.0
+
+[node name="Background" type="ColorRect" parent="Panel"]
+offset_right = 380.0
+offset_bottom = 380.0
+color = Color(0.08, 0.08, 0.12, 0.95)
+
+[node name="VBox" type="VBoxContainer" parent="Panel"]
+offset_left = 10.0
+offset_top = 10.0
+offset_right = 370.0
+offset_bottom = 370.0
+theme_override_constants/separation = 10
+
+[node name="Header" type="HBoxContainer" parent="Panel/VBox"]
+layout_mode = 2
+
+[node name="Title" type="Label" parent="Panel/VBox/Header"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 24
+theme_override_colors/font_color = Color(1, 0.8, 0.3, 1)
+text = "CHEAT MENU"
+
+[node name="CloseButton" type="Button" parent="Panel/VBox/Header"]
+custom_minimum_size = Vector2(30, 30)
+layout_mode = 2
+text = "X"
+
+[node name="Separator1" type="HSeparator" parent="Panel/VBox"]
+layout_mode = 2
+
+[node name="DifficultyLabel" type="Label" parent="Panel/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.7, 0.7, 0.8, 1)
+text = "AI Difficulty:"
+
+[node name="DifficultyButtons" type="HBoxContainer" parent="Panel/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 5
+
+[node name="EasyButton" type="Button" parent="Panel/VBox/DifficultyButtons"]
+custom_minimum_size = Vector2(110, 40)
+layout_mode = 2
+text = "EASY"
+
+[node name="MediumButton" type="Button" parent="Panel/VBox/DifficultyButtons"]
+custom_minimum_size = Vector2(110, 40)
+layout_mode = 2
+text = "MEDIUM"
+
+[node name="HardButton" type="Button" parent="Panel/VBox/DifficultyButtons"]
+custom_minimum_size = Vector2(110, 40)
+layout_mode = 2
+text = "HARD"
+
+[node name="CurrentDifficulty" type="Label" parent="Panel/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.5, 1, 0.5, 1)
+text = "Current: MEDIUM"
+
+[node name="Separator2" type="HSeparator" parent="Panel/VBox"]
+layout_mode = 2
+
+[node name="BattleLabel" type="Label" parent="Panel/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.7, 0.7, 0.8, 1)
+text = "Battle Controls:"
+
+[node name="ResetButton" type="Button" parent="Panel/VBox"]
+custom_minimum_size = Vector2(0, 40)
+layout_mode = 2
+text = "RESET ROUND"
+
+[node name="InstantWinButton" type="Button" parent="Panel/VBox"]
+custom_minimum_size = Vector2(0, 40)
+layout_mode = 2
+text = "INSTANT WIN"
+
+[node name="InstantLoseButton" type="Button" parent="Panel/VBox"]
+custom_minimum_size = Vector2(0, 40)
+layout_mode = 2
+text = "INSTANT LOSE"
+
+[node name="Separator3" type="HSeparator" parent="Panel/VBox"]
+layout_mode = 2
+
+[node name="ResourceLabel" type="Label" parent="Panel/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.7, 0.7, 0.8, 1)
+text = "Resources:"
+
+[node name="AddGemsButton" type="Button" parent="Panel/VBox"]
+custom_minimum_size = Vector2(0, 40)
+layout_mode = 2
+text = "+10000 GEMS"
+
+[node name="AddGoldButton" type="Button" parent="Panel/VBox"]
+custom_minimum_size = Vector2(0, 40)
+layout_mode = 2
+text = "+10000 GOLD"
+
+[node name="Separator4" type="HSeparator" parent="Panel/VBox"]
+layout_mode = 2
+
+[node name="HintLabel" type="Label" parent="Panel/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+theme_override_colors/font_color = Color(0.5, 0.5, 0.6, 1)
+text = "Press F1 to toggle this menu"
+horizontal_alignment = 1

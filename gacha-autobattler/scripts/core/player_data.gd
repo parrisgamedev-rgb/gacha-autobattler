@@ -6,7 +6,7 @@ extends Node
 const SAVE_FILE_PATH = "user://save_data.json"
 
 # Currencies
-var gems: int = 1000  # Starting gems for new players
+var gems: int = 10000  # Starting gems for new players
 var gold: int = 5000  # Starting gold for leveling units
 var level_materials: int = 100  # Starting materials for leveling units
 var enhancement_stones: int = 50  # Starting stones for new players
@@ -554,6 +554,11 @@ func get_unit_stats_at_level(unit_data: UnitData, level: int, imprint_level: int
 		"defense": int(unit_data.defense * total_mult),
 		"speed": int(unit_data.speed * total_mult)
 	}
+
+func add_gems(amount: int):
+	gems += amount
+	print("+", amount, " gems (Total: ", gems, ")")
+	save_game()
 
 func add_gold(amount: int):
 	gold += amount
