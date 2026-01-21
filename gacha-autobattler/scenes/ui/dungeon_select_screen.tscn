@@ -18,61 +18,94 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0.06, 0.06, 0.1, 1)
+color = Color(0.102, 0.102, 0.18, 1)
 
-[node name="TopBar" type="HBoxContainer" parent="."]
+[node name="TopBar" type="Panel" parent="."]
 layout_mode = 1
 anchors_preset = 10
 anchor_right = 1.0
-offset_left = 20.0
-offset_top = 20.0
-offset_right = -20.0
-offset_bottom = 70.0
+offset_top = 0.0
+offset_bottom = 64.0
 grow_horizontal = 2
 
-[node name="BackButton" type="Button" parent="TopBar"]
-custom_minimum_size = Vector2(120, 50)
-layout_mode = 2
-text = "< BACK"
-
-[node name="Spacer" type="Control" parent="TopBar"]
-layout_mode = 2
-size_flags_horizontal = 3
-
-[node name="Title" type="Label" parent="TopBar"]
-layout_mode = 2
-theme_override_font_sizes/font_size = 36
-text = "GEAR DUNGEONS"
-vertical_alignment = 1
-
-[node name="Spacer2" type="Control" parent="TopBar"]
-layout_mode = 2
-size_flags_horizontal = 3
-
-[node name="StonesLabel" type="Label" parent="TopBar"]
-layout_mode = 2
-theme_override_font_sizes/font_size = 18
-theme_override_colors/font_color = Color(0.8, 0.6, 1, 1)
-text = "0 Stones"
-vertical_alignment = 1
-
-[node name="ScrollContainer" type="ScrollContainer" parent="."]
+[node name="HBox" type="HBoxContainer" parent="TopBar"]
 layout_mode = 1
-anchors_preset = -1
+anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = 20.0
-offset_top = 90.0
-offset_right = -420.0
-offset_bottom = -20.0
+offset_left = 16.0
+offset_right = -16.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="DungeonsContainer" type="HBoxContainer" parent="ScrollContainer"]
-layout_mode = 2
-size_flags_horizontal = 3
-size_flags_vertical = 0
-theme_override_constants/separation = 20
+[node name="BackButton" type="Button" parent="TopBar"]
+layout_mode = 1
+anchors_preset = 4
+anchor_top = 0.5
+anchor_bottom = 0.5
+offset_left = 16.0
+offset_top = -20.0
+offset_right = 100.0
+offset_bottom = 20.0
+grow_vertical = 2
+text = "< BACK"
+
+[node name="Title" type="Label" parent="TopBar"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -80.0
+offset_top = -20.0
+offset_right = 80.0
+offset_bottom = 20.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_font_sizes/font_size = 32
+text = "DUNGEONS"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="CurrencyContainer" type="Panel" parent="TopBar"]
+layout_mode = 1
+anchors_preset = 6
+anchor_left = 1.0
+anchor_top = 0.5
+anchor_right = 1.0
+anchor_bottom = 0.5
+offset_left = -150.0
+offset_top = -16.0
+offset_right = -16.0
+offset_bottom = 16.0
+grow_horizontal = 0
+grow_vertical = 2
+
+[node name="StonesLabel" type="Label" parent="TopBar/CurrencyContainer"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_font_sizes/font_size = 16
+text = "0 Stones"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="DungeonsGrid" type="GridContainer" parent="."]
+layout_mode = 1
+anchors_preset = -1
+anchor_bottom = 1.0
+offset_left = 24.0
+offset_top = 80.0
+offset_right = 476.0
+offset_bottom = -24.0
+grow_vertical = 2
+theme_override_constants/h_separation = 16
+theme_override_constants/v_separation = 16
+columns = 2
 
 [node name="DungeonInfoPanel" type="Panel" parent="."]
 layout_mode = 1
@@ -81,20 +114,11 @@ anchor_left = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
 offset_left = -400.0
-offset_top = 90.0
-offset_right = -20.0
-offset_bottom = -20.0
+offset_top = 80.0
+offset_right = -24.0
+offset_bottom = -24.0
 grow_horizontal = 0
 grow_vertical = 2
-
-[node name="PanelBg" type="ColorRect" parent="DungeonInfoPanel"]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-color = Color(0.1, 0.1, 0.18, 1)
 
 [node name="VBox" type="VBoxContainer" parent="DungeonInfoPanel"]
 layout_mode = 1
@@ -107,12 +131,12 @@ offset_right = -20.0
 offset_bottom = -20.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_constants/separation = 15
+theme_override_constants/separation = 12
 
 [node name="InfoTitle" type="Label" parent="DungeonInfoPanel/VBox"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 24
-text = "Dungeon Info"
+theme_override_font_sizes/font_size = 18
+text = "SELECT A DUNGEON"
 horizontal_alignment = 1
 
 [node name="Separator" type="HSeparator" parent="DungeonInfoPanel/VBox"]
@@ -120,30 +144,55 @@ layout_mode = 2
 
 [node name="DungeonNameLabel" type="Label" parent="DungeonInfoPanel/VBox"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 22
-text = "Power Sanctum"
+theme_override_font_sizes/font_size = 24
+text = "Dungeon Name"
 
-[node name="DescriptionLabel" type="Label" parent="DungeonInfoPanel/VBox"]
+[node name="EnemyLevelLabel" type="Label" parent="DungeonInfoPanel/VBox"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.8, 0.8, 0.9, 1)
-text = "Dungeon description..."
-autowrap_mode = 2
+theme_override_font_sizes/font_size = 16
+text = "Enemy Level: --"
 
-[node name="DropsLabel" type="Label" parent="DungeonInfoPanel/VBox"]
+[node name="RewardsLabel" type="Label" parent="DungeonInfoPanel/VBox"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.5, 1, 0.5, 1)
-text = "Drops: ATK gear + Enhancement Stones"
+theme_override_font_sizes/font_size = 16
+text = "Rewards: --"
 
 [node name="Separator2" type="HSeparator" parent="DungeonInfoPanel/VBox"]
 layout_mode = 2
 
-[node name="TierTitle" type="Label" parent="DungeonInfoPanel/VBox"]
+[node name="DifficultyLabel" type="Label" parent="DungeonInfoPanel/VBox"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 18
-text = "Select Difficulty"
+text = "SELECT DIFFICULTY"
 horizontal_alignment = 1
 
-[node name="TierButtons" type="VBoxContainer" parent="DungeonInfoPanel/VBox"]
+[node name="DifficultyContainer" type="HBoxContainer" parent="DungeonInfoPanel/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="EasyButton" type="Button" parent="DungeonInfoPanel/VBox/DifficultyContainer"]
+custom_minimum_size = Vector2(0, 40)
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Easy"
+
+[node name="NormalButton" type="Button" parent="DungeonInfoPanel/VBox/DifficultyContainer"]
+custom_minimum_size = Vector2(0, 40)
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Normal"
+
+[node name="HardButton" type="Button" parent="DungeonInfoPanel/VBox/DifficultyContainer"]
+custom_minimum_size = Vector2(0, 40)
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Hard"
+
+[node name="Spacer" type="Control" parent="DungeonInfoPanel/VBox"]
 layout_mode = 2
 size_flags_vertical = 3
-theme_override_constants/separation = 10
+
+[node name="StartButton" type="Button" parent="DungeonInfoPanel/VBox"]
+custom_minimum_size = Vector2(0, 50)
+layout_mode = 2
+text = "START DUNGEON"
