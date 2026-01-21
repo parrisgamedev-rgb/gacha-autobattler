@@ -51,6 +51,36 @@ offset_right = 1035.0
 offset_bottom = 180.0
 text = "END TURN"
 
+[node name="BottomBar" type="HBoxContainer" parent="UI"]
+offset_left = 760.0
+offset_top = 980.0
+offset_right = 1160.0
+offset_bottom = 1030.0
+theme_override_constants/separation = 10
+alignment = 1
+
+[node name="AutoButton" type="Button" parent="UI/BottomBar"]
+custom_minimum_size = Vector2(100, 40)
+text = "AUTO: OFF"
+
+[node name="SpeedSeparator" type="VSeparator" parent="UI/BottomBar"]
+
+[node name="Speed1xButton" type="Button" parent="UI/BottomBar"]
+custom_minimum_size = Vector2(50, 40)
+toggle_mode = true
+button_pressed = true
+text = "1x"
+
+[node name="Speed2xButton" type="Button" parent="UI/BottomBar"]
+custom_minimum_size = Vector2(50, 40)
+toggle_mode = true
+text = "2x"
+
+[node name="Speed3xButton" type="Button" parent="UI/BottomBar"]
+custom_minimum_size = Vector2(50, 40)
+toggle_mode = true
+text = "3x"
+
 [node name="PlayerRosterBG" type="ColorRect" parent="UI"]
 mouse_filter = 2
 offset_left = 20.0

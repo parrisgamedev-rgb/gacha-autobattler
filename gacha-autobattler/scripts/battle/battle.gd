@@ -30,12 +30,20 @@ var ai_difficulty: AIDifficulty = AIDifficulty.MEDIUM
 @onready var main_menu_button = $UI/ResultsPanel/ButtonContainer/MainMenuButton
 @onready var combat_announcement = $UI/CombatAnnouncement
 @onready var cheat_menu = $CheatMenu
+@onready var auto_button = $UI/BottomBar/AutoButton
+@onready var speed_1x_btn = $UI/BottomBar/Speed1xButton
+@onready var speed_2x_btn = $UI/BottomBar/Speed2xButton
+@onready var speed_3x_btn = $UI/BottomBar/Speed3xButton
 
 # Game state
 enum GamePhase { PLAYER_TURN, ENEMY_TURN, RESOLVING, GAME_OVER }
 var current_phase: GamePhase = GamePhase.PLAYER_TURN
 var current_turn: int = 1
 var actions_remaining: int = ACTIONS_PER_TURN
+
+# Auto-battle settings
+var auto_battle_enabled: bool = false
+var battle_speed: float = 1.0  # 1.0 = normal, 0.5 = 2x, 0.25 = 3x
 
 # Grid state
 var grid_cells: Array = []
@@ -99,6 +107,18 @@ func _ready():
 	# Setup cheat menu
 	if cheat_menu:
 		cheat_menu.setup(self)
+
+	# Connect auto-battle controls
+	if auto_button:
+		auto_button.pressed.connect(_on_auto_toggle)
+	if speed_1x_btn:
+		speed_1x_btn.pressed.connect(_set_battle_speed.bind(1.0))
+	if speed_2x_btn:
+		speed_2x_btn.pressed.connect(_set_battle_speed.bind(0.5))
+	if speed_3x_btn:
+		speed_3x_btn.pressed.connect(_set_battle_speed.bind(0.25))
+	_update_speed_buttons()
+	_update_auto_button()
 
 func _create_grid():
 	grid_ownership = []
@@ -526,7 +546,7 @@ func _on_end_turn_pressed():
 	_update_ui()
 
 	# Simple delay before enemy acts
-	await get_tree().create_timer(0.5).timeout
+	await get_tree().create_timer(get_scaled_time(0.5)).timeout
 
 	_do_enemy_turn()
 
@@ -560,7 +580,7 @@ func _do_enemy_turn():
 		var ability_name = unit.unit_data.abilities[unit.selected_ability_index].ability_name if unit.unit_data.abilities.size() > 0 else "Strike"
 		print("Enemy queued ", unit.unit_data.unit_name, " (", ability_name, ") at (", cell.row, ", ", cell.col, ")")
 
-	await get_tree().create_timer(0.5).timeout
+	await get_tree().create_timer(get_scaled_time(0.5)).timeout
 
 	_resolve_turn()
 
@@ -823,6 +843,10 @@ func _resolve_turn():
 	_update_ui()
 
 	print("=== Turn ", current_turn, " ===")
+
+	if auto_battle_enabled:
+		await get_tree().create_timer(get_scaled_time(0.3)).timeout
+		_do_auto_turn()
 
 func _get_display_for_unit(unit: UnitInstance) -> Node2D:
 	if not unit.is_placed():
@@ -1109,7 +1133,7 @@ func _resolve_duel(row: int, col: int, p_unit: UnitInstance, e_unit: UnitInstanc
 	if e_unit.is_alive() and e_display:
 		e_display.update_status_display()
 
-	await get_tree().create_timer(0.3).timeout
+	await get_tree().create_timer(get_scaled_time(0.3)).timeout
 
 func _confirm_placement(unit: UnitInstance, row: int, col: int, owner: int):
 	# Place unit in the appropriate array
@@ -1825,3 +1849,135 @@ func _process_all_field_durations():
 				else:
 					# Show the most recent field effect
 					grid_cells[row][col].show_field_effect(cell_effects[-1].field_data)
+
+# === AUTO-BATTLE SYSTEM ===
+
+func _on_auto_toggle():
+	auto_battle_enabled = not auto_battle_enabled
+	_update_auto_button()
+	if auto_battle_enabled and current_phase == GamePhase.PLAYER_TURN:
+		_do_auto_turn()
+
+func _update_auto_button():
+	if not auto_button:
+		return
+	if auto_battle_enabled:
+		auto_button.text = "AUTO: ON"
+	else:
+		auto_button.text = "AUTO: OFF"
+
+func _set_battle_speed(speed: float):
+	battle_speed = speed
+	_update_speed_buttons()
+
+func _update_speed_buttons():
+	if speed_1x_btn:
+		speed_1x_btn.button_pressed = (battle_speed == 1.0)
+	if speed_2x_btn:
+		speed_2x_btn.button_pressed = (battle_speed == 0.5)
+	if speed_3x_btn:
+		speed_3x_btn.button_pressed = (battle_speed == 0.25)
+
+func get_scaled_time(base_time: float) -> float:
+	return base_time * battle_speed
+
+func _do_auto_turn():
+	if current_phase != GamePhase.PLAYER_TURN or not auto_battle_enabled:
+		return
+
+	print("Auto-battle taking turn...")
+
+	var available_cells = _get_cells_without_player()
+	var available_units = player_units.filter(func(u): return u.can_act() and not u.is_placed())
+
+	var auto_actions = mini(actions_remaining, mini(available_cells.size(), available_units.size()))
+
+	for i in range(auto_actions):
+		if available_cells.is_empty() or available_units.is_empty():
+			break
+
+		available_units.sort_custom(func(a, b): return a.get_attack() > b.get_attack())
+		var unit = available_units.pop_front()
+
+		var cell = _select_cell_for_auto(available_cells)
+		available_cells.erase(cell)
+
+		_select_best_ability(unit)
+		_queue_placement(unit, cell.row, cell.col)
+
+		await get_tree().create_timer(0.2 * battle_speed).timeout
+
+	await get_tree().create_timer(0.3 * battle_speed).timeout
+	_on_end_turn_pressed()
+
+func _get_cells_without_player() -> Array:
+	var available = []
+	for row in range(GRID_SIZE):
+		for col in range(GRID_SIZE):
+			if grid_player_units[row][col] == null:
+				var is_pending = false
+				for p in player_pending_placements:
+					if p.row == row and p.col == col:
+						is_pending = true
+						break
+				if not is_pending:
+					available.append({"row": row, "col": col})
+	return available
+
+func _select_cell_for_auto(available_cells: Array) -> Dictionary:
+	if available_cells.is_empty():
+		return {}
+
+	var scored_cells = []
+	for cell in available_cells:
+		var score = _evaluate_cell_for_player(cell.row, cell.col)
+		scored_cells.append({"cell": cell, "score": score})
+
+	scored_cells.sort_custom(func(a, b): return a.score > b.score)
+	return scored_cells[0].cell
+
+func _evaluate_cell_for_player(row: int, col: int) -> int:
+	var score = 0
+	var lines = _get_lines_containing_cell(row, col)
+
+	for line in lines:
+		var counts = _count_line_ownership(line)
+		if counts.player == 2 and counts.empty == 1:
+			score += 100
+		if counts.enemy == 2 and counts.empty == 1:
+			score += 90
+		if counts.player == 1 and counts.empty == 2:
+			score += 30
+
+	if row == 1 and col == 1:
+		score += 20
+	elif (row == 0 or row == 2) and (col == 0 or col == 2):
+		score += 10
+
+	return score
+
+func _select_best_ability(unit: UnitInstance):
+	if unit.unit_data.abilities.is_empty():
+		return
+
+	var best_index = 0
+	var best_score = -999
+
+	for i in range(unit.unit_data.abilities.size()):
+		if not unit.is_ability_available(i):
+			continue
+
+		var ability = unit.unit_data.abilities[i]
+		var score = ability.damage_multiplier * 100
+
+		if ability.heal_amount > 0:
+			for p_unit in player_units:
+				if p_unit.is_alive() and p_unit.current_hp < p_unit.get_max_hp() * 0.5:
+					score += 50
+					break
+
+		if score > best_score:
+			best_score = score
+			best_index = i
+
+	unit.selected_ability_index = best_index
