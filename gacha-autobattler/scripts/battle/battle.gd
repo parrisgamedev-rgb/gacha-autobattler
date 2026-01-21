@@ -8,6 +8,10 @@ const CELL_SIZE = 150
 const CELL_GAP = 10
 const ACTIONS_PER_TURN = 2
 
+# AI Difficulty
+enum AIDifficulty { EASY, MEDIUM, HARD }
+var ai_difficulty: AIDifficulty = AIDifficulty.MEDIUM
+
 # References
 @onready var grid_container = $GridContainer
 @onready var turn_label = $UI/TurnLabel
@@ -25,6 +29,7 @@ const ACTIONS_PER_TURN = 2
 @onready var play_again_button = $UI/ResultsPanel/ButtonContainer/PlayAgainButton
 @onready var main_menu_button = $UI/ResultsPanel/ButtonContainer/MainMenuButton
 @onready var combat_announcement = $UI/CombatAnnouncement
+@onready var cheat_menu = $CheatMenu
 
 # Game state
 enum GamePhase { PLAYER_TURN, ENEMY_TURN, RESOLVING, GAME_OVER }
@@ -90,6 +95,10 @@ func _ready():
 		play_again_button.pressed.connect(_on_play_again_pressed)
 	if main_menu_button:
 		main_menu_button.pressed.connect(_on_main_menu_pressed)
+
+	# Setup cheat menu
+	if cheat_menu:
+		cheat_menu.setup(self)
 
 func _create_grid():
 	grid_ownership = []
@@ -464,9 +473,8 @@ func _on_end_turn_pressed():
 	_do_enemy_turn()
 
 func _do_enemy_turn():
-	print("Enemy is thinking...")
+	print("Enemy is thinking... (Difficulty: ", AIDifficulty.keys()[ai_difficulty], ")")
 
-	# Simple AI: place up to 2 units on cells without enemy units
 	var available_cells = _get_cells_without_enemy()
 	var available_units = enemy_units.filter(func(u): return u.can_act() and not u.is_placed())
 
@@ -477,9 +485,8 @@ func _do_enemy_turn():
 			break
 
 		var unit = available_units.pop_front()
-		var cell_idx = randi() % available_cells.size()
-		var cell = available_cells[cell_idx]
-		available_cells.remove_at(cell_idx)
+		var cell = _select_cell_by_difficulty(available_cells)
+		available_cells.erase(cell)
 
 		# Enemy picks a random ability
 		if unit.unit_data.abilities.size() > 0:
@@ -498,6 +505,49 @@ func _do_enemy_turn():
 	await get_tree().create_timer(0.5).timeout
 
 	_resolve_turn()
+
+func _select_cell_by_difficulty(available_cells: Array) -> Dictionary:
+	if available_cells.is_empty():
+		return {}
+
+	# Score all available cells
+	var scored_cells = []
+	for cell in available_cells:
+		var score = _evaluate_cell_priority(cell.row, cell.col)
+		scored_cells.append({"cell": cell, "score": score})
+
+	# Sort by score descending
+	scored_cells.sort_custom(func(a, b): return a.score > b.score)
+
+	var selected_cell: Dictionary
+
+	match ai_difficulty:
+		AIDifficulty.EASY:
+			# 30% optimal, 70% random
+			if randf() < 0.3:
+				selected_cell = scored_cells[0].cell
+			else:
+				selected_cell = available_cells[randi() % available_cells.size()]
+
+		AIDifficulty.MEDIUM:
+			# 70% optimal, 30% random from top 3
+			if randf() < 0.7:
+				selected_cell = scored_cells[0].cell
+			else:
+				var top_count = min(3, scored_cells.size())
+				selected_cell = scored_cells[randi() % top_count].cell
+
+		AIDifficulty.HARD:
+			# 95% optimal, always takes winning/blocking moves
+			var top_score = scored_cells[0].score
+			# Always take winning moves (100+) or blocking moves (90+)
+			if top_score >= 90 or randf() < 0.95:
+				selected_cell = scored_cells[0].cell
+			else:
+				var top_count = min(2, scored_cells.size())
+				selected_cell = scored_cells[randi() % top_count].cell
+
+	return selected_cell
 
 func _is_cell_being_vacated(row: int, col: int) -> bool:
 	# Check if there's a pending move FROM this cell
@@ -521,6 +571,75 @@ func _get_cells_without_enemy() -> Array:
 				if not is_pending:
 					available.append({"row": row, "col": col})
 	return available
+
+# --- AI Helper Functions ---
+
+func _get_all_lines() -> Array:
+	# Returns all 8 possible winning lines as arrays of cell coordinates
+	var lines = []
+	# Rows
+	for row in range(GRID_SIZE):
+		lines.append([{"row": row, "col": 0}, {"row": row, "col": 1}, {"row": row, "col": 2}])
+	# Columns
+	for col in range(GRID_SIZE):
+		lines.append([{"row": 0, "col": col}, {"row": 1, "col": col}, {"row": 2, "col": col}])
+	# Diagonals
+	lines.append([{"row": 0, "col": 0}, {"row": 1, "col": 1}, {"row": 2, "col": 2}])
+	lines.append([{"row": 0, "col": 2}, {"row": 1, "col": 1}, {"row": 2, "col": 0}])
+	return lines
+
+func _count_line_ownership(line: Array) -> Dictionary:
+	# Counts ownership in a line: player (1), enemy (2), empty (0), contested (3)
+	var counts = {"player": 0, "enemy": 0, "empty": 0, "contested": 0}
+	for cell in line:
+		var ownership = grid_ownership[cell.row][cell.col]
+		match ownership:
+			0: counts.empty += 1
+			1: counts.player += 1
+			2: counts.enemy += 1
+			3: counts.contested += 1
+	return counts
+
+func _get_lines_containing_cell(row: int, col: int) -> Array:
+	# Returns all lines that include the given cell
+	var all_lines = _get_all_lines()
+	var matching_lines = []
+	for line in all_lines:
+		for cell in line:
+			if cell.row == row and cell.col == col:
+				matching_lines.append(line)
+				break
+	return matching_lines
+
+func _evaluate_cell_priority(row: int, col: int) -> int:
+	# Scores a cell based on strategic value for the AI (enemy)
+	var score = 0
+	var lines = _get_lines_containing_cell(row, col)
+
+	for line in lines:
+		var counts = _count_line_ownership(line)
+
+		# Can win: 2 enemy + 1 empty (this cell must be the empty one)
+		if counts.enemy == 2 and counts.empty == 1:
+			score += 100
+
+		# Must block: 2 player + 1 empty
+		if counts.player == 2 and counts.empty == 1:
+			score += 90
+
+		# Build threat: 1 enemy + 2 empty
+		if counts.enemy == 1 and counts.empty == 2:
+			score += 30
+
+	# Positional bonuses
+	if row == 1 and col == 1:
+		score += 20  # Center
+	elif (row == 0 or row == 2) and (col == 0 or col == 2):
+		score += 10  # Corner
+	else:
+		score += 5   # Edge
+
+	return score
 
 func _resolve_turn():
 	print("=== Resolving Turn ===")
@@ -1054,6 +1173,12 @@ func _input(event):
 			if dragging_unit:
 				_handle_drag_release()
 
+	# F1 toggles cheat menu (always available)
+	if event is InputEventKey and event.pressed and event.keycode == KEY_F1:
+		if cheat_menu:
+			cheat_menu.toggle()
+		return
+
 	if current_phase != GamePhase.PLAYER_TURN:
 		return
 
@@ -1392,6 +1517,24 @@ func _show_combat_announcement(text: String, duration: float = 1.0):
 		tween.tween_interval(duration * 0.7)
 		tween.tween_property(combat_announcement, "modulate:a", 0.0, duration * 0.3)
 		tween.tween_callback(func(): combat_announcement.visible = false)
+
+# --- Cheat Functions ---
+
+func _cheat_instant_win():
+	# Force player to own a complete line
+	for col in range(GRID_SIZE):
+		grid_ownership[0][col] = 1  # Player owns top row
+		grid_cells[0][col].set_ownership(1)
+	current_phase = GamePhase.GAME_OVER
+	_show_results(1)
+
+func _cheat_instant_lose():
+	# Force enemy to own a complete line
+	for col in range(GRID_SIZE):
+		grid_ownership[0][col] = 2  # Enemy owns top row
+		grid_cells[0][col].set_ownership(2)
+	current_phase = GamePhase.GAME_OVER
+	_show_results(2)
 
 func _update_roster_displays():
 	# Update all player roster displays to show current HP/cooldowns

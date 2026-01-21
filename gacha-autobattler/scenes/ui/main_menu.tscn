@@ -56,6 +56,13 @@ size_flags_horizontal = 4
 theme_override_font_sizes/font_size = 28
 text = "START BATTLE"
 
+[node name="PvPButton" type="Button" parent="CenterContainer/VBoxContainer"]
+custom_minimum_size = Vector2(300, 60)
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_font_sizes/font_size = 28
+text = "PVP BATTLE"
+
 [node name="SummonButton" type="Button" parent="CenterContainer/VBoxContainer"]
 custom_minimum_size = Vector2(300, 60)
 layout_mode = 2

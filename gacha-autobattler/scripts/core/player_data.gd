@@ -5,6 +5,9 @@ extends Node
 # Currency
 var gems: int = 999999  # Unlimited for testing
 
+# PvP mode flag (set by PvP lobby)
+var pvp_mode: bool = false
+
 # Pity system
 var pity_counter: int = 0
 const SOFT_PITY_START: int = 50

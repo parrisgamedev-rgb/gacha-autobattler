@@ -197,8 +197,11 @@ func _on_start():
 	# Store selected team instance IDs in PlayerData
 	PlayerData.selected_team = selected_instance_ids.duplicate()
 
-	# Go to battle
-	get_tree().change_scene_to_file("res://scenes/battle/battle.tscn")
+	# Go to appropriate battle scene
+	if PlayerData.pvp_mode:
+		get_tree().change_scene_to_file("res://scenes/battle/battle_pvp.tscn")
+	else:
+		get_tree().change_scene_to_file("res://scenes/battle/battle.tscn")
 
 func _on_back():
 	get_tree().change_scene_to_file("res://scenes/ui/main_menu.tscn")
