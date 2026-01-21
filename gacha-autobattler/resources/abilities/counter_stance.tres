@@ -16,5 +16,5 @@ ignores_element = false
 guaranteed_survive = false
 counter_attack = true
 piercing = false
-cooldown = 1
+cooldown = 2
 icon_color = Color(0.3, 0.2, 0.4, 1)

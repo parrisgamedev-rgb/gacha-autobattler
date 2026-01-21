@@ -7,6 +7,7 @@ const GRID_SIZE = 3
 const CELL_SIZE = 150
 const CELL_GAP = 10
 const ACTIONS_PER_TURN = 2
+const MAX_TURNS = 50  # Turn limit to prevent infinite stalemates
 
 # AI Difficulty
 enum AIDifficulty { EASY, MEDIUM, HARD }
@@ -903,14 +904,23 @@ func _recenter_remaining_unit(row: int, col: int):
 			grid_enemy_displays[row][col].position = Vector2(x, y)
 
 func _resolve_duel(row: int, col: int, p_unit: UnitInstance, e_unit: UnitInstance):
-	# Get selected abilities (nullify if disrupted)
-	var p_ability = null if p_unit.is_disrupted() else p_unit.get_selected_ability()
-	var e_ability = null if e_unit.is_disrupted() else e_unit.get_selected_ability()
+	# Get selected abilities (nullify if disrupted OR on cooldown)
+	var p_ability = null
+	var e_ability = null
+
+	if not p_unit.is_disrupted() and p_unit.is_ability_available(p_unit.selected_ability_index):
+		p_ability = p_unit.get_selected_ability()
+	if not e_unit.is_disrupted() and e_unit.is_ability_available(e_unit.selected_ability_index):
+		e_ability = e_unit.get_selected_ability()
 
 	if p_unit.is_disrupted():
 		print("  ", p_unit.unit_data.unit_name, " is DISRUPTED - cannot use ability!")
+	elif not p_unit.is_ability_available(p_unit.selected_ability_index):
+		print("  ", p_unit.unit_data.unit_name, " ability on COOLDOWN - using basic attack!")
 	if e_unit.is_disrupted():
 		print("  ", e_unit.unit_data.unit_name, " is DISRUPTED - cannot use ability!")
+	elif not e_unit.is_ability_available(e_unit.selected_ability_index):
+		print("  ", e_unit.unit_data.unit_name, " ability on COOLDOWN - using basic attack!")
 
 	var p_ability_name = p_ability.ability_name if p_ability else "Strike"
 	var e_ability_name = e_ability.ability_name if e_ability else "Strike"
@@ -1224,7 +1234,45 @@ func _check_win_condition() -> int:
 	if winner > 0:
 		return winner
 
+	# Check turn limit - determine winner by HP percentage
+	if current_turn >= MAX_TURNS:
+		return _determine_winner_by_hp()
+
 	return 0
+
+func _determine_winner_by_hp() -> int:
+	# Calculate total HP percentage for each team
+	var player_hp_percent = _calculate_team_hp_percent(player_units)
+	var enemy_hp_percent = _calculate_team_hp_percent(enemy_units)
+
+	print("TURN LIMIT REACHED! Determining winner by HP%...")
+	print("  Player team HP: ", snapped(player_hp_percent * 100, 0.1), "%")
+	print("  Enemy team HP: ", snapped(enemy_hp_percent * 100, 0.1), "%")
+
+	if player_hp_percent > enemy_hp_percent:
+		print("  Player wins by HP advantage!")
+		return 1
+	elif enemy_hp_percent > player_hp_percent:
+		print("  Enemy wins by HP advantage!")
+		return 2
+	else:
+		# Tie goes to player (slight advantage for reaching the limit)
+		print("  HP tied - Player wins by tiebreaker!")
+		return 1
+
+func _calculate_team_hp_percent(units: Array) -> float:
+	var total_current_hp = 0.0
+	var total_max_hp = 0.0
+
+	for unit in units:
+		if unit and unit.max_hp > 0:
+			total_current_hp += unit.current_hp
+			total_max_hp += unit.max_hp
+
+	if total_max_hp <= 0:
+		return 0.0
+
+	return total_current_hp / total_max_hp
 
 func _check_line(a: int, b: int, c: int) -> int:
 	# Only sole occupancy counts (1 = player only, 2 = enemy only)
@@ -1569,8 +1617,14 @@ func _show_results(winner: int):
 	if results_panel:
 		results_panel.visible = true
 
+		# Check if this was a turn limit victory
+		var ended_by_turn_limit = current_turn >= MAX_TURNS
+
 		if winner == 1:
-			result_title.text = "VICTORY!"
+			if ended_by_turn_limit:
+				result_title.text = "TIME VICTORY!"
+			else:
+				result_title.text = "VICTORY!"
 			result_title.add_theme_color_override("font_color", Color(0.3, 0.9, 0.3))
 
 			# Give battle rewards
@@ -1617,18 +1671,27 @@ func _show_results(winner: int):
 				result_subtitle.text = subtitle_text
 			else:
 				# Quick battle rewards
-				var subtitle_text = "You won in " + str(current_turn) + " turns!\n"
+				var subtitle_text = ""
+				if ended_by_turn_limit:
+					subtitle_text = "Turn limit reached - you had more HP!\n"
+				else:
+					subtitle_text = "You won in " + str(current_turn) + " turns!\n"
 				subtitle_text += "+" + str(battle_rewards.gold) + " Gold, +" + str(battle_rewards.materials) + " Materials"
 				if battle_rewards.level_ups.size() > 0:
 					subtitle_text += "\nLevel Up: " + ", ".join(battle_rewards.level_ups)
 				result_subtitle.text = subtitle_text
 		else:
-			result_title.text = "DEFEAT"
+			if ended_by_turn_limit:
+				result_title.text = "TIME DEFEAT"
+			else:
+				result_title.text = "DEFEAT"
 			result_title.add_theme_color_override("font_color", Color(0.9, 0.3, 0.3))
 			if PlayerData.is_campaign_mode():
 				result_subtitle.text = "Stage failed. Try again!"
 			elif PlayerData.is_dungeon_mode():
 				result_subtitle.text = "Dungeon failed. Try again!"
+			elif ended_by_turn_limit:
+				result_subtitle.text = "Turn limit reached. Enemy had more HP!"
 			else:
 				result_subtitle.text = "Better luck next time!"
 
