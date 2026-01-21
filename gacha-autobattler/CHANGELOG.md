@@ -2,6 +2,38 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.5] - Auto-Battle & UI Overhaul
+
+### Added
+- **Auto-Battle System**
+  - Toggle button to enable AI-controlled unit placement
+  - AI uses strategic cell evaluation (same logic as enemy)
+  - Automatically selects best abilities based on situation
+  - Auto-ends turn when actions exhausted
+
+- **Battle Speed Controls**
+  - 1x, 2x, 3x speed options
+  - Affects all timers, tweens, and animations
+  - Speed persists during battle
+
+- **UI Design System**
+  - UITheme autoload with consistent colors, fonts, spacing
+  - Dark navy backgrounds (#1a1a2e)
+  - Blue primary accents (#4a9eff)
+  - Standardized component styles
+
+### Changed
+- **Main Menu**: Centered layout, primary/secondary button hierarchy
+- **Battle Screen**: Reorganized layout, auto/speed controls in bottom bar
+- **Collection Screen**: Split view with unit grid and detail panel
+- **Gear Inventory**: Tab-style filters, cleaner card layout
+- **Dungeon Select**: 2x2 grid with color-coded stat types
+- **Campaign Select**: Horizontal stage progression, locked/cleared states
+- **Team Select**: Top team slots, available units below, filter dropdown
+- **Gacha Screen**: Consistent styling with gold accents for results
+
+---
+
 ## [0.4] - Gear System
 
 ### Added
