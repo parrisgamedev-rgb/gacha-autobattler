@@ -64,17 +64,17 @@ func _build_gear_grid():
 		if current_filter == -1:
 			filtered_gear.append(gear_entry)
 		else:
-			var template = PlayerData.get_gear_template(gear_entry.gear_id)
-			if template and template.gear_type == current_filter:
+			var gear_data = gear_entry.gear_data as GearData
+			if gear_data and gear_data.gear_type == current_filter:
 				filtered_gear.append(gear_entry)
 
 	# Sort by rarity (highest first), then level
 	filtered_gear.sort_custom(func(a, b):
-		var template_a = PlayerData.get_gear_template(a.gear_id)
-		var template_b = PlayerData.get_gear_template(b.gear_id)
-		if template_a and template_b:
-			if template_a.rarity != template_b.rarity:
-				return template_a.rarity > template_b.rarity
+		var gear_a = a.gear_data as GearData
+		var gear_b = b.gear_data as GearData
+		if gear_a and gear_b:
+			if gear_a.rarity != gear_b.rarity:
+				return gear_a.rarity > gear_b.rarity
 			return a.level > b.level
 		return false
 	)
@@ -85,7 +85,7 @@ func _build_gear_grid():
 		gear_grid.add_child(card)
 
 func _create_gear_card(gear_entry: Dictionary) -> Control:
-	var template = PlayerData.get_gear_template(gear_entry.gear_id)
+	var template = gear_entry.gear_data as GearData
 	if not template:
 		var placeholder = Control.new()
 		return placeholder
