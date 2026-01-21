@@ -1,18 +1,23 @@
 extends Control
 ## Main menu screen
 
+@onready var campaign_button = $CenterContainer/VBoxContainer/CampaignButton
 @onready var start_button = $CenterContainer/VBoxContainer/StartButton
 @onready var pvp_button = $CenterContainer/VBoxContainer/PvPButton
 @onready var summon_button = $CenterContainer/VBoxContainer/SummonButton
 @onready var collection_button = $CenterContainer/VBoxContainer/CollectionButton
 
 func _ready():
-	# Reset PvP mode when returning to main menu
+	# Reset PvP mode and campaign mode when returning to main menu
 	PlayerData.pvp_mode = false
+	PlayerData.end_campaign_stage()
+
+	if campaign_button:
+		campaign_button.pressed.connect(_on_campaign_pressed)
+		campaign_button.grab_focus()
 
 	if start_button:
 		start_button.pressed.connect(_on_start_pressed)
-		start_button.grab_focus()
 
 	if pvp_button:
 		pvp_button.pressed.connect(_on_pvp_pressed)
@@ -22,6 +27,9 @@ func _ready():
 
 	if collection_button:
 		collection_button.pressed.connect(_on_collection_pressed)
+
+func _on_campaign_pressed():
+	get_tree().change_scene_to_file("res://scenes/ui/campaign_select_screen.tscn")
 
 func _on_start_pressed():
 	get_tree().change_scene_to_file("res://scenes/ui/team_select_screen.tscn")

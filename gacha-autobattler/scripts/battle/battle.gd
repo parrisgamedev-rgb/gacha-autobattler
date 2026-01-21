@@ -183,15 +183,22 @@ func _load_units():
 	# Create units from selected team
 	for unit_entry in team_entries:
 		var unit_data = unit_entry.unit_data as UnitData
-		var imprint_level = unit_entry.imprint_level as int
-		# Create unit with level 1 + imprint bonus
-		var unit = UnitInstance.new(unit_data, 1 + imprint_level)
+		var unit_level = unit_entry.get("level", 1) as int
+		var imprint_level = unit_entry.get("imprint_level", 0) as int
+		# Create unit with proper level and imprint
+		var unit = UnitInstance.new(unit_data, 1, unit_level, imprint_level)
 		player_units.append(unit)
 
 	# Load enemy units (random from available pool)
 	_generate_enemy_team()
 
 func _generate_enemy_team():
+	# Check if in campaign mode
+	if PlayerData.is_campaign_mode():
+		_generate_campaign_enemies()
+		return
+
+	# Regular mode: random enemies
 	var all_unit_data: Array[UnitData] = []
 	all_unit_data.append_array(PlayerData.unit_pool_3_star)
 	all_unit_data.append_array(PlayerData.unit_pool_4_star)
@@ -200,11 +207,29 @@ func _generate_enemy_team():
 	if all_unit_data.is_empty():
 		return
 
-	# Create 5 random enemy units
+	# Create 5 random enemy units (level 1, no imprint)
 	for i in range(5):
 		var random_data = all_unit_data[randi() % all_unit_data.size()]
-		var unit = UnitInstance.new(random_data, 2)
+		var unit = UnitInstance.new(random_data, 2, 1, 0)
 		enemy_units.append(unit)
+
+func _generate_campaign_enemies():
+	var stage = PlayerData.current_stage
+	if stage == null:
+		print("Error: No stage data for campaign mode!")
+		return
+
+	print("Loading enemies for stage: ", stage.stage_id)
+
+	# Create enemy units from stage configuration
+	for enemy_data in stage.enemy_units:
+		if enemy_data:
+			# Create enemy with stage-appropriate level (owner=2, level=enemy_level, imprint=0)
+			var unit = UnitInstance.new(enemy_data, 2, stage.enemy_level, 0)
+			enemy_units.append(unit)
+			print("  Added enemy: ", enemy_data.unit_name, " (Lv.", stage.enemy_level, ")")
+
+	print("Total campaign enemies: ", enemy_units.size())
 
 func _show_no_units_message():
 	# Hide game UI and show message
@@ -1487,11 +1512,50 @@ func _show_results(winner: int):
 		if winner == 1:
 			result_title.text = "VICTORY!"
 			result_title.add_theme_color_override("font_color", Color(0.3, 0.9, 0.3))
-			result_subtitle.text = "You won in " + str(current_turn) + " turns!"
+
+			# Give battle rewards
+			var battle_rewards = _give_battle_rewards()
+
+			# Handle campaign rewards
+			if PlayerData.is_campaign_mode():
+				var stage = PlayerData.current_stage
+				var rewards = PlayerData.give_stage_rewards(stage)
+				PlayerData.clear_stage(stage.stage_id, 3)  # Default 3 stars
+
+				var subtitle_text = "Stage Complete!\n"
+
+				# Show gold and materials earned
+				subtitle_text += "+" + str(battle_rewards.gold) + " Gold, +" + str(battle_rewards.materials) + " Materials\n"
+
+				# Show XP earned
+				if battle_rewards.xp > 0:
+					subtitle_text += "+" + str(battle_rewards.xp) + " XP per unit\n"
+
+				# Show level ups
+				if battle_rewards.level_ups.size() > 0:
+					subtitle_text += "Level Up: " + ", ".join(battle_rewards.level_ups) + "\n"
+
+				if rewards.first_clear:
+					subtitle_text += "\nFIRST CLEAR BONUS!\n"
+					subtitle_text += "+" + str(rewards.gems) + " Gems"
+					if rewards.unit != null:
+						subtitle_text += "\nNew Unit: " + rewards.unit.unit_data.unit_name + "!"
+
+				result_subtitle.text = subtitle_text
+			else:
+				# Quick battle rewards
+				var subtitle_text = "You won in " + str(current_turn) + " turns!\n"
+				subtitle_text += "+" + str(battle_rewards.gold) + " Gold, +" + str(battle_rewards.materials) + " Materials"
+				if battle_rewards.level_ups.size() > 0:
+					subtitle_text += "\nLevel Up: " + ", ".join(battle_rewards.level_ups)
+				result_subtitle.text = subtitle_text
 		else:
 			result_title.text = "DEFEAT"
 			result_title.add_theme_color_override("font_color", Color(0.9, 0.3, 0.3))
-			result_subtitle.text = "Better luck next time!"
+			if PlayerData.is_campaign_mode():
+				result_subtitle.text = "Stage failed. Try again!"
+			else:
+				result_subtitle.text = "Better luck next time!"
 
 		# Hide other UI elements
 		if ability_panel:
@@ -1501,11 +1565,48 @@ func _show_results(winner: int):
 
 		print("Game Over! Winner: ", "Player" if winner == 1 else "Enemy")
 
+func _give_battle_rewards() -> Dictionary:
+	var result = {"gold": 0, "materials": 0, "xp": 0, "level_ups": []}
+
+	# Calculate rewards based on mode
+	var gold_reward = 100  # Base reward for quick battle
+	var material_reward = 3
+	var xp_reward = 30
+
+	if PlayerData.is_campaign_mode():
+		var stage = PlayerData.current_stage
+		if stage:
+			gold_reward = stage.gold_reward
+			material_reward = stage.material_reward
+			xp_reward = stage.xp_reward
+
+	# Give currencies
+	PlayerData.add_gold(gold_reward)
+	PlayerData.add_materials(material_reward)
+	result.gold = gold_reward
+	result.materials = material_reward
+	result.xp = xp_reward
+
+	# Give XP to participating units
+	for instance_id in PlayerData.selected_team:
+		var xp_result = PlayerData.add_xp_to_unit(instance_id, xp_reward)
+		if xp_result.leveled_up:
+			var unit = PlayerData.get_unit_by_instance_id(instance_id)
+			if not unit.is_empty():
+				result.level_ups.append(unit.unit_data.unit_name)
+
+	PlayerData.save_game()
+	return result
+
 func _on_play_again_pressed():
 	get_tree().reload_current_scene()
 
 func _on_main_menu_pressed():
-	get_tree().change_scene_to_file("res://scenes/ui/main_menu.tscn")
+	if PlayerData.is_campaign_mode():
+		PlayerData.end_campaign_stage()
+		get_tree().change_scene_to_file("res://scenes/ui/campaign_select_screen.tscn")
+	else:
+		get_tree().change_scene_to_file("res://scenes/ui/main_menu.tscn")
 
 func _show_combat_announcement(text: String, duration: float = 1.0):
 	if combat_announcement:

@@ -10,6 +10,8 @@ const MAX_TEAM_SIZE = 5
 @onready var team_container = $TeamPanel/TeamContainer
 @onready var team_count_label = $TeamPanel/TeamCountLabel
 @onready var instructions_label = $BottomBar/InstructionsLabel
+@onready var title_label = $TopBar/Title
+@onready var stage_info_panel = $StageInfoPanel
 
 var UnitDisplayScene = preload("res://scenes/battle/unit_display.tscn")
 
@@ -20,6 +22,7 @@ func _ready():
 	back_btn.pressed.connect(_on_back)
 	start_btn.pressed.connect(_on_start)
 	_populate_units()
+	_setup_campaign_ui()
 	_update_ui()
 
 func _populate_units():
@@ -204,4 +207,58 @@ func _on_start():
 		get_tree().change_scene_to_file("res://scenes/battle/battle.tscn")
 
 func _on_back():
-	get_tree().change_scene_to_file("res://scenes/ui/main_menu.tscn")
+	if PlayerData.is_campaign_mode():
+		PlayerData.end_campaign_stage()
+		get_tree().change_scene_to_file("res://scenes/ui/campaign_select_screen.tscn")
+	else:
+		get_tree().change_scene_to_file("res://scenes/ui/main_menu.tscn")
+
+func _setup_campaign_ui():
+	# Show/hide campaign-specific UI based on mode
+	if PlayerData.is_campaign_mode():
+		var stage = PlayerData.current_stage
+		if stage and title_label:
+			title_label.text = "STAGE " + stage.get_stage_display() + " - " + stage.stage_name
+
+		if start_btn:
+			start_btn.text = "START STAGE"
+
+		# Show stage info panel
+		if stage_info_panel:
+			stage_info_panel.visible = true
+			_update_stage_info_panel(stage)
+	else:
+		if title_label:
+			title_label.text = "SELECT YOUR TEAM"
+		if start_btn:
+			start_btn.text = "START BATTLE"
+		if stage_info_panel:
+			stage_info_panel.visible = false
+
+func _update_stage_info_panel(stage):
+	if stage == null or stage_info_panel == null:
+		return
+
+	var stage_label = stage_info_panel.get_node_or_null("VBox/StageLabel")
+	var difficulty_label = stage_info_panel.get_node_or_null("VBox/DifficultyLabel")
+	var rewards_label = stage_info_panel.get_node_or_null("VBox/RewardsLabel")
+	var enemies_label = stage_info_panel.get_node_or_null("VBox/EnemiesLabel")
+
+	if stage_label:
+		stage_label.text = stage.get_stage_display() + " - " + stage.stage_name
+
+	if difficulty_label:
+		difficulty_label.text = "Difficulty: " + stage.get_difficulty_stars()
+
+	if rewards_label:
+		var is_first_clear = not PlayerData.is_stage_cleared(stage.stage_id)
+		if is_first_clear:
+			var reward_text = str(stage.gem_reward) + " Gems"
+			if stage.first_clear_unit:
+				reward_text += " + " + stage.first_clear_unit.unit_name
+			rewards_label.text = "First Clear: " + reward_text
+		else:
+			rewards_label.text = "Already Cleared"
+
+	if enemies_label:
+		enemies_label.text = "Enemies: " + str(stage.enemy_units.size()) + " units (Lv." + str(stage.enemy_level) + ")"

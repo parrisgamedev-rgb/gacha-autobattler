@@ -1,0 +1,25 @@
+[gd_resource type="Resource" script_class="StageData" load_steps=8 format=3 uid="uid://stage_1_5"]
+
+[ext_resource type="Script" path="res://scripts/data/stage_data.gd" id="1_script"]
+[ext_resource type="Resource" uid="uid://c7xm3k8n2p4ry" path="res://resources/units/fire_warrior.tres" id="2_unit"]
+[ext_resource type="Resource" uid="uid://water_mage_001" path="res://resources/units/water_mage.tres" id="3_unit"]
+[ext_resource type="Resource" uid="uid://nature_tank_001" path="res://resources/units/nature_tank.tres" id="4_unit"]
+[ext_resource type="Resource" uid="uid://radiant_paladin_001" path="res://resources/units/radiant_paladin.tres" id="5_unit"]
+[ext_resource type="Resource" uid="uid://dark_knight_001" path="res://resources/units/dark_knight.tres" id="6_unit"]
+
+[resource]
+script = ExtResource("1_script")
+stage_id = "1-5"
+stage_name = "Chapter Boss"
+chapter = 1
+stage_number = 5
+story_intro = "The chapter boss appears! A legendary warrior backed by their elite guard. This is your ultimate test!"
+story_outro = "Against all odds, you emerge victorious! Chapter 1 Complete. A new ally joins your cause..."
+enemy_units = Array[Resource]([ExtResource("2_unit"), ExtResource("3_unit"), ExtResource("4_unit"), ExtResource("5_unit"), ExtResource("6_unit")])
+enemy_level = 5
+difficulty = 4
+gem_reward = 200
+gold_reward = 350
+material_reward = 20
+xp_reward = 80
+first_clear_unit = ExtResource("2_unit")

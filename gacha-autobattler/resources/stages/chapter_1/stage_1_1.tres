@@ -1,0 +1,23 @@
+[gd_resource type="Resource" script_class="StageData" load_steps=5 format=3 uid="uid://stage_1_1"]
+
+[ext_resource type="Script" path="res://scripts/data/stage_data.gd" id="1_script"]
+[ext_resource type="Resource" uid="uid://fire_imp_001" path="res://resources/units/fire_imp.tres" id="2_unit"]
+[ext_resource type="Resource" uid="uid://water_sprite_001" path="res://resources/units/water_sprite.tres" id="3_unit"]
+[ext_resource type="Resource" uid="uid://nature_wisp_001" path="res://resources/units/nature_wisp.tres" id="4_unit"]
+
+[resource]
+script = ExtResource("1_script")
+stage_id = "1-1"
+stage_name = "First Steps"
+chapter = 1
+stage_number = 1
+story_intro = "Your journey begins here. A small group of creatures blocks your path..."
+story_outro = "With the path cleared, you press onward. Greater challenges await."
+enemy_units = Array[Resource]([ExtResource("2_unit"), ExtResource("3_unit"), ExtResource("4_unit")])
+enemy_level = 1
+difficulty = 1
+gem_reward = 50
+gold_reward = 100
+material_reward = 5
+xp_reward = 30
+first_clear_unit = null

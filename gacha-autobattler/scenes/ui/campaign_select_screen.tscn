@@ -1,0 +1,152 @@
+[gd_scene load_steps=2 format=3 uid="uid://campaign_select_001"]
+
+[ext_resource type="Script" path="res://scripts/ui/campaign_select_screen.gd" id="1_script"]
+
+[node name="CampaignSelectScreen" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_script")
+
+[node name="Background" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.06, 0.06, 0.1, 1)
+
+[node name="TopBar" type="HBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_left = 20.0
+offset_top = 20.0
+offset_right = -20.0
+offset_bottom = 70.0
+grow_horizontal = 2
+
+[node name="BackButton" type="Button" parent="TopBar"]
+custom_minimum_size = Vector2(120, 50)
+layout_mode = 2
+text = "< BACK"
+
+[node name="Spacer" type="Control" parent="TopBar"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="Title" type="Label" parent="TopBar"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 36
+text = "STORY CAMPAIGN"
+vertical_alignment = 1
+
+[node name="Spacer2" type="Control" parent="TopBar"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="ScrollContainer" type="ScrollContainer" parent="."]
+layout_mode = 1
+anchors_preset = -1
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 20.0
+offset_top = 80.0
+offset_right = -420.0
+offset_bottom = -20.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="ChapterContainer" type="VBoxContainer" parent="ScrollContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/separation = 10
+
+[node name="StageInfoPanel" type="Panel" parent="."]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -400.0
+offset_top = 80.0
+offset_right = -20.0
+offset_bottom = -20.0
+grow_horizontal = 0
+grow_vertical = 2
+
+[node name="PanelBg" type="ColorRect" parent="StageInfoPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.1, 0.1, 0.18, 1)
+
+[node name="VBox" type="VBoxContainer" parent="StageInfoPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 20.0
+offset_top = 20.0
+offset_right = -20.0
+offset_bottom = -20.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 15
+
+[node name="InfoTitle" type="Label" parent="StageInfoPanel/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+text = "Stage Info"
+horizontal_alignment = 1
+
+[node name="Separator" type="HSeparator" parent="StageInfoPanel/VBox"]
+layout_mode = 2
+
+[node name="StageNameLabel" type="Label" parent="StageInfoPanel/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 22
+text = "1-1 - First Steps"
+
+[node name="DifficultyLabel" type="Label" parent="StageInfoPanel/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.85, 0.3, 1)
+text = "Difficulty: *****"
+
+[node name="RewardsLabel" type="Label" parent="StageInfoPanel/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.5, 1, 0.5, 1)
+text = "Rewards: 50 Gems"
+
+[node name="Separator2" type="HSeparator" parent="StageInfoPanel/VBox"]
+layout_mode = 2
+
+[node name="StoryTitle" type="Label" parent="StageInfoPanel/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "Story"
+
+[node name="StoryLabel" type="Label" parent="StageInfoPanel/VBox"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_colors/font_color = Color(0.8, 0.8, 0.9, 1)
+text = "Your journey begins here..."
+autowrap_mode = 2
+
+[node name="Spacer" type="Control" parent="StageInfoPanel/VBox"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="StartStageButton" type="Button" parent="StageInfoPanel/VBox"]
+custom_minimum_size = Vector2(0, 60)
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+text = "START STAGE"

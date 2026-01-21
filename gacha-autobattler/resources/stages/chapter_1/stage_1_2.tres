@@ -1,0 +1,24 @@
+[gd_resource type="Resource" script_class="StageData" load_steps=6 format=3 uid="uid://stage_1_2"]
+
+[ext_resource type="Script" path="res://scripts/data/stage_data.gd" id="1_script"]
+[ext_resource type="Resource" uid="uid://fire_imp_001" path="res://resources/units/fire_imp.tres" id="2_unit"]
+[ext_resource type="Resource" uid="uid://water_sprite_001" path="res://resources/units/water_sprite.tres" id="3_unit"]
+[ext_resource type="Resource" uid="uid://nature_wisp_001" path="res://resources/units/nature_wisp.tres" id="4_unit"]
+[ext_resource type="Resource" uid="uid://fire_imp_001" path="res://resources/units/fire_imp.tres" id="5_unit"]
+
+[resource]
+script = ExtResource("1_script")
+stage_id = "1-2"
+stage_name = "Rising Challenge"
+chapter = 1
+stage_number = 2
+story_intro = "The creatures grow more numerous. Steel yourself for battle."
+story_outro = "Another victory, but the enemies are getting stronger..."
+enemy_units = Array[Resource]([ExtResource("2_unit"), ExtResource("3_unit"), ExtResource("4_unit"), ExtResource("5_unit")])
+enemy_level = 2
+difficulty = 1
+gem_reward = 75
+gold_reward = 150
+material_reward = 7
+xp_reward = 40
+first_clear_unit = null

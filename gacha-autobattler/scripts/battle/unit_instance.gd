@@ -5,6 +5,16 @@ class_name UnitInstance
 # Reference to base data
 var unit_data: UnitData
 
+# Level and imprint
+var level: int = 1
+var imprint_level: int = 0
+
+# Scaled stats (calculated from level/imprint)
+var max_hp: int = 100
+var attack: int = 10
+var defense: int = 10
+var speed: int = 10
+
 # Current battle state
 var current_hp: int = 100
 var is_on_cooldown: bool = false
@@ -55,11 +65,30 @@ func process_ability_cooldowns():
 		if ability_cooldowns[ability_id] <= 0:
 			ability_cooldowns.erase(ability_id)
 
-func _init(data: UnitData = null, unit_owner: int = 1):
+func _init(data: UnitData = null, unit_owner: int = 1, unit_level: int = 1, unit_imprint: int = 0):
 	if data:
 		unit_data = data
-		current_hp = data.max_hp
+		level = unit_level
+		imprint_level = unit_imprint
+		_calculate_stats()
+		current_hp = max_hp
 	owner = unit_owner
+
+func _calculate_stats():
+	if not unit_data:
+		return
+
+	# Calculate stat multiplier based on level and imprint
+	# Level: 3% per level above 1
+	# Imprint: 5% per imprint level
+	var level_mult = 1.0 + (0.03 * (level - 1))
+	var imprint_mult = 1.0 + (0.05 * imprint_level)
+	var total_mult = level_mult * imprint_mult
+
+	max_hp = int(unit_data.max_hp * total_mult)
+	attack = int(unit_data.attack * total_mult)
+	defense = int(unit_data.defense * total_mult)
+	speed = int(unit_data.speed * total_mult)
 
 func is_alive() -> bool:
 	return current_hp > 0
@@ -108,8 +137,7 @@ func take_damage(amount: int):
 	current_hp = max(0, current_hp - amount)
 
 func heal(amount: int):
-	if unit_data:
-		current_hp = min(unit_data.max_hp, current_hp + amount)
+	current_hp = min(max_hp, current_hp + amount)
 
 # --- Status Effect Methods ---
 

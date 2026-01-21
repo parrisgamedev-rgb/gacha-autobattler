@@ -137,3 +137,70 @@ layout_mode = 2
 disabled = true
 theme_override_font_sizes/font_size = 24
 text = "START BATTLE"
+
+[node name="StageInfoPanel" type="Panel" parent="."]
+visible = false
+layout_mode = 1
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -350.0
+offset_top = -280.0
+offset_right = -20.0
+offset_bottom = -100.0
+grow_horizontal = 0
+grow_vertical = 0
+
+[node name="PanelBg" type="ColorRect" parent="StageInfoPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.12, 0.12, 0.2, 1)
+
+[node name="VBox" type="VBoxContainer" parent="StageInfoPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 15.0
+offset_top = 15.0
+offset_right = -15.0
+offset_bottom = -15.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 8
+
+[node name="HeaderLabel" type="Label" parent="StageInfoPanel/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+theme_override_colors/font_color = Color(0.7, 0.7, 0.8, 1)
+text = "STAGE INFO"
+horizontal_alignment = 1
+
+[node name="HSeparator" type="HSeparator" parent="StageInfoPanel/VBox"]
+layout_mode = 2
+
+[node name="StageLabel" type="Label" parent="StageInfoPanel/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 20
+text = "1-1 - First Steps"
+
+[node name="DifficultyLabel" type="Label" parent="StageInfoPanel/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.85, 0.3, 1)
+text = "Difficulty: *"
+
+[node name="EnemiesLabel" type="Label" parent="StageInfoPanel/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.6, 0.6, 1)
+text = "Enemies: 3 units (Lv.1)"
+
+[node name="RewardsLabel" type="Label" parent="StageInfoPanel/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.5, 1, 0.5, 1)
+text = "First Clear: 50 Gems"
