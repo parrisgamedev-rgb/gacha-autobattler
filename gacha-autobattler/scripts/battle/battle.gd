@@ -19,6 +19,11 @@ const ACTIONS_PER_TURN = 2
 @onready var ability_panel = $UI/AbilityPanel
 @onready var ability_buttons = [$UI/AbilityPanel/Ability1, $UI/AbilityPanel/Ability2, $UI/AbilityPanel/Ability3]
 @onready var ability_desc = $UI/AbilityPanel/AbilityDesc
+@onready var results_panel = $UI/ResultsPanel
+@onready var result_title = $UI/ResultsPanel/ResultTitle
+@onready var result_subtitle = $UI/ResultsPanel/ResultSubtitle
+@onready var play_again_button = $UI/ResultsPanel/ButtonContainer/PlayAgainButton
+@onready var main_menu_button = $UI/ResultsPanel/ButtonContainer/MainMenuButton
 
 # Game state
 enum GamePhase { PLAYER_TURN, ENEMY_TURN, RESOLVING, GAME_OVER }
@@ -72,6 +77,12 @@ func _ready():
 		var btn = ability_buttons[i]
 		if btn:
 			btn.pressed.connect(_on_ability_selected.bind(i))
+
+	# Connect results panel buttons
+	if play_again_button:
+		play_again_button.pressed.connect(_on_play_again_pressed)
+	if main_menu_button:
+		main_menu_button.pressed.connect(_on_main_menu_pressed)
 
 func _create_grid():
 	grid_ownership = []
@@ -518,8 +529,7 @@ func _resolve_turn():
 	var winner = _check_win_condition()
 	if winner > 0:
 		current_phase = GamePhase.GAME_OVER
-		phase_label.text = "WINNER: " + ("PLAYER" if winner == 1 else "ENEMY")
-		print("Game Over! Winner: ", "Player" if winner == 1 else "Enemy")
+		_show_results(winner)
 		return
 
 	# Process cooldowns
@@ -998,3 +1008,30 @@ func _update_roster_selection():
 			display.set_selected(true)
 		else:
 			display.set_selected(false)
+
+func _show_results(winner: int):
+	if results_panel:
+		results_panel.visible = true
+
+		if winner == 1:
+			result_title.text = "VICTORY!"
+			result_title.add_theme_color_override("font_color", Color(0.3, 0.9, 0.3))
+			result_subtitle.text = "You won in " + str(current_turn) + " turns!"
+		else:
+			result_title.text = "DEFEAT"
+			result_title.add_theme_color_override("font_color", Color(0.9, 0.3, 0.3))
+			result_subtitle.text = "Better luck next time!"
+
+		# Hide other UI elements
+		if ability_panel:
+			ability_panel.visible = false
+		if end_turn_button:
+			end_turn_button.visible = false
+
+		print("Game Over! Winner: ", "Player" if winner == 1 else "Enemy")
+
+func _on_play_again_pressed():
+	get_tree().reload_current_scene()
+
+func _on_main_menu_pressed():
+	get_tree().change_scene_to_file("res://scenes/ui/main_menu.tscn")

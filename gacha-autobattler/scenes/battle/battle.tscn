@@ -65,7 +65,7 @@ offset_top = 90.0
 offset_right = 200.0
 offset_bottom = 120.0
 horizontal_alignment = 1
-text = "YOUR UNITS (1-5)"
+text = "YOUR UNITS"
 
 [node name="PlayerRoster" type="Node2D" parent="UI"]
 position = Vector2(20, 120)
@@ -143,3 +143,53 @@ offset_right = 390.0
 offset_bottom = 145.0
 horizontal_alignment = 1
 text = "A balanced attack."
+
+[node name="ResultsPanel" type="Panel" parent="UI"]
+visible = false
+offset_left = 660.0
+offset_top = 340.0
+offset_right = 1260.0
+offset_bottom = 740.0
+
+[node name="ResultsBackground" type="ColorRect" parent="UI/ResultsPanel"]
+offset_left = 0.0
+offset_top = 0.0
+offset_right = 600.0
+offset_bottom = 400.0
+color = Color(0.1, 0.1, 0.15, 0.95)
+
+[node name="ResultTitle" type="Label" parent="UI/ResultsPanel"]
+offset_left = 0.0
+offset_top = 60.0
+offset_right = 600.0
+offset_bottom = 140.0
+theme_override_font_sizes/font_size = 48
+horizontal_alignment = 1
+vertical_alignment = 1
+text = "VICTORY!"
+
+[node name="ResultSubtitle" type="Label" parent="UI/ResultsPanel"]
+offset_left = 0.0
+offset_top = 140.0
+offset_right = 600.0
+offset_bottom = 180.0
+theme_override_colors/font_color = Color(0.7, 0.7, 0.8, 1)
+horizontal_alignment = 1
+text = "You completed the battle"
+
+[node name="ButtonContainer" type="HBoxContainer" parent="UI/ResultsPanel"]
+offset_left = 100.0
+offset_top = 280.0
+offset_right = 500.0
+offset_bottom = 350.0
+theme_override_constants/separation = 40
+
+[node name="PlayAgainButton" type="Button" parent="UI/ResultsPanel/ButtonContainer"]
+custom_minimum_size = Vector2(180, 60)
+theme_override_font_sizes/font_size = 20
+text = "PLAY AGAIN"
+
+[node name="MainMenuButton" type="Button" parent="UI/ResultsPanel/ButtonContainer"]
+custom_minimum_size = Vector2(180, 60)
+theme_override_font_sizes/font_size = 20
+text = "MAIN MENU"
