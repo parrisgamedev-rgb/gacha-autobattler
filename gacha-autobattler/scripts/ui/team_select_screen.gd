@@ -3,77 +3,480 @@ extends Control
 
 const MIN_TEAM_SIZE = 3
 const MAX_TEAM_SIZE = 5
+const TEAM_SLOT_SIZE = Vector2(120, 140)
 
-@onready var back_btn = $TopBar/BackButton
-@onready var start_btn = $BottomBar/StartButton
-@onready var units_container = $ScrollContainer/UnitsGrid
-@onready var team_container = $TeamPanel/TeamContainer
-@onready var team_count_label = $TeamPanel/TeamCountLabel
-@onready var instructions_label = $BottomBar/InstructionsLabel
-@onready var title_label = $TopBar/Title
+@onready var back_btn = $TopBarPanel/TopBar/BackButton
+@onready var start_btn = $BottomBarPanel/BottomBar/StartButton
+@onready var units_container = $AvailableUnitsSection/ScrollContainer/UnitsGrid
+@onready var team_slots_container = $SelectedTeamSection/TeamSlotsContainer
+@onready var team_count_label = $SelectedTeamSection/TeamLabel
+@onready var instructions_label = $BottomBarPanel/BottomBar/InstructionsLabel
+@onready var title_label = $TopBarPanel/TopBar/Title
+@onready var stage_info_label = $TopBarPanel/TopBar/StageInfo
+@onready var available_label = $AvailableUnitsSection/AvailableLabel
+@onready var filter_dropdown = $AvailableUnitsSection/FilterDropdown
 @onready var stage_info_panel = $StageInfoPanel
 
 var UnitDisplayScene = preload("res://scenes/battle/unit_display.tscn")
 
 var selected_instance_ids: Array[String] = []  # Array of instance_ids
 var unit_cards: Dictionary = {}  # instance_id -> card node
+var team_slot_nodes: Array = []  # Array of slot Panel nodes
+var current_filter: int = 0  # 0 = All, 1 = 3-star, 2 = 4-star, 3 = 5-star
 
 func _ready():
+	_apply_theme()
 	back_btn.pressed.connect(_on_back)
 	start_btn.pressed.connect(_on_start)
+	_setup_filter_dropdown()
+	_create_team_slots()
 	_populate_units()
 	_setup_mode_ui()
 	_update_ui()
+
+func _apply_theme():
+	# Background
+	var bg = get_node_or_null("Background")
+	if bg:
+		bg.color = UITheme.BG_DARK
+
+	# Top bar panel
+	var top_bar_panel = get_node_or_null("TopBarPanel")
+	if top_bar_panel:
+		top_bar_panel.add_theme_stylebox_override("panel", UITheme.create_panel_style(UITheme.BG_MEDIUM, UITheme.BG_LIGHT, 0))
+
+	# Title
+	if title_label:
+		title_label.add_theme_font_size_override("font_size", UITheme.FONT_TITLE_LARGE)
+		title_label.add_theme_color_override("font_color", UITheme.TEXT_PRIMARY)
+
+	# Stage info in top bar
+	if stage_info_label:
+		stage_info_label.add_theme_font_size_override("font_size", UITheme.FONT_BODY)
+		stage_info_label.add_theme_color_override("font_color", UITheme.TEXT_SECONDARY)
+
+	# Back button - transparent style with muted text
+	if back_btn:
+		var back_normal = UITheme.create_button_style(UITheme.BG_LIGHT)
+		var back_hover = UITheme.create_button_style(UITheme.BG_LIGHT.lightened(0.1))
+		var back_pressed = UITheme.create_button_style(UITheme.BG_DARK)
+		back_btn.add_theme_stylebox_override("normal", back_normal)
+		back_btn.add_theme_stylebox_override("hover", back_hover)
+		back_btn.add_theme_stylebox_override("pressed", back_pressed)
+		back_btn.add_theme_color_override("font_color", UITheme.TEXT_SECONDARY)
+		back_btn.add_theme_color_override("font_hover_color", UITheme.TEXT_PRIMARY)
+		back_btn.add_theme_font_size_override("font_size", UITheme.FONT_BODY)
+
+	# Team section label
+	if team_count_label:
+		team_count_label.add_theme_font_size_override("font_size", UITheme.FONT_TITLE_SMALL)
+		team_count_label.add_theme_color_override("font_color", UITheme.TEXT_PRIMARY)
+
+	# Selected team section panel
+	var team_section = get_node_or_null("SelectedTeamSection")
+	if team_section and team_section is Panel:
+		team_section.add_theme_stylebox_override("panel", UITheme.create_panel_style(UITheme.BG_MEDIUM, UITheme.BG_LIGHT))
+
+	# Available units label
+	if available_label:
+		available_label.add_theme_font_size_override("font_size", UITheme.FONT_TITLE_SMALL)
+		available_label.add_theme_color_override("font_color", UITheme.TEXT_PRIMARY)
+
+	# Filter dropdown styling
+	_style_filter_dropdown()
+
+	# Bottom bar panel
+	var bottom_bar_panel = get_node_or_null("BottomBarPanel")
+	if bottom_bar_panel:
+		bottom_bar_panel.add_theme_stylebox_override("panel", UITheme.create_panel_style(UITheme.BG_MEDIUM, UITheme.BG_LIGHT, 0))
+
+	# Instructions label
+	if instructions_label:
+		instructions_label.add_theme_font_size_override("font_size", UITheme.FONT_BODY)
+		instructions_label.add_theme_color_override("font_color", UITheme.TEXT_SECONDARY)
+
+	# Start button - primary style (blue)
+	_style_primary_button(start_btn)
+
+	# Stage info panel styling
+	_style_stage_info_panel()
+
+func _style_primary_button(btn: Button):
+	if not btn:
+		return
+
+	var normal_style = UITheme.create_button_style(UITheme.PRIMARY)
+	var hover_style = UITheme.create_button_style(UITheme.PRIMARY.lightened(0.15))
+	var pressed_style = UITheme.create_button_style(UITheme.PRIMARY.darkened(0.15))
+	var disabled_style = UITheme.create_button_style(UITheme.BG_DARK)
+
+	btn.add_theme_stylebox_override("normal", normal_style)
+	btn.add_theme_stylebox_override("hover", hover_style)
+	btn.add_theme_stylebox_override("pressed", pressed_style)
+	btn.add_theme_stylebox_override("disabled", disabled_style)
+	btn.add_theme_font_size_override("font_size", UITheme.FONT_TITLE_MEDIUM)
+	btn.add_theme_color_override("font_color", UITheme.TEXT_PRIMARY)
+	btn.add_theme_color_override("font_disabled_color", UITheme.TEXT_DISABLED)
+
+func _style_stage_info_panel():
+	if not stage_info_panel:
+		return
+
+	stage_info_panel.add_theme_stylebox_override("panel", UITheme.create_panel_style(UITheme.BG_MEDIUM, UITheme.PRIMARY))
+
+	var panel_bg = get_node_or_null("StageInfoPanel/PanelBg")
+	if panel_bg:
+		panel_bg.color = UITheme.BG_MEDIUM
+
+	var header_label = get_node_or_null("StageInfoPanel/VBox/HeaderLabel")
+	if header_label:
+		header_label.add_theme_font_size_override("font_size", UITheme.FONT_TITLE_SMALL)
+		header_label.add_theme_color_override("font_color", UITheme.TEXT_SECONDARY)
+
+	var stage_label = get_node_or_null("StageInfoPanel/VBox/StageLabel")
+	if stage_label:
+		stage_label.add_theme_font_size_override("font_size", UITheme.FONT_BODY)
+		stage_label.add_theme_color_override("font_color", UITheme.TEXT_PRIMARY)
+
+	var difficulty_label = get_node_or_null("StageInfoPanel/VBox/DifficultyLabel")
+	if difficulty_label:
+		difficulty_label.add_theme_font_size_override("font_size", UITheme.FONT_BODY)
+		difficulty_label.add_theme_color_override("font_color", UITheme.GOLD)
+
+	var enemies_label = get_node_or_null("StageInfoPanel/VBox/EnemiesLabel")
+	if enemies_label:
+		enemies_label.add_theme_font_size_override("font_size", UITheme.FONT_BODY)
+		enemies_label.add_theme_color_override("font_color", UITheme.DANGER)
+
+	var rewards_label = get_node_or_null("StageInfoPanel/VBox/RewardsLabel")
+	if rewards_label:
+		rewards_label.add_theme_font_size_override("font_size", UITheme.FONT_BODY)
+		rewards_label.add_theme_color_override("font_color", UITheme.SUCCESS)
+
+func _setup_filter_dropdown():
+	if not filter_dropdown:
+		return
+
+	# Add filter options
+	filter_dropdown.clear()
+	filter_dropdown.add_item("All", 0)
+	filter_dropdown.add_item("3★", 1)
+	filter_dropdown.add_item("4★", 2)
+	filter_dropdown.add_item("5★", 3)
+	filter_dropdown.selected = 0
+
+	# Connect the selection signal
+	filter_dropdown.item_selected.connect(_on_filter_changed)
+
+func _style_filter_dropdown():
+	if not filter_dropdown:
+		return
+
+	# Style the dropdown using UITheme colors
+	var normal_style = StyleBoxFlat.new()
+	normal_style.bg_color = UITheme.BG_LIGHT
+	normal_style.border_color = UITheme.TEXT_DISABLED
+	normal_style.border_width_left = 1
+	normal_style.border_width_right = 1
+	normal_style.border_width_top = 1
+	normal_style.border_width_bottom = 1
+	normal_style.corner_radius_top_left = UITheme.BUTTON_RADIUS
+	normal_style.corner_radius_top_right = UITheme.BUTTON_RADIUS
+	normal_style.corner_radius_bottom_left = UITheme.BUTTON_RADIUS
+	normal_style.corner_radius_bottom_right = UITheme.BUTTON_RADIUS
+	normal_style.content_margin_left = UITheme.SPACING_SM
+	normal_style.content_margin_right = UITheme.SPACING_SM
+	normal_style.content_margin_top = UITheme.SPACING_XS
+	normal_style.content_margin_bottom = UITheme.SPACING_XS
+
+	var hover_style = normal_style.duplicate()
+	hover_style.border_color = UITheme.PRIMARY
+
+	var pressed_style = normal_style.duplicate()
+	pressed_style.bg_color = UITheme.BG_MEDIUM
+
+	filter_dropdown.add_theme_stylebox_override("normal", normal_style)
+	filter_dropdown.add_theme_stylebox_override("hover", hover_style)
+	filter_dropdown.add_theme_stylebox_override("pressed", pressed_style)
+	filter_dropdown.add_theme_color_override("font_color", UITheme.TEXT_PRIMARY)
+	filter_dropdown.add_theme_color_override("font_hover_color", UITheme.TEXT_PRIMARY)
+	filter_dropdown.add_theme_font_size_override("font_size", UITheme.FONT_BODY)
+
+func _on_filter_changed(index: int):
+	current_filter = index
+	_populate_units()
+
+func _create_team_slots():
+	# Clear existing slots
+	team_slot_nodes.clear()
+	if team_slots_container:
+		for child in team_slots_container.get_children():
+			child.queue_free()
+
+	# Create 5 empty slots
+	for i in range(MAX_TEAM_SIZE):
+		var slot = _create_empty_slot(i)
+		team_slots_container.add_child(slot)
+		team_slot_nodes.append(slot)
+
+func _create_empty_slot(index: int) -> Panel:
+	var slot = Panel.new()
+	slot.custom_minimum_size = TEAM_SLOT_SIZE
+
+	# Style as empty slot
+	var style = StyleBoxFlat.new()
+	style.bg_color = UITheme.BG_LIGHT
+	style.border_color = UITheme.TEXT_DISABLED
+	style.border_width_left = 2
+	style.border_width_right = 2
+	style.border_width_top = 2
+	style.border_width_bottom = 2
+	style.corner_radius_top_left = UITheme.CARD_RADIUS
+	style.corner_radius_top_right = UITheme.CARD_RADIUS
+	style.corner_radius_bottom_left = UITheme.CARD_RADIUS
+	style.corner_radius_bottom_right = UITheme.CARD_RADIUS
+	slot.add_theme_stylebox_override("panel", style)
+
+	# Plus sign for empty slot
+	var plus_label = Label.new()
+	plus_label.name = "PlusLabel"
+	plus_label.text = "+"
+	plus_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	plus_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	plus_label.set_anchors_preset(Control.PRESET_FULL_RECT)
+	plus_label.add_theme_font_size_override("font_size", 48)
+	plus_label.add_theme_color_override("font_color", UITheme.TEXT_DISABLED)
+	slot.add_child(plus_label)
+
+	# Slot number label
+	var slot_num = Label.new()
+	slot_num.name = "SlotNum"
+	slot_num.text = str(index + 1)
+	slot_num.position = Vector2(8, 5)
+	slot_num.add_theme_font_size_override("font_size", UITheme.FONT_CAPTION)
+	slot_num.add_theme_color_override("font_color", UITheme.TEXT_DISABLED)
+	slot.add_child(slot_num)
+
+	slot.set_meta("slot_index", index)
+	slot.set_meta("instance_id", "")
+
+	return slot
+
+func _update_team_slot(slot: Panel, unit_entry: Dictionary):
+	# Clear existing children except the button
+	for child in slot.get_children():
+		child.queue_free()
+
+	var unit_data = unit_entry.unit_data as UnitData
+	var instance_id = unit_entry.instance_id as String
+	var imprint_level = unit_entry.get("imprint_level", 0) as int
+	var unit_level = unit_entry.get("level", 1) as int
+
+	# Update style with rarity border
+	var style = StyleBoxFlat.new()
+	style.bg_color = UITheme.BG_MEDIUM
+	style.border_color = UITheme.get_rarity_color(unit_data.star_rating)
+	style.border_width_left = 3
+	style.border_width_right = 3
+	style.border_width_top = 3
+	style.border_width_bottom = 3
+	style.corner_radius_top_left = UITheme.CARD_RADIUS
+	style.corner_radius_top_right = UITheme.CARD_RADIUS
+	style.corner_radius_bottom_left = UITheme.CARD_RADIUS
+	style.corner_radius_bottom_right = UITheme.CARD_RADIUS
+	slot.add_theme_stylebox_override("panel", style)
+
+	# Unit display
+	var display_container = Control.new()
+	display_container.set_anchors_preset(Control.PRESET_TOP_WIDE)
+	display_container.custom_minimum_size = Vector2(TEAM_SLOT_SIZE.x, 70)
+	slot.add_child(display_container)
+
+	var display = UnitDisplayScene.instantiate()
+	display_container.add_child(display)
+	display.position = Vector2(TEAM_SLOT_SIZE.x / 2, 40)
+	display.scale = Vector2(0.35, 0.35)
+	display.drag_enabled = false
+
+	var instance = UnitInstance.new(unit_data, 1, unit_level, imprint_level)
+	display.call_deferred("setup", instance)
+
+	# Level label (top left)
+	var level_label = Label.new()
+	level_label.text = "Lv." + str(unit_level)
+	level_label.position = Vector2(5, 3)
+	level_label.add_theme_font_size_override("font_size", UITheme.FONT_SMALL)
+	level_label.add_theme_color_override("font_color", UITheme.SUCCESS)
+	slot.add_child(level_label)
+
+	# Imprint level (top right if > 0)
+	if imprint_level > 0:
+		var imprint_label = Label.new()
+		imprint_label.text = "+" + str(imprint_level)
+		imprint_label.position = Vector2(TEAM_SLOT_SIZE.x - 25, 3)
+		imprint_label.add_theme_font_size_override("font_size", UITheme.FONT_SMALL)
+		imprint_label.add_theme_color_override("font_color", UITheme.SECONDARY)
+		slot.add_child(imprint_label)
+
+	# Name label
+	var name_label = Label.new()
+	name_label.text = unit_data.unit_name
+	name_label.position = Vector2(0, 75)
+	name_label.size = Vector2(TEAM_SLOT_SIZE.x, 20)
+	name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	name_label.add_theme_font_size_override("font_size", UITheme.FONT_CAPTION)
+	name_label.add_theme_color_override("font_color", UITheme.TEXT_PRIMARY)
+	name_label.clip_text = true
+	slot.add_child(name_label)
+
+	# Stars label
+	var stars_label = Label.new()
+	stars_label.text = "★".repeat(unit_data.star_rating)
+	stars_label.position = Vector2(0, 95)
+	stars_label.size = Vector2(TEAM_SLOT_SIZE.x, 20)
+	stars_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	stars_label.add_theme_font_size_override("font_size", UITheme.FONT_SMALL)
+	stars_label.add_theme_color_override("font_color", UITheme.GOLD)
+	slot.add_child(stars_label)
+
+	# Remove button (X)
+	var remove_btn = Button.new()
+	remove_btn.text = "X"
+	remove_btn.position = Vector2(TEAM_SLOT_SIZE.x - 25, TEAM_SLOT_SIZE.y - 25)
+	remove_btn.size = Vector2(22, 22)
+	remove_btn.add_theme_stylebox_override("normal", UITheme.create_button_style(UITheme.DANGER.darkened(0.3)))
+	remove_btn.add_theme_stylebox_override("hover", UITheme.create_button_style(UITheme.DANGER))
+	remove_btn.add_theme_font_size_override("font_size", UITheme.FONT_SMALL)
+	remove_btn.add_theme_color_override("font_color", UITheme.TEXT_PRIMARY)
+	remove_btn.pressed.connect(_on_slot_remove_clicked.bind(instance_id))
+	slot.add_child(remove_btn)
+
+	slot.set_meta("instance_id", instance_id)
+
+func _reset_slot_to_empty(slot: Panel, index: int):
+	# Clear all children
+	for child in slot.get_children():
+		child.queue_free()
+
+	# Reset style to empty
+	var style = StyleBoxFlat.new()
+	style.bg_color = UITheme.BG_LIGHT
+	style.border_color = UITheme.TEXT_DISABLED
+	style.border_width_left = 2
+	style.border_width_right = 2
+	style.border_width_top = 2
+	style.border_width_bottom = 2
+	style.corner_radius_top_left = UITheme.CARD_RADIUS
+	style.corner_radius_top_right = UITheme.CARD_RADIUS
+	style.corner_radius_bottom_left = UITheme.CARD_RADIUS
+	style.corner_radius_bottom_right = UITheme.CARD_RADIUS
+	slot.add_theme_stylebox_override("panel", style)
+
+	# Plus sign
+	var plus_label = Label.new()
+	plus_label.name = "PlusLabel"
+	plus_label.text = "+"
+	plus_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	plus_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	plus_label.set_anchors_preset(Control.PRESET_FULL_RECT)
+	plus_label.add_theme_font_size_override("font_size", 48)
+	plus_label.add_theme_color_override("font_color", UITheme.TEXT_DISABLED)
+	slot.add_child(plus_label)
+
+	# Slot number
+	var slot_num = Label.new()
+	slot_num.name = "SlotNum"
+	slot_num.text = str(index + 1)
+	slot_num.position = Vector2(8, 5)
+	slot_num.add_theme_font_size_override("font_size", UITheme.FONT_CAPTION)
+	slot_num.add_theme_color_override("font_color", UITheme.TEXT_DISABLED)
+	slot.add_child(slot_num)
+
+	slot.set_meta("instance_id", "")
+
+func _on_slot_remove_clicked(instance_id: String):
+	if instance_id in selected_instance_ids:
+		selected_instance_ids.erase(instance_id)
+		# Update the card border back to rarity color and hide checkmark
+		if unit_cards.has(instance_id):
+			var card = unit_cards[instance_id]
+			var unit_data = card.get_meta("unit_data") as UnitData
+			var style = card.get_meta("style") as StyleBoxFlat
+			if style and unit_data:
+				style.border_color = UITheme.get_rarity_color(unit_data.star_rating)
+			var check_mark = card.get_node_or_null("CheckMark")
+			if check_mark:
+				check_mark.visible = false
+		_update_ui()
 
 func _populate_units():
 	# Clear existing
 	for child in units_container.get_children():
 		child.queue_free()
 
+	unit_cards.clear()
+
 	await get_tree().process_frame
 
 	var owned = PlayerData.get_owned_unit_list()
 
-	if owned.is_empty():
+	# Apply filter
+	var filtered_units = _filter_units(owned)
+
+	if filtered_units.is_empty():
 		var empty_label = Label.new()
-		empty_label.text = "No units yet!\nVisit the Summon screen to get units."
+		if owned.is_empty():
+			empty_label.text = "No units yet!\nVisit the Summon screen to get units."
+		else:
+			empty_label.text = "No units match the current filter."
 		empty_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		empty_label.custom_minimum_size = Vector2(400, 100)
+		empty_label.add_theme_color_override("font_color", UITheme.TEXT_SECONDARY)
+		empty_label.add_theme_font_size_override("font_size", UITheme.FONT_BODY)
 		units_container.add_child(empty_label)
 		return
 
-	# Create a card for each owned unit instance
-	for unit_entry in owned:
+	# Create a card for each filtered unit instance
+	for unit_entry in filtered_units:
 		var card = _create_unit_card(unit_entry)
 		units_container.add_child(card)
 		unit_cards[unit_entry.instance_id] = card
 
+func _filter_units(units: Array) -> Array:
+	if current_filter == 0:  # All
+		return units
+
+	var filtered: Array = []
+	var target_star_rating = current_filter + 2  # 1 -> 3-star, 2 -> 4-star, 3 -> 5-star
+
+	for unit_entry in units:
+		var unit_data = unit_entry.unit_data as UnitData
+		if unit_data and unit_data.star_rating == target_star_rating:
+			filtered.append(unit_entry)
+
+	return filtered
+
 func _create_unit_card(unit_entry: Dictionary) -> Control:
 	var unit_data = unit_entry.unit_data as UnitData
 	var instance_id = unit_entry.instance_id as String
-	var imprint_level = unit_entry.imprint_level as int
+	var imprint_level = unit_entry.get("imprint_level", 0) as int
+	var unit_level = unit_entry.get("level", 1) as int
 
 	var card = Panel.new()
-	card.custom_minimum_size = Vector2(160, 200)
+	card.custom_minimum_size = UITheme.UNIT_CARD_SIZE
 
-	# Background style
+	# Create styled card with rarity-colored border (matching collection_screen)
 	var style = StyleBoxFlat.new()
-	match unit_data.star_rating:
-		5:
-			style.bg_color = Color(0.3, 0.25, 0.1, 1)
-		4:
-			style.bg_color = Color(0.25, 0.15, 0.3, 1)
-		_:
-			style.bg_color = Color(0.15, 0.15, 0.2, 1)
-	style.corner_radius_top_left = 8
-	style.corner_radius_top_right = 8
-	style.corner_radius_bottom_left = 8
-	style.corner_radius_bottom_right = 8
+	style.bg_color = UITheme.BG_MEDIUM
+	style.corner_radius_top_left = UITheme.CARD_RADIUS
+	style.corner_radius_top_right = UITheme.CARD_RADIUS
+	style.corner_radius_bottom_left = UITheme.CARD_RADIUS
+	style.corner_radius_bottom_right = UITheme.CARD_RADIUS
 	style.border_width_left = 3
 	style.border_width_right = 3
 	style.border_width_top = 3
 	style.border_width_bottom = 3
-	style.border_color = Color(0.3, 0.3, 0.4, 1)
+	style.border_color = UITheme.get_rarity_color(unit_data.star_rating)
 	card.add_theme_stylebox_override("panel", style)
 
 	# Store reference to style for selection highlight
@@ -81,47 +484,86 @@ func _create_unit_card(unit_entry: Dictionary) -> Control:
 	card.set_meta("instance_id", instance_id)
 	card.set_meta("unit_data", unit_data)
 
+	# Card dimensions based on UNIT_CARD_SIZE
+	var card_width = UITheme.UNIT_CARD_SIZE.x
+	var card_height = UITheme.UNIT_CARD_SIZE.y
+
 	# Unit display
 	var display_container = Control.new()
 	display_container.set_anchors_preset(Control.PRESET_TOP_WIDE)
-	display_container.custom_minimum_size = Vector2(160, 120)
+	display_container.custom_minimum_size = Vector2(card_width, 100)
 	card.add_child(display_container)
 
 	var display = UnitDisplayScene.instantiate()
 	display_container.add_child(display)
-	display.position = Vector2(80, 60)
-	display.scale = Vector2(0.5, 0.5)
+	display.position = Vector2(card_width / 2, 55)
+	display.scale = Vector2(0.45, 0.45)
 	display.drag_enabled = false
 
-	var instance = UnitInstance.new(unit_data, 1)
+	var instance = UnitInstance.new(unit_data, 1, unit_level, imprint_level)
 	display.call_deferred("setup", instance)
+
+	# Level label (top left)
+	var level_label = Label.new()
+	level_label.text = "Lv." + str(unit_level)
+	level_label.position = Vector2(8, 5)
+	level_label.add_theme_font_size_override("font_size", UITheme.FONT_CAPTION)
+	level_label.add_theme_color_override("font_color", UITheme.SUCCESS)
+	card.add_child(level_label)
+
+	# Imprint level (top right if > 0)
+	if imprint_level > 0:
+		var imprint_label = Label.new()
+		imprint_label.text = "+" + str(imprint_level)
+		imprint_label.position = Vector2(card_width - 30, 5)
+		imprint_label.add_theme_font_size_override("font_size", UITheme.FONT_CAPTION)
+		imprint_label.add_theme_color_override("font_color", UITheme.SECONDARY)
+		card.add_child(imprint_label)
 
 	# Name label
 	var name_label = Label.new()
 	name_label.text = unit_data.unit_name
-	name_label.position = Vector2(0, 130)
-	name_label.size = Vector2(160, 25)
+	name_label.position = Vector2(0, 110)
+	name_label.size = Vector2(card_width, 25)
 	name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	name_label.add_theme_font_size_override("font_size", 16)
+	name_label.add_theme_font_size_override("font_size", UITheme.FONT_TITLE_SMALL)
+	name_label.add_theme_color_override("font_color", UITheme.TEXT_PRIMARY)
 	card.add_child(name_label)
 
 	# Stars label
 	var stars_label = Label.new()
 	stars_label.text = "★".repeat(unit_data.star_rating)
-	stars_label.position = Vector2(0, 155)
-	stars_label.size = Vector2(160, 25)
+	stars_label.position = Vector2(0, 132)
+	stars_label.size = Vector2(card_width, 20)
 	stars_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	stars_label.add_theme_color_override("font_color", Color(1.0, 0.85, 0.3))
+	stars_label.add_theme_color_override("font_color", UITheme.GOLD)
+	stars_label.add_theme_font_size_override("font_size", UITheme.FONT_BODY)
 	card.add_child(stars_label)
 
-	# Imprint level (if > 0)
-	if imprint_level > 0:
-		var imprint_label = Label.new()
-		imprint_label.text = "+" + str(imprint_level)
-		imprint_label.position = Vector2(10, 5)
-		imprint_label.add_theme_font_size_override("font_size", 18)
-		imprint_label.add_theme_color_override("font_color", Color(0.5, 1.0, 0.5))
-		card.add_child(imprint_label)
+	# Element label
+	var element_label = Label.new()
+	element_label.text = unit_data.element.capitalize()
+	element_label.position = Vector2(0, 155)
+	element_label.size = Vector2(card_width, 20)
+	element_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	element_label.add_theme_font_size_override("font_size", UITheme.FONT_CAPTION)
+	element_label.add_theme_color_override("font_color", unit_data.get_element_color())
+	card.add_child(element_label)
+
+	# Selection indicator (checkmark)
+	var is_selected = instance_id in selected_instance_ids
+	var check_label = Label.new()
+	check_label.name = "CheckMark"
+	check_label.text = "✓"
+	check_label.position = Vector2(card_width - 30, card_height - 30)
+	check_label.add_theme_font_size_override("font_size", UITheme.FONT_TITLE_MEDIUM)
+	check_label.add_theme_color_override("font_color", UITheme.SUCCESS)
+	check_label.visible = is_selected
+	card.add_child(check_label)
+
+	# Update border color if already selected
+	if is_selected:
+		style.border_color = UITheme.SUCCESS
 
 	# Make clickable
 	var button = Button.new()
@@ -134,64 +576,58 @@ func _create_unit_card(unit_entry: Dictionary) -> Control:
 
 func _on_unit_clicked(instance_id: String, card: Panel):
 	var style = card.get_meta("style") as StyleBoxFlat
+	var unit_data = card.get_meta("unit_data") as UnitData
+	var check_mark = card.get_node_or_null("CheckMark")
 
 	if instance_id in selected_instance_ids:
 		# Deselect
 		selected_instance_ids.erase(instance_id)
-		style.border_color = Color(0.3, 0.3, 0.4, 1)
+		style.border_color = UITheme.get_rarity_color(unit_data.star_rating)
+		if check_mark:
+			check_mark.visible = false
 	else:
 		# Select (if not at max)
 		if selected_instance_ids.size() >= MAX_TEAM_SIZE:
 			print("Team is full! Deselect a unit first.")
 			return
 		selected_instance_ids.append(instance_id)
-		style.border_color = Color(0.3, 1.0, 0.3, 1)  # Green border
+		style.border_color = UITheme.SUCCESS  # Green border for selected
+		if check_mark:
+			check_mark.visible = true
 
 	_update_ui()
 
 func _update_ui():
-	# Update team count
-	team_count_label.text = "Team: " + str(selected_instance_ids.size()) + "/" + str(MAX_TEAM_SIZE)
+	# Update team count label
+	team_count_label.text = "YOUR TEAM (" + str(selected_instance_ids.size()) + "/" + str(MAX_TEAM_SIZE) + ")"
 
 	# Update start button
 	var can_start = selected_instance_ids.size() >= MIN_TEAM_SIZE
 	start_btn.disabled = not can_start
 
 	if selected_instance_ids.size() < MIN_TEAM_SIZE:
-		instructions_label.text = "Select at least " + str(MIN_TEAM_SIZE) + " units"
+		instructions_label.text = "Select at least " + str(MIN_TEAM_SIZE) + " units to start"
 	elif selected_instance_ids.size() >= MAX_TEAM_SIZE:
 		instructions_label.text = "Team full! Ready to battle."
 	else:
-		instructions_label.text = "Select up to " + str(MAX_TEAM_SIZE) + " units"
+		instructions_label.text = "Select up to " + str(MAX_TEAM_SIZE) + " units, then start!"
 
-	# Update team preview
+	# Update team preview slots
 	_update_team_preview()
 
 func _update_team_preview():
-	# Clear existing
-	for child in team_container.get_children():
-		child.queue_free()
-
-	await get_tree().process_frame
-
-	# Add selected units with manual positioning
-	var spacing = 100
-	var start_x = 50
-
-	for i in range(selected_instance_ids.size()):
-		var instance_id = selected_instance_ids[i]
-		var unit_entry = PlayerData.get_unit_by_instance_id(instance_id)
-		if unit_entry.is_empty():
-			continue
-		var unit_data = unit_entry.unit_data as UnitData
-		var display = UnitDisplayScene.instantiate()
-		team_container.add_child(display)
-		display.position = Vector2(start_x + i * spacing, 35)
-		display.scale = Vector2(0.45, 0.45)
-		display.drag_enabled = false
-
-		var instance = UnitInstance.new(unit_data, 1)
-		display.call_deferred("setup", instance)
+	# Update each team slot
+	for i in range(MAX_TEAM_SIZE):
+		var slot = team_slot_nodes[i]
+		if i < selected_instance_ids.size():
+			var instance_id = selected_instance_ids[i]
+			var unit_entry = PlayerData.get_unit_by_instance_id(instance_id)
+			if not unit_entry.is_empty():
+				_update_team_slot(slot, unit_entry)
+			else:
+				_reset_slot_to_empty(slot, i)
+		else:
+			_reset_slot_to_empty(slot, i)
 
 func _on_start():
 	if selected_instance_ids.size() < MIN_TEAM_SIZE:
@@ -221,7 +657,11 @@ func _setup_mode_ui():
 	if PlayerData.is_campaign_mode():
 		var stage = PlayerData.current_stage
 		if stage and title_label:
-			title_label.text = "STAGE " + stage.get_stage_display() + " - " + stage.stage_name
+			title_label.text = "STAGE " + stage.get_stage_display()
+
+		if stage_info_label:
+			stage_info_label.text = stage.stage_name if stage else ""
+			stage_info_label.visible = true
 
 		if start_btn:
 			start_btn.text = "START STAGE"
@@ -235,7 +675,12 @@ func _setup_mode_ui():
 		var tier = PlayerData.current_dungeon_tier
 		if dungeon and title_label:
 			var tier_name = dungeon.tier_names[tier] if tier < dungeon.tier_names.size() else "Unknown"
-			title_label.text = dungeon.dungeon_name + " - " + tier_name
+			title_label.text = dungeon.dungeon_name
+
+		if stage_info_label:
+			var tier_name = dungeon.tier_names[tier] if dungeon and tier < dungeon.tier_names.size() else ""
+			stage_info_label.text = tier_name
+			stage_info_label.visible = true
 
 		if start_btn:
 			start_btn.text = "START DUNGEON"
@@ -247,6 +692,8 @@ func _setup_mode_ui():
 	else:
 		if title_label:
 			title_label.text = "SELECT YOUR TEAM"
+		if stage_info_label:
+			stage_info_label.visible = false
 		if start_btn:
 			start_btn.text = "START BATTLE"
 		if stage_info_panel:

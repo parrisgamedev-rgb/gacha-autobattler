@@ -18,121 +18,163 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0.06, 0.06, 0.1, 1)
+color = Color(0.102, 0.102, 0.18, 1)
 
-[node name="TopBar" type="HBoxContainer" parent="."]
+[node name="TopBarPanel" type="Panel" parent="."]
 layout_mode = 1
 anchors_preset = 10
 anchor_right = 1.0
-offset_left = 20.0
-offset_top = 20.0
-offset_right = -20.0
-offset_bottom = 70.0
+offset_bottom = 64.0
 grow_horizontal = 2
 
-[node name="BackButton" type="Button" parent="TopBar"]
-custom_minimum_size = Vector2(120, 50)
-layout_mode = 2
-text = "< BACK"
-
-[node name="Spacer" type="Control" parent="TopBar"]
-layout_mode = 2
-size_flags_horizontal = 3
-
-[node name="Title" type="Label" parent="TopBar"]
-layout_mode = 2
-theme_override_font_sizes/font_size = 36
-text = "SELECT YOUR TEAM"
-vertical_alignment = 1
-
-[node name="Spacer2" type="Control" parent="TopBar"]
-layout_mode = 2
-size_flags_horizontal = 3
-
-[node name="TeamPanel" type="Panel" parent="."]
-layout_mode = 1
-anchors_preset = -1
-anchor_right = 1.0
-offset_left = 20.0
-offset_top = 80.0
-offset_right = -20.0
-offset_bottom = 200.0
-grow_horizontal = 2
-
-[node name="TeamBackground" type="ColorRect" parent="TeamPanel"]
+[node name="TopBar" type="HBoxContainer" parent="TopBarPanel"]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
+offset_left = 16.0
+offset_top = 8.0
+offset_right = -16.0
+offset_bottom = -8.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0.1, 0.1, 0.15, 1)
 
-[node name="TeamCountLabel" type="Label" parent="TeamPanel"]
+[node name="BackButton" type="Button" parent="TopBarPanel/TopBar"]
+custom_minimum_size = Vector2(100, 0)
+layout_mode = 2
+text = "< BACK"
+
+[node name="Spacer" type="Control" parent="TopBarPanel/TopBar"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="Title" type="Label" parent="TopBarPanel/TopBar"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 32
+text = "SELECT YOUR TEAM"
+vertical_alignment = 1
+
+[node name="Spacer2" type="Control" parent="TopBarPanel/TopBar"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="StageInfo" type="Label" parent="TopBarPanel/TopBar"]
+visible = false
+layout_mode = 2
+theme_override_font_sizes/font_size = 16
+text = ""
+vertical_alignment = 1
+
+[node name="SelectedTeamSection" type="Panel" parent="."]
 layout_mode = 1
 anchors_preset = -1
-offset_left = 20.0
-offset_top = 10.0
-offset_right = 200.0
+anchor_right = 1.0
+offset_left = 16.0
+offset_top = 80.0
+offset_right = -16.0
+offset_bottom = 250.0
+grow_horizontal = 2
+
+[node name="TeamLabel" type="Label" parent="SelectedTeamSection"]
+layout_mode = 1
+anchors_preset = -1
+offset_left = 16.0
+offset_top = 12.0
+offset_right = 300.0
 offset_bottom = 40.0
-theme_override_font_sizes/font_size = 20
-text = "Team: 0/5"
+theme_override_font_sizes/font_size = 18
+text = "YOUR TEAM (0/5)"
 
-[node name="TeamContainer" type="Control" parent="TeamPanel"]
+[node name="TeamSlotsContainer" type="HBoxContainer" parent="SelectedTeamSection"]
 layout_mode = 1
 anchors_preset = -1
 anchor_right = 1.0
-anchor_bottom = 1.0
-offset_left = 20.0
+offset_left = 16.0
 offset_top = 45.0
-offset_right = -20.0
-offset_bottom = -10.0
+offset_right = -16.0
+offset_bottom = 160.0
 grow_horizontal = 2
-grow_vertical = 2
+theme_override_constants/separation = 16
+alignment = 1
 
-[node name="ScrollContainer" type="ScrollContainer" parent="."]
+[node name="AvailableUnitsSection" type="Control" parent="."]
 layout_mode = 1
 anchors_preset = -1
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = 20.0
-offset_top = 220.0
-offset_right = -20.0
-offset_bottom = -100.0
+offset_left = 16.0
+offset_top = 266.0
+offset_right = -16.0
+offset_bottom = -96.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="UnitsGrid" type="GridContainer" parent="ScrollContainer"]
+[node name="AvailableLabel" type="Label" parent="AvailableUnitsSection"]
+layout_mode = 1
+anchors_preset = -1
+offset_top = 0.0
+offset_right = 250.0
+offset_bottom = 28.0
+theme_override_font_sizes/font_size = 18
+text = "AVAILABLE UNITS"
+
+[node name="FilterDropdown" type="OptionButton" parent="AvailableUnitsSection"]
+layout_mode = 1
+anchors_preset = -1
+offset_left = 260.0
+offset_top = 0.0
+offset_right = 380.0
+offset_bottom = 28.0
+
+[node name="ScrollContainer" type="ScrollContainer" parent="AvailableUnitsSection"]
+layout_mode = 1
+anchors_preset = -1
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = 36.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="UnitsGrid" type="GridContainer" parent="AvailableUnitsSection/ScrollContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
-theme_override_constants/h_separation = 15
-theme_override_constants/v_separation = 15
-columns = 9
+theme_override_constants/h_separation = 12
+theme_override_constants/v_separation = 12
+columns = 7
 
-[node name="BottomBar" type="HBoxContainer" parent="."]
+[node name="BottomBarPanel" type="Panel" parent="."]
 layout_mode = 1
 anchors_preset = 12
 anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = 20.0
 offset_top = -80.0
-offset_right = -20.0
-offset_bottom = -20.0
 grow_horizontal = 2
 grow_vertical = 0
 
-[node name="InstructionsLabel" type="Label" parent="BottomBar"]
+[node name="BottomBar" type="HBoxContainer" parent="BottomBarPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 24.0
+offset_top = 12.0
+offset_right = -24.0
+offset_bottom = -12.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="InstructionsLabel" type="Label" parent="BottomBarPanel/BottomBar"]
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_font_sizes/font_size = 20
-theme_override_colors/font_color = Color(0.7, 0.7, 0.8, 1)
-text = "Select at least 3 units"
+theme_override_font_sizes/font_size = 16
+theme_override_colors/font_color = Color(0.58, 0.64, 0.72, 1)
+text = "Select at least 3 units to start"
 vertical_alignment = 1
 
-[node name="StartButton" type="Button" parent="BottomBar"]
-custom_minimum_size = Vector2(200, 60)
+[node name="StartButton" type="Button" parent="BottomBarPanel/BottomBar"]
+custom_minimum_size = Vector2(200, 56)
 layout_mode = 2
 disabled = true
 theme_override_font_sizes/font_size = 24
@@ -146,10 +188,10 @@ anchor_left = 1.0
 anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = -350.0
+offset_left = -330.0
 offset_top = -280.0
-offset_right = -20.0
-offset_bottom = -100.0
+offset_right = -16.0
+offset_bottom = -96.0
 grow_horizontal = 0
 grow_vertical = 0
 
@@ -160,17 +202,17 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0.12, 0.12, 0.2, 1)
+color = Color(0.145, 0.145, 0.259, 1)
 
 [node name="VBox" type="VBoxContainer" parent="StageInfoPanel"]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = 15.0
-offset_top = 15.0
-offset_right = -15.0
-offset_bottom = -15.0
+offset_left = 16.0
+offset_top = 16.0
+offset_right = -16.0
+offset_bottom = -16.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_constants/separation = 8
@@ -178,7 +220,7 @@ theme_override_constants/separation = 8
 [node name="HeaderLabel" type="Label" parent="StageInfoPanel/VBox"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 18
-theme_override_colors/font_color = Color(0.7, 0.7, 0.8, 1)
+theme_override_colors/font_color = Color(0.58, 0.64, 0.72, 1)
 text = "STAGE INFO"
 horizontal_alignment = 1
 
@@ -187,20 +229,20 @@ layout_mode = 2
 
 [node name="StageLabel" type="Label" parent="StageInfoPanel/VBox"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 20
+theme_override_font_sizes/font_size = 16
 text = "1-1 - First Steps"
 
 [node name="DifficultyLabel" type="Label" parent="StageInfoPanel/VBox"]
 layout_mode = 2
-theme_override_colors/font_color = Color(1, 0.85, 0.3, 1)
+theme_override_colors/font_color = Color(0.984, 0.749, 0.141, 1)
 text = "Difficulty: *"
 
 [node name="EnemiesLabel" type="Label" parent="StageInfoPanel/VBox"]
 layout_mode = 2
-theme_override_colors/font_color = Color(1, 0.6, 0.6, 1)
+theme_override_colors/font_color = Color(0.973, 0.443, 0.443, 1)
 text = "Enemies: 3 units (Lv.1)"
 
 [node name="RewardsLabel" type="Label" parent="StageInfoPanel/VBox"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.5, 1, 0.5, 1)
+theme_override_colors/font_color = Color(0.29, 0.871, 0.502, 1)
 text = "First Clear: 50 Gems"
