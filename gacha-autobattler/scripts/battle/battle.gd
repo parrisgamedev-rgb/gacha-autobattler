@@ -185,8 +185,9 @@ func _load_units():
 		var unit_data = unit_entry.unit_data as UnitData
 		var unit_level = unit_entry.get("level", 1) as int
 		var imprint_level = unit_entry.get("imprint_level", 0) as int
-		# Create unit with proper level and imprint
-		var unit = UnitInstance.new(unit_data, 1, unit_level, imprint_level)
+		var instance_id = unit_entry.get("instance_id", "") as String
+		# Create unit with proper level, imprint, and gear reference
+		var unit = UnitInstance.new(unit_data, 1, unit_level, imprint_level, instance_id)
 		player_units.append(unit)
 
 	# Load enemy units (random from available pool)
@@ -196,6 +197,11 @@ func _generate_enemy_team():
 	# Check if in campaign mode
 	if PlayerData.is_campaign_mode():
 		_generate_campaign_enemies()
+		return
+
+	# Check if in dungeon mode
+	if PlayerData.is_dungeon_mode():
+		_generate_dungeon_enemies()
 		return
 
 	# Regular mode: random enemies
@@ -230,6 +236,33 @@ func _generate_campaign_enemies():
 			print("  Added enemy: ", enemy_data.unit_name, " (Lv.", stage.enemy_level, ")")
 
 	print("Total campaign enemies: ", enemy_units.size())
+
+func _generate_dungeon_enemies():
+	var dungeon = PlayerData.current_dungeon
+	if dungeon == null:
+		print("Error: No dungeon data!")
+		return
+
+	var tier = PlayerData.current_dungeon_tier
+	var enemy_level = dungeon.get_enemy_level(tier)
+
+	print("Loading enemies for dungeon: ", dungeon.dungeon_name, " (", dungeon.tier_names[tier], ")")
+
+	# Use dungeon's enemy units if specified, otherwise random
+	var enemy_pool = dungeon.enemy_units if dungeon.enemy_units.size() > 0 else []
+	if enemy_pool.is_empty():
+		enemy_pool.append_array(PlayerData.unit_pool_3_star)
+		enemy_pool.append_array(PlayerData.unit_pool_4_star)
+
+	# Create 3-5 enemies based on tier
+	var enemy_count = 3 + tier
+	for i in range(enemy_count):
+		var enemy_data = enemy_pool[randi() % enemy_pool.size()]
+		var unit = UnitInstance.new(enemy_data, 2, enemy_level, 0, "")
+		enemy_units.append(unit)
+		print("  Added enemy: ", enemy_data.unit_name, " (Lv.", enemy_level, ")")
+
+	print("Total dungeon enemies: ", enemy_units.size())
 
 func _show_no_units_message():
 	# Hide game UI and show message
@@ -1542,6 +1575,19 @@ func _show_results(winner: int):
 						subtitle_text += "\nNew Unit: " + rewards.unit.unit_data.unit_name + "!"
 
 				result_subtitle.text = subtitle_text
+			# Handle dungeon rewards
+			elif PlayerData.is_dungeon_mode():
+				var dungeon_rewards = _give_dungeon_rewards()
+
+				var subtitle_text = "Dungeon Complete!\n"
+				subtitle_text += "+" + str(dungeon_rewards.stones) + " Enhancement Stones\n"
+
+				if dungeon_rewards.gear != null:
+					var gear_data = dungeon_rewards.gear.gear_data as GearData
+					subtitle_text += "\nGear Drop: " + gear_data.gear_name
+					subtitle_text += " (" + GearData.GearRarity.keys()[gear_data.rarity] + ")"
+
+				result_subtitle.text = subtitle_text
 			else:
 				# Quick battle rewards
 				var subtitle_text = "You won in " + str(current_turn) + " turns!\n"
@@ -1554,6 +1600,8 @@ func _show_results(winner: int):
 			result_title.add_theme_color_override("font_color", Color(0.9, 0.3, 0.3))
 			if PlayerData.is_campaign_mode():
 				result_subtitle.text = "Stage failed. Try again!"
+			elif PlayerData.is_dungeon_mode():
+				result_subtitle.text = "Dungeon failed. Try again!"
 			else:
 				result_subtitle.text = "Better luck next time!"
 
@@ -1598,6 +1646,26 @@ func _give_battle_rewards() -> Dictionary:
 	PlayerData.save_game()
 	return result
 
+func _give_dungeon_rewards() -> Dictionary:
+	var result = {"stones": 0, "gear": null}
+
+	if not PlayerData.is_dungeon_mode():
+		return result
+
+	# Give enhancement stones
+	var stones = PlayerData.generate_stone_drop()
+	PlayerData.add_enhancement_stones(stones)
+	result.stones = stones
+
+	# Generate gear drop
+	var gear_data = PlayerData.generate_gear_drop()
+	if gear_data:
+		var gear_entry = PlayerData.add_gear_to_inventory(gear_data)
+		result.gear = gear_entry
+
+	PlayerData.save_game()
+	return result
+
 func _on_play_again_pressed():
 	get_tree().reload_current_scene()
 
@@ -1605,6 +1673,9 @@ func _on_main_menu_pressed():
 	if PlayerData.is_campaign_mode():
 		PlayerData.end_campaign_stage()
 		get_tree().change_scene_to_file("res://scenes/ui/campaign_select_screen.tscn")
+	elif PlayerData.is_dungeon_mode():
+		PlayerData.end_dungeon()
+		get_tree().change_scene_to_file("res://scenes/ui/dungeon_select_screen.tscn")
 	else:
 		get_tree().change_scene_to_file("res://scenes/ui/main_menu.tscn")
 
