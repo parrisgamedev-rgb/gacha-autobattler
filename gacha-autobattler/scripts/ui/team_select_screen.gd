@@ -342,10 +342,23 @@ func _update_team_slot(slot: Panel, unit_entry: Dictionary):
 	# Remove button (X)
 	var remove_btn = Button.new()
 	remove_btn.text = "X"
-	remove_btn.position = Vector2(TEAM_SLOT_SIZE.x - 25, TEAM_SLOT_SIZE.y - 25)
-	remove_btn.size = Vector2(22, 22)
-	remove_btn.add_theme_stylebox_override("normal", UITheme.create_button_style(UITheme.DANGER.darkened(0.3)))
-	remove_btn.add_theme_stylebox_override("hover", UITheme.create_button_style(UITheme.DANGER))
+	remove_btn.position = Vector2(TEAM_SLOT_SIZE.x - 28, TEAM_SLOT_SIZE.y - 28)
+	remove_btn.custom_minimum_size = Vector2(24, 24)
+	# Use compact style without large margins
+	var remove_style = StyleBoxFlat.new()
+	remove_style.bg_color = UITheme.DANGER.darkened(0.3)
+	remove_style.corner_radius_top_left = 4
+	remove_style.corner_radius_top_right = 4
+	remove_style.corner_radius_bottom_left = 4
+	remove_style.corner_radius_bottom_right = 4
+	remove_style.content_margin_left = 4
+	remove_style.content_margin_right = 4
+	remove_style.content_margin_top = 2
+	remove_style.content_margin_bottom = 2
+	remove_btn.add_theme_stylebox_override("normal", remove_style)
+	var remove_hover = remove_style.duplicate()
+	remove_hover.bg_color = UITheme.DANGER
+	remove_btn.add_theme_stylebox_override("hover", remove_hover)
 	remove_btn.add_theme_font_size_override("font_size", UITheme.FONT_SMALL)
 	remove_btn.add_theme_color_override("font_color", UITheme.TEXT_PRIMARY)
 	remove_btn.pressed.connect(_on_slot_remove_clicked.bind(instance_id))
