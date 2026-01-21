@@ -18,7 +18,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0.08, 0.08, 0.12, 1)
+color = Color(0.102, 0.102, 0.18, 1)
 
 [node name="CenterContainer" type="CenterContainer" parent="."]
 layout_mode = 1
@@ -30,83 +30,105 @@ grow_vertical = 2
 
 [node name="VBoxContainer" type="VBoxContainer" parent="CenterContainer"]
 layout_mode = 2
-theme_override_constants/separation = 40
+theme_override_constants/separation = 8
 
-[node name="Title" type="Label" parent="CenterContainer/VBoxContainer"]
+[node name="TitleLabel" type="Label" parent="CenterContainer/VBoxContainer"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 72
-text = "GRID BATTLER"
+theme_override_font_sizes/font_size = 32
+text = "GACHA AUTOBATTLER"
 horizontal_alignment = 1
 
-[node name="Subtitle" type="Label" parent="CenterContainer/VBoxContainer"]
+[node name="VersionLabel" type="Label" parent="CenterContainer/VBoxContainer"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 24
-theme_override_colors/font_color = Color(0.6, 0.6, 0.7, 1)
-text = "A Gacha Auto-Battler"
+theme_override_font_sizes/font_size = 14
+theme_override_colors/font_color = Color(0.58, 0.64, 0.72, 1)
+text = "v0.5"
 horizontal_alignment = 1
 
 [node name="Spacer" type="Control" parent="CenterContainer/VBoxContainer"]
-custom_minimum_size = Vector2(0, 40)
+custom_minimum_size = Vector2(0, 32)
 layout_mode = 2
 
-[node name="CampaignButton" type="Button" parent="CenterContainer/VBoxContainer"]
-custom_minimum_size = Vector2(300, 60)
+[node name="PrimaryButtons" type="VBoxContainer" parent="CenterContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="CampaignButton" type="Button" parent="CenterContainer/VBoxContainer/PrimaryButtons"]
+custom_minimum_size = Vector2(300, 50)
 layout_mode = 2
 size_flags_horizontal = 4
-theme_override_font_sizes/font_size = 28
 text = "CAMPAIGN"
 
-[node name="DungeonsButton" type="Button" parent="CenterContainer/VBoxContainer"]
-custom_minimum_size = Vector2(300, 60)
+[node name="DungeonsButton" type="Button" parent="CenterContainer/VBoxContainer/PrimaryButtons"]
+custom_minimum_size = Vector2(300, 50)
 layout_mode = 2
 size_flags_horizontal = 4
-theme_override_font_sizes/font_size = 28
 text = "DUNGEONS"
 
-[node name="StartButton" type="Button" parent="CenterContainer/VBoxContainer"]
-custom_minimum_size = Vector2(300, 60)
+[node name="QuickBattleButton" type="Button" parent="CenterContainer/VBoxContainer/PrimaryButtons"]
+custom_minimum_size = Vector2(300, 50)
 layout_mode = 2
 size_flags_horizontal = 4
-theme_override_font_sizes/font_size = 28
 text = "QUICK BATTLE"
 
-[node name="PvPButton" type="Button" parent="CenterContainer/VBoxContainer"]
-custom_minimum_size = Vector2(300, 60)
+[node name="Spacer2" type="Control" parent="CenterContainer/VBoxContainer"]
+custom_minimum_size = Vector2(0, 24)
 layout_mode = 2
-size_flags_horizontal = 4
-theme_override_font_sizes/font_size = 28
-text = "PVP BATTLE"
 
-[node name="SummonButton" type="Button" parent="CenterContainer/VBoxContainer"]
-custom_minimum_size = Vector2(300, 60)
+[node name="SecondaryButtons" type="GridContainer" parent="CenterContainer/VBoxContainer"]
 layout_mode = 2
 size_flags_horizontal = 4
-theme_override_font_sizes/font_size = 28
+theme_override_constants/h_separation = 10
+theme_override_constants/v_separation = 10
+columns = 2
+
+[node name="SummonButton" type="Button" parent="CenterContainer/VBoxContainer/SecondaryButtons"]
+custom_minimum_size = Vector2(145, 50)
+layout_mode = 2
 text = "SUMMON"
 
-[node name="GearButton" type="Button" parent="CenterContainer/VBoxContainer"]
-custom_minimum_size = Vector2(300, 60)
+[node name="CollectionButton" type="Button" parent="CenterContainer/VBoxContainer/SecondaryButtons"]
+custom_minimum_size = Vector2(145, 50)
 layout_mode = 2
-size_flags_horizontal = 4
-theme_override_font_sizes/font_size = 28
-text = "GEAR"
-
-[node name="CollectionButton" type="Button" parent="CenterContainer/VBoxContainer"]
-custom_minimum_size = Vector2(300, 60)
-layout_mode = 2
-size_flags_horizontal = 4
-theme_override_font_sizes/font_size = 28
 text = "COLLECTION"
 
-[node name="VersionLabel" type="Label" parent="."]
+[node name="GearButton" type="Button" parent="CenterContainer/VBoxContainer/SecondaryButtons"]
+custom_minimum_size = Vector2(145, 50)
+layout_mode = 2
+text = "GEAR"
+
+[node name="PvPButton" type="Button" parent="CenterContainer/VBoxContainer/SecondaryButtons"]
+custom_minimum_size = Vector2(145, 50)
+layout_mode = 2
+text = "PVP"
+
+[node name="CurrencyBar" type="HBoxContainer" parent="."]
 layout_mode = 1
 anchors_preset = 12
 anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_top = -40.0
+offset_left = 32.0
+offset_top = -50.0
+offset_right = -32.0
+offset_bottom = -16.0
 grow_horizontal = 2
 grow_vertical = 0
-theme_override_colors/font_color = Color(0.4, 0.4, 0.5, 1)
-text = "v0.4 - Development Build"
-horizontal_alignment = 1
+theme_override_constants/separation = 24
+alignment = 1
+
+[node name="GoldLabel" type="Label" parent="CurrencyBar"]
+layout_mode = 2
+text = "Gold: 0"
+
+[node name="MaterialsLabel" type="Label" parent="CurrencyBar"]
+layout_mode = 2
+text = "Materials: 0"
+
+[node name="GemsLabel" type="Label" parent="CurrencyBar"]
+layout_mode = 2
+text = "Gems: 0"
+
+[node name="StonesLabel" type="Label" parent="CurrencyBar"]
+layout_mode = 2
+text = "Stones: 0"
