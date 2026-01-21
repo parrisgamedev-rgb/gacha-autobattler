@@ -8,6 +8,7 @@ const CELL_SIZE = 150
 const CELL_GAP = 10
 const ACTIONS_PER_TURN = 2
 const MAX_TURNS = 50  # Turn limit to prevent infinite stalemates
+const KNOCKOUTS_TO_WIN = 3  # Knock out this many enemy units to win
 
 # AI Difficulty
 enum AIDifficulty { EASY, MEDIUM, HARD }
@@ -41,6 +42,10 @@ enum GamePhase { PLAYER_TURN, ENEMY_TURN, RESOLVING, GAME_OVER }
 var current_phase: GamePhase = GamePhase.PLAYER_TURN
 var current_turn: int = 1
 var actions_remaining: int = ACTIONS_PER_TURN
+
+# Knockout tracking
+var player_knockouts: int = 0  # Enemy units knocked out by player
+var enemy_knockouts: int = 0   # Player units knocked out by enemy
 
 # Auto-battle settings
 var auto_battle_enabled: bool = false
@@ -1126,11 +1131,13 @@ func _resolve_duel(row: int, col: int, p_unit: UnitInstance, e_unit: UnitInstanc
 
 	# Handle knockouts - units only leave when HP = 0
 	if not p_unit.is_alive():
-		print("  Player unit knocked out!")
+		enemy_knockouts += 1
+		print("  Player unit knocked out! (Enemy has ", enemy_knockouts, "/", KNOCKOUTS_TO_WIN, " knockouts)")
 		_remove_unit_from_grid(p_unit, row, col)
 
 	if not e_unit.is_alive():
-		print("  Enemy unit knocked out!")
+		player_knockouts += 1
+		print("  Enemy unit knocked out! (Player has ", player_knockouts, "/", KNOCKOUTS_TO_WIN, " knockouts)")
 		_remove_unit_from_grid(e_unit, row, col)
 
 	# Both units survive - they remain on the contested square
@@ -1214,7 +1221,15 @@ func _reposition_displays_for_contested(row: int, col: int):
 		grid_enemy_displays[row][col].position = Vector2(base_x + 25, base_y)
 
 func _check_win_condition() -> int:
-	# Check rows
+	# Check knockout victory first (knock out 3 enemy units)
+	if player_knockouts >= KNOCKOUTS_TO_WIN:
+		print("Player wins by knockout! (", player_knockouts, " enemies eliminated)")
+		return 1
+	if enemy_knockouts >= KNOCKOUTS_TO_WIN:
+		print("Enemy wins by knockout! (", enemy_knockouts, " player units eliminated)")
+		return 2
+
+	# Check rows (3 in a row)
 	for row in range(GRID_SIZE):
 		var winner = _check_line(grid_ownership[row][0], grid_ownership[row][1], grid_ownership[row][2])
 		if winner > 0:
@@ -1273,6 +1288,34 @@ func _calculate_team_hp_percent(units: Array) -> float:
 		return 0.0
 
 	return total_current_hp / total_max_hp
+
+## Revive a knocked out unit with a percentage of max HP
+## Call this from revive abilities. Adjusts knockout counter.
+## Returns true if unit was successfully revived
+func revive_unit(unit: UnitInstance, hp_percent: float = 0.5) -> bool:
+	if not unit.is_knocked_out():
+		return false
+
+	# Revive the unit
+	if not unit.revive(hp_percent):
+		return false
+
+	# Adjust knockout counter (unit is back in play)
+	if unit.owner == 1:  # Player unit
+		enemy_knockouts = max(0, enemy_knockouts - 1)
+		print("Player unit revived! Enemy knockouts reduced to ", enemy_knockouts)
+	else:  # Enemy unit
+		player_knockouts = max(0, player_knockouts - 1)
+		print("Enemy unit revived! Player knockouts reduced to ", player_knockouts)
+
+	# Update roster displays
+	_update_roster_displays()
+	return true
+
+## Get all knocked out units for a team (1 = player, 2 = enemy)
+func get_knocked_out_units(team: int) -> Array:
+	var units = player_units if team == 1 else enemy_units
+	return units.filter(func(u): return u.is_knocked_out())
 
 func _check_line(a: int, b: int, c: int) -> int:
 	# Only sole occupancy counts (1 = player only, 2 = enemy only)
@@ -1617,11 +1660,14 @@ func _show_results(winner: int):
 	if results_panel:
 		results_panel.visible = true
 
-		# Check if this was a turn limit victory
+		# Check victory type
 		var ended_by_turn_limit = current_turn >= MAX_TURNS
+		var ended_by_knockout = player_knockouts >= KNOCKOUTS_TO_WIN or enemy_knockouts >= KNOCKOUTS_TO_WIN
 
 		if winner == 1:
-			if ended_by_turn_limit:
+			if ended_by_knockout:
+				result_title.text = "KNOCKOUT!"
+			elif ended_by_turn_limit:
 				result_title.text = "TIME VICTORY!"
 			else:
 				result_title.text = "VICTORY!"
@@ -1672,7 +1718,9 @@ func _show_results(winner: int):
 			else:
 				# Quick battle rewards
 				var subtitle_text = ""
-				if ended_by_turn_limit:
+				if ended_by_knockout:
+					subtitle_text = "Eliminated " + str(player_knockouts) + " enemies!\n"
+				elif ended_by_turn_limit:
 					subtitle_text = "Turn limit reached - you had more HP!\n"
 				else:
 					subtitle_text = "You won in " + str(current_turn) + " turns!\n"
@@ -1681,7 +1729,9 @@ func _show_results(winner: int):
 					subtitle_text += "\nLevel Up: " + ", ".join(battle_rewards.level_ups)
 				result_subtitle.text = subtitle_text
 		else:
-			if ended_by_turn_limit:
+			if ended_by_knockout:
+				result_title.text = "KNOCKED OUT"
+			elif ended_by_turn_limit:
 				result_title.text = "TIME DEFEAT"
 			else:
 				result_title.text = "DEFEAT"
@@ -1690,6 +1740,8 @@ func _show_results(winner: int):
 				result_subtitle.text = "Stage failed. Try again!"
 			elif PlayerData.is_dungeon_mode():
 				result_subtitle.text = "Dungeon failed. Try again!"
+			elif ended_by_knockout:
+				result_subtitle.text = "Lost " + str(enemy_knockouts) + " units!"
 			elif ended_by_turn_limit:
 				result_subtitle.text = "Turn limit reached. Enemy had more HP!"
 			else:

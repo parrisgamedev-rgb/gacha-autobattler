@@ -118,8 +118,25 @@ func _calculate_stats():
 func is_alive() -> bool:
 	return current_hp > 0
 
+func is_knocked_out() -> bool:
+	return current_hp <= 0
+
 func is_placed() -> bool:
 	return grid_row >= 0 and grid_col >= 0
+
+## Revive this unit with a percentage of max HP (0.0 to 1.0)
+## Returns true if successfully revived, false if unit was already alive
+func revive(hp_percent: float = 0.5) -> bool:
+	if is_alive():
+		return false  # Already alive, can't revive
+
+	current_hp = int(max_hp * clamp(hp_percent, 0.1, 1.0))
+	is_on_cooldown = false
+	cooldown_turns_remaining = 0
+	# Clear negative status effects on revive
+	active_status_effects = active_status_effects.filter(func(e): return not e.effect_data.is_debuff if e.effect_data.has("is_debuff") else true)
+	print(unit_data.unit_name, " revived with ", current_hp, "/", max_hp, " HP!")
+	return true
 
 func can_act() -> bool:
 	return is_alive() and not is_on_cooldown
