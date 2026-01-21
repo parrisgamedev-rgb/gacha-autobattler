@@ -9,6 +9,16 @@ const SAVE_FILE_PATH = "user://save_data.json"
 var gems: int = 1000  # Starting gems for new players
 var gold: int = 5000  # Starting gold for leveling units
 var level_materials: int = 100  # Starting materials for leveling units
+var enhancement_stones: int = 50  # Starting stones for new players
+
+# Owned gear: Array of gear instances
+# Each entry: {instance_id: String, gear_data: GearData, level: int, equipped_to: String}
+var owned_gear: Array = []
+var next_gear_instance_id: int = 1
+
+# Dungeon mode tracking
+var current_dungeon = null  # DungeonData resource
+var current_dungeon_tier: int = 0  # 0=Easy, 1=Normal, 2=Hard
 
 # PvP mode flag (set by PvP lobby)
 var pvp_mode: bool = false
@@ -56,6 +66,7 @@ var unit_paths: Dictionary = {}
 func _ready():
 	_load_unit_pools()
 	_build_unit_paths()
+	_load_gear_templates()
 	if not load_game():
 		# No save file - give starter units to new players
 		_give_starter_units()
@@ -134,6 +145,32 @@ func _build_unit_paths():
 		var unit_data = load(path) as UnitData
 		if unit_data:
 			unit_paths[unit_data.unit_id] = path
+
+# Gear template paths for generating drops
+var gear_templates: Dictionary = {}  # {stat_type: {rarity: [GearData]}}
+
+func _load_gear_templates():
+	# Initialize structure
+	for stat in GearData.StatType.values():
+		gear_templates[stat] = {}
+		for rarity in GearData.GearRarity.values():
+			gear_templates[stat][rarity] = []
+
+	# Load all gear resources
+	var gear_dir = "res://resources/gear/"
+	var dir = DirAccess.open(gear_dir)
+	if dir:
+		dir.list_dir_begin()
+		var file_name = dir.get_next()
+		while file_name != "":
+			if file_name.ends_with(".tres"):
+				var gear = load(gear_dir + file_name) as GearData
+				if gear:
+					gear_templates[gear.stat_type][gear.rarity].append(gear)
+			file_name = dir.get_next()
+		dir.list_dir_end()
+
+	print("Loaded gear templates")
 
 func can_afford_single() -> bool:
 	return gems >= SINGLE_PULL_COST
@@ -526,18 +563,273 @@ func add_materials(amount: int):
 	level_materials += amount
 	print("+", amount, " materials (Total: ", level_materials, ")")
 
+# --- Gear System ---
+
+func add_gear_to_inventory(gear_data: GearData) -> Dictionary:
+	if gear_data == null:
+		return {}
+
+	var gear_entry = {
+		"instance_id": "g" + str(next_gear_instance_id),
+		"gear_data": gear_data,
+		"level": 0,
+		"equipped_to": ""  # Empty = not equipped
+	}
+	next_gear_instance_id += 1
+	owned_gear.append(gear_entry)
+
+	print("New gear: ", gear_data.gear_name, " (", GearData.GearRarity.keys()[gear_data.rarity], ")")
+	return gear_entry
+
+func get_gear_by_instance_id(instance_id: String) -> Dictionary:
+	for gear in owned_gear:
+		if gear.instance_id == instance_id:
+			return gear
+	return {}
+
+func get_equipped_gear(unit_instance_id: String) -> Array:
+	var equipped = []
+	for gear in owned_gear:
+		if gear.equipped_to == unit_instance_id:
+			equipped.append(gear)
+	return equipped
+
+func get_unequipped_gear() -> Array:
+	var unequipped = []
+	for gear in owned_gear:
+		if gear.equipped_to == "":
+			unequipped.append(gear)
+	return unequipped
+
+func equip_gear(gear_instance_id: String, unit_instance_id: String) -> bool:
+	var gear = get_gear_by_instance_id(gear_instance_id)
+	var unit = get_unit_by_instance_id(unit_instance_id)
+
+	if gear.is_empty() or unit.is_empty():
+		return false
+
+	var gear_data = gear.gear_data as GearData
+
+	# Check if unit already has gear in this slot
+	var equipped = get_equipped_gear(unit_instance_id)
+	for eq in equipped:
+		var eq_data = eq.gear_data as GearData
+		# Weapons go in weapon slot, armor in armor, accessories can stack (2 max)
+		if gear_data.gear_type == eq_data.gear_type:
+			if gear_data.gear_type != GearData.GearType.ACCESSORY:
+				print("Slot already occupied!")
+				return false
+			else:
+				# Count accessories
+				var acc_count = 0
+				for e in equipped:
+					if (e.gear_data as GearData).gear_type == GearData.GearType.ACCESSORY:
+						acc_count += 1
+				if acc_count >= 2:
+					print("Max accessories equipped!")
+					return false
+
+	# Unequip from previous owner if any
+	if gear.equipped_to != "":
+		unequip_gear(gear_instance_id)
+
+	# Equip to new owner
+	for i in range(owned_gear.size()):
+		if owned_gear[i].instance_id == gear_instance_id:
+			owned_gear[i].equipped_to = unit_instance_id
+			print("Equipped ", gear_data.gear_name, " to ", unit.unit_data.unit_name)
+			save_game()
+			return true
+
+	return false
+
+func unequip_gear(gear_instance_id: String) -> bool:
+	for i in range(owned_gear.size()):
+		if owned_gear[i].instance_id == gear_instance_id:
+			owned_gear[i].equipped_to = ""
+			print("Unequipped ", (owned_gear[i].gear_data as GearData).gear_name)
+			save_game()
+			return true
+	return false
+
+func can_enhance_gear(gear_instance_id: String) -> Dictionary:
+	var gear = get_gear_by_instance_id(gear_instance_id)
+	if gear.is_empty():
+		return {"can_enhance": false, "reason": "Gear not found"}
+
+	var gear_data = gear.gear_data as GearData
+	var current_level = gear.level
+	var max_level = gear_data.get_max_level()
+
+	if current_level >= max_level:
+		return {"can_enhance": false, "reason": "Already at max level"}
+
+	var cost = gear_data.get_enhance_cost(current_level)
+
+	if gold < cost.gold:
+		return {"can_enhance": false, "reason": "Not enough gold", "cost": cost}
+	if enhancement_stones < cost.stones:
+		return {"can_enhance": false, "reason": "Not enough stones", "cost": cost}
+
+	return {"can_enhance": true, "cost": cost}
+
+func enhance_gear(gear_instance_id: String) -> bool:
+	var check = can_enhance_gear(gear_instance_id)
+	if not check.can_enhance:
+		print("Cannot enhance: ", check.reason)
+		return false
+
+	for i in range(owned_gear.size()):
+		if owned_gear[i].instance_id == gear_instance_id:
+			var cost = check.cost
+			gold -= cost.gold
+			enhancement_stones -= cost.stones
+			owned_gear[i].level += 1
+
+			var gear_data = owned_gear[i].gear_data as GearData
+			print("Enhanced ", gear_data.gear_name, " to +", owned_gear[i].level)
+			save_game()
+			return true
+
+	return false
+
+func add_enhancement_stones(amount: int):
+	enhancement_stones += amount
+	print("+", amount, " Enhancement Stones (Total: ", enhancement_stones, ")")
+
+# Calculate gear stat bonuses for a unit
+func get_gear_bonuses(unit_instance_id: String) -> Dictionary:
+	var bonuses = {
+		"flat_hp": 0, "flat_attack": 0, "flat_defense": 0, "flat_speed": 0,
+		"percent_hp": 0.0, "percent_attack": 0.0, "percent_defense": 0.0, "percent_speed": 0.0
+	}
+
+	var equipped = get_equipped_gear(unit_instance_id)
+	for gear in equipped:
+		var gear_data = gear.gear_data as GearData
+		var stat_value = gear_data.get_stat_at_level(gear.level)
+
+		var stat_key = ""
+		match gear_data.stat_type:
+			GearData.StatType.HP: stat_key = "hp"
+			GearData.StatType.ATTACK: stat_key = "attack"
+			GearData.StatType.DEFENSE: stat_key = "defense"
+			GearData.StatType.SPEED: stat_key = "speed"
+
+		if gear_data.is_percentage:
+			bonuses["percent_" + stat_key] += stat_value / 100.0  # Convert to decimal
+		else:
+			bonuses["flat_" + stat_key] += int(stat_value)
+
+	return bonuses
+
+# --- Dungeon Mode ---
+
+func is_dungeon_mode() -> bool:
+	return current_dungeon != null
+
+func start_dungeon(dungeon, tier: int):
+	current_dungeon = dungeon
+	current_dungeon_tier = tier
+	pvp_mode = false
+	current_stage_id = ""
+	current_stage = null
+	print("Starting dungeon: ", dungeon.dungeon_name, " (", dungeon.tier_names[tier], ")")
+
+func end_dungeon():
+	current_dungeon = null
+	current_dungeon_tier = 0
+
+func generate_gear_drop() -> GearData:
+	if current_dungeon == null:
+		return null
+
+	var dungeon = current_dungeon
+	var rates = dungeon.get_drop_rates(current_dungeon_tier)
+	var stat_type = dungeon.drops_stat_type
+
+	# Roll for rarity
+	var roll = randf()
+	var cumulative = 0.0
+	var rarity = GearData.GearRarity.COMMON
+
+	for i in range(rates.size()):
+		cumulative += rates[i]
+		if roll < cumulative:
+			rarity = i
+			break
+
+	# Get gear from templates
+	if gear_templates.has(stat_type) and gear_templates[stat_type].has(rarity):
+		var templates = gear_templates[stat_type][rarity]
+		if templates.size() > 0:
+			return templates[randi() % templates.size()]
+
+	return null
+
+func generate_stone_drop() -> int:
+	if current_dungeon == null:
+		return 0
+
+	var range_arr = current_dungeon.get_stone_drop_range(current_dungeon_tier)
+	return randi_range(range_arr[0], range_arr[1])
+
 # --- Save/Load System ---
+
+func _serialize_gear() -> Array:
+	var serialized = []
+	for gear_entry in owned_gear:
+		var gear_data = gear_entry.gear_data as GearData
+		serialized.append({
+			"instance_id": gear_entry.instance_id,
+			"gear_id": gear_data.gear_id,
+			"level": gear_entry.level,
+			"equipped_to": gear_entry.equipped_to
+		})
+	return serialized
+
+func _deserialize_gear(gear_data_array: Array) -> Array:
+	var loaded_gear = []
+	# We need to load gear by ID - for now, scan all gear resources
+	var gear_by_id = {}
+	var gear_dir = "res://resources/gear/"
+	var dir = DirAccess.open(gear_dir)
+	if dir:
+		dir.list_dir_begin()
+		var file_name = dir.get_next()
+		while file_name != "":
+			if file_name.ends_with(".tres"):
+				var gear = load(gear_dir + file_name) as GearData
+				if gear:
+					gear_by_id[gear.gear_id] = gear
+			file_name = dir.get_next()
+		dir.list_dir_end()
+
+	for gear_save in gear_data_array:
+		var gear_id = gear_save.get("gear_id", "")
+		if gear_by_id.has(gear_id):
+			loaded_gear.append({
+				"instance_id": gear_save.get("instance_id", "g" + str(next_gear_instance_id)),
+				"gear_data": gear_by_id[gear_id],
+				"level": int(gear_save.get("level", 0)),
+				"equipped_to": gear_save.get("equipped_to", "")
+			})
+
+	return loaded_gear
 
 func save_game():
 	var save_data = {
-		"version": 3,  # Save format version (updated for leveling system)
+		"version": 4,  # Updated for gear system
 		"gems": gems,
 		"gold": gold,
 		"level_materials": level_materials,
+		"enhancement_stones": enhancement_stones,
 		"pity_counter": pity_counter,
 		"next_instance_id": next_instance_id,
+		"next_gear_instance_id": next_gear_instance_id,
 		"campaign_progress": campaign_progress,
-		"owned_units": _serialize_units()
+		"owned_units": _serialize_units(),
+		"owned_gear": _serialize_gear()
 	}
 
 	var file = FileAccess.open(SAVE_FILE_PATH, FileAccess.WRITE)
@@ -575,15 +867,21 @@ func load_game() -> bool:
 	gems = int(save_data.get("gems", 1000))
 	gold = int(save_data.get("gold", 5000))
 	level_materials = int(save_data.get("level_materials", 100))
+	enhancement_stones = int(save_data.get("enhancement_stones", 50))
 	pity_counter = int(save_data.get("pity_counter", 0))
 	next_instance_id = int(save_data.get("next_instance_id", 1))
+	next_gear_instance_id = int(save_data.get("next_gear_instance_id", 1))
 	campaign_progress = save_data.get("campaign_progress", {})
 
 	# Load owned units
 	var units_data = save_data.get("owned_units", [])
 	owned_units = _deserialize_units(units_data)
 
-	print("Game loaded successfully! Gems: ", gems, ", Units: ", owned_units.size())
+	# Load owned gear
+	var gear_data_array = save_data.get("owned_gear", [])
+	owned_gear = _deserialize_gear(gear_data_array)
+
+	print("Game loaded successfully! Gems: ", gems, ", Units: ", owned_units.size(), ", Gear: ", owned_gear.size())
 	return true
 
 func _serialize_units() -> Array:
