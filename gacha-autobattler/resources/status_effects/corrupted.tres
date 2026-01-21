@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="StatusEffectData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/status_effect_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+effect_id = "corrupted"
+effect_name = "Corrupted"
+effect_type = 1
+description = "Attack and defense reduced by 30%"
+base_duration = 2
+damage_per_turn = 0
+attack_modifier = 0.7
+defense_modifier = 0.7
+prevents_abilities = false
+shield_amount = 0
+attack_boost = 1.0
+defense_boost = 1.0
+icon_color = Color(0.6, 0.1, 0.8, 1)
+icon_symbol = "☣"
+refresh_on_reapply = true

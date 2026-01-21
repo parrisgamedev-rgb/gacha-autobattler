@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="StatusEffectData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/status_effect_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+effect_id = "overclocked"
+effect_name = "Overclocked"
+effect_type = 4
+description = "Attack increased by 30%"
+base_duration = 2
+damage_per_turn = 0
+attack_modifier = 1.0
+defense_modifier = 1.0
+prevents_abilities = false
+shield_amount = 0
+attack_boost = 1.3
+defense_boost = 1.0
+icon_color = Color(1, 0.9, 0.2, 1)
+icon_symbol = "⚙"
+refresh_on_reapply = true

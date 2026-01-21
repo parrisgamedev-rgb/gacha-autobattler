@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="FieldEffectData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/field_effect_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+field_id = "boost_field"
+field_name = "Boost Field"
+field_type = 3
+description = "Allies have +20% attack and defense"
+base_duration = 3
+affects_enemies = false
+affects_allies = true
+attack_modifier = 1.2
+defense_modifier = 1.2
+damage_per_turn = 0
+heal_per_turn = 0
+field_color = Color(0.3, 0.6, 1.0, 0.25)
+icon_symbol = "▲"

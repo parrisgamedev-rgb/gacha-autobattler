@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="FieldEffectData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/field_effect_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+field_id = "suppression_field"
+field_name = "Suppression Field"
+field_type = 0
+description = "Enemies have -20% attack and defense"
+base_duration = 3
+affects_enemies = true
+affects_allies = false
+attack_modifier = 0.8
+defense_modifier = 0.8
+damage_per_turn = 0
+heal_per_turn = 0
+field_color = Color(0.8, 0.2, 0.2, 0.25)
+icon_symbol = "▼"

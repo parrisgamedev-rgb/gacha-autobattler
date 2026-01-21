@@ -1,19 +1,19 @@
-[gd_resource type="Resource" script_class="UnitData" load_steps=5 format=3 uid="uid://d8zp6n3k9q5ty"]
+[gd_resource type="Resource" script_class="UnitData" load_steps=5 format=3 uid="uid://light_cleric_001"]
 
 [ext_resource type="Script" path="res://scripts/data/unit_data.gd" id="1_script"]
 [ext_resource type="Resource" uid="uid://basic_attack_001" path="res://resources/abilities/basic_attack.tres" id="2_ability"]
 [ext_resource type="Resource" uid="uid://guard_001" path="res://resources/abilities/guard.tres" id="3_ability"]
-[ext_resource type="Resource" uid="uid://natures_resilience_001" path="res://resources/abilities/natures_resilience.tres" id="4_ability"]
+[ext_resource type="Resource" uid="uid://holy_light_001" path="res://resources/abilities/holy_light.tres" id="4_ability"]
 
 [resource]
 script = ExtResource("1_script")
-unit_name = "Thorne"
-unit_id = "nature_tank_001"
-star_rating = 5
-element = "nature"
-max_hp = 150
+unit_name = "Clara"
+unit_id = "light_cleric_001"
+star_rating = 3
+element = "light"
+max_hp = 90
 attack = 18
-defense = 20
-speed = 8
+defense = 12
+speed = 11
 abilities = Array[Resource]([ExtResource("2_ability"), ExtResource("3_ability"), ExtResource("4_ability")])
-portrait_color = Color(0.3, 0.7, 0.3, 1)
+portrait_color = Color(1, 0.95, 0.7, 1)

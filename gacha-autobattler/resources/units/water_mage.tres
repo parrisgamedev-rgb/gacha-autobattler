@@ -7,7 +7,7 @@
 
 [resource]
 script = ExtResource("1_script")
-unit_name = "Aqua"
+unit_name = "Nerissa"
 unit_id = "water_mage_001"
 star_rating = 4
 element = "water"

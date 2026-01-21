@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="AbilityData" load_steps=2 format=3 uid="uid://quick_strike_001"]
+
+[ext_resource type="Script" path="res://scripts/data/ability_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+ability_name = "Quick Strike"
+ability_id = "quick_strike"
+description = "A swift attack that strikes before the enemy can react."
+ability_type = 0
+damage_multiplier = 1.2
+defense_multiplier = 0.8
+heal_amount = 0
+bonus_damage = 5
+ignores_element = false
+guaranteed_survive = false
+counter_attack = false
+piercing = false
+icon_color = Color(0.5, 0.3, 0.6, 1)

@@ -1,0 +1,23 @@
+[gd_resource type="Resource" script_class="AbilityData" load_steps=3 format=3 uid="uid://inferno_001"]
+
+[ext_resource type="Script" path="res://scripts/data/ability_data.gd" id="1_script"]
+[ext_resource type="Resource" uid="uid://overheat_001" path="res://resources/status_effects/overheat.tres" id="2_overheat"]
+
+[resource]
+script = ExtResource("1_script")
+ability_name = "Inferno"
+ability_id = "inferno"
+description = "Unleash a raging inferno. Massive damage, leaves you exposed, and burns the target."
+ability_type = 0
+damage_multiplier = 1.8
+defense_multiplier = 0.3
+heal_amount = 0
+bonus_damage = 5
+ignores_element = false
+guaranteed_survive = false
+counter_attack = false
+piercing = false
+cooldown = 1
+applies_status_effect = ExtResource("2_overheat")
+applies_to_self = false
+icon_color = Color(1, 0.2, 0.1, 1)

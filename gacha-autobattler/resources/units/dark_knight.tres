@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="UnitData" load_steps=5 format=3 uid="uid://dark_knight_001"]
+
+[ext_resource type="Script" path="res://scripts/data/unit_data.gd" id="1_script"]
+[ext_resource type="Resource" uid="uid://basic_attack_001" path="res://resources/abilities/basic_attack.tres" id="2_ability"]
+[ext_resource type="Resource" uid="uid://counter_stance_001" path="res://resources/abilities/counter_stance.tres" id="3_ability"]
+[ext_resource type="Resource" uid="uid://life_drain_001" path="res://resources/abilities/life_drain.tres" id="4_ability"]
+
+[resource]
+script = ExtResource("1_script")
+unit_name = "Darius"
+unit_id = "dark_knight_001"
+star_rating = 4
+element = "dark"
+max_hp = 120
+attack = 24
+defense = 16
+speed = 9
+abilities = Array[Resource]([ExtResource("2_ability"), ExtResource("3_ability"), ExtResource("4_ability")])
+portrait_color = Color(0.3, 0.15, 0.4, 1)

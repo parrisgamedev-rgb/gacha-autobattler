@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="FieldEffectData" load_steps=2 format=3 uid="uid://thermal_field_001"]
+
+[ext_resource type="Script" path="res://scripts/data/field_effect_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+field_id = "thermal_field"
+field_name = "Thermal Field"
+field_type = 2
+description = "All units take 12 damage per turn"
+base_duration = 2
+affects_enemies = true
+affects_allies = true
+attack_modifier = 1.0
+defense_modifier = 1.0
+damage_per_turn = 12
+heal_per_turn = 0
+field_color = Color(1.0, 0.5, 0.1, 0.25)
+icon_symbol = "☀"

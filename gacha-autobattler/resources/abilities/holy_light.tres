@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="AbilityData" load_steps=2 format=3 uid="uid://holy_light_001"]
+
+[ext_resource type="Script" path="res://scripts/data/ability_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+ability_name = "Holy Light"
+ability_id = "holy_light"
+description = "Blessed light that heals yourself while damaging the enemy."
+ability_type = 0
+damage_multiplier = 0.8
+defense_multiplier = 1.2
+heal_amount = 20
+bonus_damage = 0
+ignores_element = false
+guaranteed_survive = false
+counter_attack = false
+piercing = false
+cooldown = 1
+icon_color = Color(1, 0.95, 0.6, 1)

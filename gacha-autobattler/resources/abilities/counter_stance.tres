@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="AbilityData" load_steps=2 format=3 uid="uid://counter_stance_001"]
+
+[ext_resource type="Script" path="res://scripts/data/ability_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+ability_name = "Counter Stance"
+ability_id = "counter_stance"
+description = "Take a defensive stance. High defense and counter any attack."
+ability_type = 1
+damage_multiplier = 0.7
+defense_multiplier = 2.0
+heal_amount = 0
+bonus_damage = 0
+ignores_element = false
+guaranteed_survive = false
+counter_attack = true
+piercing = false
+cooldown = 1
+icon_color = Color(0.3, 0.2, 0.4, 1)

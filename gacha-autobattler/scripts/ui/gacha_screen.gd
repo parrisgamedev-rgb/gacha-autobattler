@@ -34,18 +34,18 @@ func _update_ui():
 	multi_pull_btn.text = "10x Pull\n" + str(PlayerData.MULTI_PULL_COST) + " Gems"
 
 func _on_single_pull():
-	var unit = PlayerData.do_single_pull()
-	if unit:
-		_show_results([unit])
+	var unit_entry = PlayerData.do_single_pull()
+	if not unit_entry.is_empty():
+		_show_results([unit_entry])
 	_update_ui()
 
 func _on_multi_pull():
-	var units = PlayerData.do_multi_pull()
-	if units.size() > 0:
-		_show_results(units)
+	var unit_entries = PlayerData.do_multi_pull()
+	if unit_entries.size() > 0:
+		_show_results(unit_entries)
 	_update_ui()
 
-func _show_results(units: Array):
+func _show_results(unit_entries: Array):
 	# Clear previous results
 	for child in results_container.get_children():
 		child.queue_free()
@@ -58,17 +58,18 @@ func _show_results(units: Array):
 	multi_pull_btn.visible = false
 
 	# Create displays for pulled units
-	await get_tree().process_frame  # Wait for cleared children to be freed
+	await get_tree().process_frame
 
 	# Calculate spacing for units
-	var unit_count = units.size()
+	var unit_count = unit_entries.size()
 	var unit_width = 120  # Approximate width per unit at scale 0.6
 	var total_width = results_container.size.x
 	var start_x = (total_width - (unit_count * unit_width)) / 2 + unit_width / 2
 	var y_pos = results_container.size.y / 2
 
-	for i in range(units.size()):
-		var unit = units[i]
+	for i in range(unit_entries.size()):
+		var unit_entry = unit_entries[i]
+		var unit_data = unit_entry.unit_data as UnitData
 		var display = UnitDisplayScene.instantiate()
 		results_container.add_child(display)
 
@@ -76,13 +77,13 @@ func _show_results(units: Array):
 		display.position = Vector2(start_x + i * unit_width, y_pos)
 
 		# Create a temporary UnitInstance for the display
-		var instance = UnitInstance.new(unit, 1)
+		var instance = UnitInstance.new(unit_data, 1)
 		display.setup(instance)
 		display.scale = Vector2(0.6, 0.6)
 		display.drag_enabled = false
 
 		# Color the display based on rarity
-		match unit.star_rating:
+		match unit_data.star_rating:
 			5:
 				display.modulate = Color(1.0, 0.9, 0.5)  # Gold tint
 			4:
