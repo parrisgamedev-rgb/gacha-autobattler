@@ -23,13 +23,22 @@ var field_overlay: ColorRect = null
 var field_icon: Label = null
 var field_tween: Tween = null
 
-# Colors for ownership
-const PLAYER_COLOR = Color(0.2, 0.6, 1.0, 0.6)  # Blue
-const ENEMY_COLOR = Color(1.0, 0.3, 0.3, 0.6)   # Red
-const CONTESTED_COLOR = Color(0.8, 0.5, 1.0, 0.6)  # Purple (contested)
-const EMPTY_COLOR = Color(0.2, 0.2, 0.25, 1.0)  # Dark gray
+# Colors for ownership - now derived from UITheme
+var PLAYER_COLOR: Color
+var ENEMY_COLOR: Color
+var CONTESTED_COLOR: Color
+var EMPTY_COLOR: Color
 
 func _ready():
+	# Initialize colors from UITheme
+	PLAYER_COLOR = UITheme.PRIMARY.darkened(0.5)
+	PLAYER_COLOR.a = 0.6
+	ENEMY_COLOR = UITheme.DANGER.darkened(0.5)
+	ENEMY_COLOR.a = 0.6
+	CONTESTED_COLOR = UITheme.SECONDARY.darkened(0.5)
+	CONTESTED_COLOR.a = 0.6
+	EMPTY_COLOR = UITheme.BG_MEDIUM
+
 	# Connect mouse signals
 	mouse_entered.connect(_on_mouse_entered)
 	mouse_exited.connect(_on_mouse_exited)
@@ -86,6 +95,15 @@ func setup(row: int, col: int, size: int):
 	hover_effect.offset_top = -half_size
 	hover_effect.offset_right = half_size
 	hover_effect.offset_bottom = half_size
+
+	# Apply UITheme colors to borders and hover effect
+	var border_color = UITheme.BG_LIGHT
+	$Border.color = border_color
+	$Border2.color = border_color
+	$Border3.color = border_color
+	$Border4.color = border_color
+
+	hover_effect.color = Color(UITheme.PRIMARY.r, UITheme.PRIMARY.g, UITheme.PRIMARY.b, 0.2)
 
 func set_ownership(new_owner: int):
 	ownership = new_owner

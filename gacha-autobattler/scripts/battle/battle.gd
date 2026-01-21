@@ -120,6 +120,9 @@ func _ready():
 	_update_speed_buttons()
 	_update_auto_button()
 
+	# Apply theme styling
+	_apply_battle_theme()
+
 func _create_grid():
 	grid_ownership = []
 	grid_cells = []
@@ -1981,3 +1984,128 @@ func _select_best_ability(unit: UnitInstance):
 			best_index = i
 
 	unit.selected_ability_index = best_index
+
+func _apply_battle_theme():
+	# Apply background color to main scene
+	var bg = get_node_or_null("Background")
+	if bg and bg is ColorRect:
+		bg.color = UITheme.BG_DARK
+
+	# Top bar styling
+	if turn_label:
+		turn_label.add_theme_font_size_override("font_size", UITheme.FONT_BODY)
+		turn_label.add_theme_color_override("font_color", UITheme.TEXT_SECONDARY)
+
+	if phase_label:
+		phase_label.add_theme_font_size_override("font_size", UITheme.FONT_TITLE_SMALL)
+		phase_label.add_theme_color_override("font_color", UITheme.TEXT_PRIMARY)
+
+	if actions_label:
+		actions_label.add_theme_font_size_override("font_size", UITheme.FONT_BODY)
+		actions_label.add_theme_color_override("font_color", UITheme.PRIMARY)
+
+	# Player roster panel
+	var player_roster_bg = get_node_or_null("UI/PlayerRosterBG")
+	if player_roster_bg and player_roster_bg is ColorRect:
+		player_roster_bg.color = UITheme.BG_DARK.lightened(0.05)
+
+	var player_roster_label = get_node_or_null("UI/PlayerRosterLabel")
+	if player_roster_label:
+		player_roster_label.add_theme_font_size_override("font_size", UITheme.FONT_BODY)
+		player_roster_label.add_theme_color_override("font_color", UITheme.PRIMARY)
+
+	# Enemy roster panel
+	var enemy_roster_bg = get_node_or_null("UI/EnemyRosterBG")
+	if enemy_roster_bg and enemy_roster_bg is ColorRect:
+		enemy_roster_bg.color = UITheme.BG_DARK.lightened(0.05)
+
+	var enemy_roster_label = get_node_or_null("UI/EnemyRosterLabel")
+	if enemy_roster_label:
+		enemy_roster_label.add_theme_font_size_override("font_size", UITheme.FONT_BODY)
+		enemy_roster_label.add_theme_color_override("font_color", UITheme.DANGER)
+
+	# Ability panel
+	if ability_panel and ability_panel is Panel:
+		ability_panel.add_theme_stylebox_override("panel", UITheme.create_panel_style(UITheme.BG_MEDIUM))
+
+	var ability_label = get_node_or_null("UI/AbilityPanel/AbilityLabel")
+	if ability_label:
+		ability_label.add_theme_font_size_override("font_size", UITheme.FONT_CAPTION)
+		ability_label.add_theme_color_override("font_color", UITheme.TEXT_SECONDARY)
+
+	# Style ability buttons
+	for btn in ability_buttons:
+		if btn:
+			btn.add_theme_stylebox_override("normal", UITheme.create_button_style(UITheme.BG_LIGHT))
+			btn.add_theme_stylebox_override("hover", UITheme.create_button_style(UITheme.BG_LIGHT.lightened(0.1)))
+			btn.add_theme_stylebox_override("disabled", UITheme.create_button_style(UITheme.BG_DARK))
+			btn.add_theme_font_size_override("font_size", UITheme.FONT_CAPTION)
+			btn.add_theme_color_override("font_color", UITheme.TEXT_PRIMARY)
+			btn.add_theme_color_override("font_disabled_color", UITheme.TEXT_DISABLED)
+
+	if ability_desc:
+		ability_desc.add_theme_font_size_override("font_size", UITheme.FONT_CAPTION)
+		ability_desc.add_theme_color_override("font_color", UITheme.TEXT_SECONDARY)
+
+	# End turn button
+	if end_turn_button:
+		end_turn_button.add_theme_stylebox_override("normal", UITheme.create_button_style(UITheme.PRIMARY))
+		end_turn_button.add_theme_stylebox_override("hover", UITheme.create_button_style(UITheme.PRIMARY.lightened(0.1)))
+		end_turn_button.add_theme_stylebox_override("pressed", UITheme.create_button_style(UITheme.PRIMARY.darkened(0.1)))
+		end_turn_button.add_theme_font_size_override("font_size", UITheme.FONT_BODY)
+		end_turn_button.add_theme_color_override("font_color", UITheme.TEXT_PRIMARY)
+
+	# Auto-battle and speed buttons
+	if auto_button:
+		auto_button.add_theme_stylebox_override("normal", UITheme.create_button_style(UITheme.BG_LIGHT))
+		auto_button.add_theme_stylebox_override("hover", UITheme.create_button_style(UITheme.BG_LIGHT.lightened(0.1)))
+		auto_button.add_theme_stylebox_override("pressed", UITheme.create_button_style(UITheme.SECONDARY))
+		auto_button.add_theme_font_size_override("font_size", UITheme.FONT_CAPTION)
+		auto_button.add_theme_color_override("font_color", UITheme.TEXT_PRIMARY)
+
+	for speed_btn in [speed_1x_btn, speed_2x_btn, speed_3x_btn]:
+		if speed_btn:
+			speed_btn.add_theme_stylebox_override("normal", UITheme.create_button_style(UITheme.BG_LIGHT))
+			speed_btn.add_theme_stylebox_override("hover", UITheme.create_button_style(UITheme.BG_LIGHT.lightened(0.1)))
+			speed_btn.add_theme_stylebox_override("pressed", UITheme.create_button_style(UITheme.SECONDARY))
+			speed_btn.add_theme_font_size_override("font_size", UITheme.FONT_CAPTION)
+			speed_btn.add_theme_color_override("font_color", UITheme.TEXT_PRIMARY)
+
+	# Results panel
+	if results_panel and results_panel is Panel:
+		results_panel.add_theme_stylebox_override("panel", UITheme.create_panel_style(UITheme.BG_DARK, UITheme.PRIMARY, UITheme.MODAL_RADIUS))
+
+	var results_bg = get_node_or_null("UI/ResultsPanel/ResultsBackground")
+	if results_bg and results_bg is ColorRect:
+		results_bg.color = UITheme.BG_DARK
+
+	if result_title:
+		result_title.add_theme_font_size_override("font_size", UITheme.FONT_TITLE_LARGE)
+
+	if result_subtitle:
+		result_subtitle.add_theme_font_size_override("font_size", UITheme.FONT_BODY)
+		result_subtitle.add_theme_color_override("font_color", UITheme.TEXT_SECONDARY)
+
+	# Style results buttons
+	if play_again_button:
+		play_again_button.add_theme_stylebox_override("normal", UITheme.create_button_style(UITheme.PRIMARY))
+		play_again_button.add_theme_stylebox_override("hover", UITheme.create_button_style(UITheme.PRIMARY.lightened(0.1)))
+		play_again_button.add_theme_font_size_override("font_size", UITheme.FONT_BODY)
+		play_again_button.add_theme_color_override("font_color", UITheme.TEXT_PRIMARY)
+
+	if main_menu_button:
+		main_menu_button.add_theme_stylebox_override("normal", UITheme.create_button_style(UITheme.BG_LIGHT))
+		main_menu_button.add_theme_stylebox_override("hover", UITheme.create_button_style(UITheme.BG_LIGHT.lightened(0.1)))
+		main_menu_button.add_theme_font_size_override("font_size", UITheme.FONT_BODY)
+		main_menu_button.add_theme_color_override("font_color", UITheme.TEXT_PRIMARY)
+
+	# Combat announcement
+	if combat_announcement:
+		combat_announcement.add_theme_font_size_override("font_size", UITheme.FONT_TITLE_MEDIUM)
+		combat_announcement.add_theme_color_override("font_color", UITheme.GOLD)
+
+	# Instructions label
+	var instructions = get_node_or_null("UI/Instructions")
+	if instructions:
+		instructions.add_theme_font_size_override("font_size", UITheme.FONT_CAPTION)
+		instructions.add_theme_color_override("font_color", UITheme.TEXT_DISABLED)
