@@ -34,9 +34,11 @@ var actions_remaining: int = ACTIONS_PER_TURN
 
 # Grid state
 var grid_cells: Array = []
-var grid_ownership: Array = []  # 0 = empty, 1 = player, 2 = enemy
-var grid_units: Array = []  # UnitInstance or null
-var grid_unit_displays: Array = []
+var grid_ownership: Array = []  # 0 = empty, 1 = player only, 2 = enemy only, 3 = contested
+var grid_player_units: Array = []  # 2D array of player UnitInstance or null
+var grid_enemy_units: Array = []   # 2D array of enemy UnitInstance or null
+var grid_player_displays: Array = []  # 2D array of player unit displays
+var grid_enemy_displays: Array = []   # 2D array of enemy unit displays
 var grid_field_effects: Array = []  # 2D array of field effects: [{field_data, duration, owner}] or empty array
 
 # Unit management
@@ -92,8 +94,10 @@ func _ready():
 func _create_grid():
 	grid_ownership = []
 	grid_cells = []
-	grid_units = []
-	grid_unit_displays = []
+	grid_player_units = []
+	grid_enemy_units = []
+	grid_player_displays = []
+	grid_enemy_displays = []
 	grid_field_effects = []
 
 	var grid_total_size = (CELL_SIZE * GRID_SIZE) + (CELL_GAP * (GRID_SIZE - 1))
@@ -102,8 +106,10 @@ func _create_grid():
 	for row in range(GRID_SIZE):
 		var cell_row = []
 		var ownership_row = []
-		var unit_row = []
-		var display_row = []
+		var player_unit_row = []
+		var enemy_unit_row = []
+		var player_display_row = []
+		var enemy_display_row = []
 		var field_row = []
 
 		for col in range(GRID_SIZE):
@@ -119,15 +125,40 @@ func _create_grid():
 
 			cell_row.append(cell)
 			ownership_row.append(0)
-			unit_row.append(null)
-			display_row.append(null)
+			player_unit_row.append(null)
+			enemy_unit_row.append(null)
+			player_display_row.append(null)
+			enemy_display_row.append(null)
 			field_row.append([])  # Empty array for field effects on this cell
 
 		grid_cells.append(cell_row)
 		grid_ownership.append(ownership_row)
-		grid_units.append(unit_row)
-		grid_unit_displays.append(display_row)
+		grid_player_units.append(player_unit_row)
+		grid_enemy_units.append(enemy_unit_row)
+		grid_player_displays.append(player_display_row)
+		grid_enemy_displays.append(enemy_display_row)
 		grid_field_effects.append(field_row)
+
+func _update_cell_ownership(row: int, col: int):
+	var has_player = grid_player_units[row][col] != null
+	var has_enemy = grid_enemy_units[row][col] != null
+
+	if has_player and has_enemy:
+		grid_ownership[row][col] = 3  # Contested
+	elif has_player:
+		grid_ownership[row][col] = 1  # Player only
+	elif has_enemy:
+		grid_ownership[row][col] = 2  # Enemy only
+	else:
+		grid_ownership[row][col] = 0  # Empty
+
+	grid_cells[row][col].set_ownership(grid_ownership[row][col])
+
+func _get_unit_at_cell(row: int, col: int, owner: int) -> UnitInstance:
+	if owner == 1:
+		return grid_player_units[row][col]
+	else:
+		return grid_enemy_units[row][col]
 
 func _load_units():
 	# Load player units from selected team (array of instance_ids)
@@ -209,7 +240,7 @@ func _on_cell_clicked(row: int, col: int):
 		print("Not your turn!")
 		return
 
-	var cell_unit = grid_units[row][col]
+	var player_unit = grid_player_units[row][col]
 
 	# Check if clicking on a pending placement - select it for editing or cancel
 	for i in range(player_pending_placements.size()):
@@ -241,13 +272,13 @@ func _on_cell_clicked(row: int, col: int):
 		return
 
 	# Check if clicking on own unit to select for moving
-	if cell_unit != null and cell_unit.owner == 1:
+	if player_unit != null:
 		# Select this unit for moving
-		moving_unit = cell_unit
+		moving_unit = player_unit
 		moving_from = {"row": row, "col": col}
 		selected_unit = null  # Clear roster selection
 		_update_ability_panel()
-		print("Selected ", cell_unit.unit_data.unit_name, " for moving")
+		print("Selected ", player_unit.unit_data.unit_name, " for moving")
 		return
 
 	# If we have a unit selected for moving
@@ -263,12 +294,12 @@ func _on_cell_clicked(row: int, col: int):
 				print("Already have a pending placement there!")
 				return
 
-		# Can't move onto your own unit
-		if cell_unit != null and cell_unit.owner == 1:
+		# Can't move onto your own unit (unless cell is being vacated)
+		if player_unit != null and not _is_cell_being_vacated(row, col):
 			print("Can't move onto your own unit!")
 			return
 
-		# Queue the move (to empty cell or enemy cell for challenge)
+		# Queue the move (can move to empty cell or enemy cell)
 		_queue_move(moving_unit, moving_from.row, moving_from.col, row, col)
 		moving_unit = null
 		moving_from = {}
@@ -282,9 +313,9 @@ func _on_cell_clicked(row: int, col: int):
 				print("Already have a pending placement there!")
 				return
 
-		# Allow placing on empty cells, enemy-occupied cells (challenge), or cells being vacated
-		var cell_available = cell_unit == null or cell_unit.owner == 2 or _is_cell_being_vacated(row, col)
-		if cell_available:
+		# Can place on any cell that doesn't have your own unit (or is being vacated)
+		var has_own_unit = player_unit != null and not _is_cell_being_vacated(row, col)
+		if not has_own_unit:
 			_queue_placement(selected_unit, row, col)
 			selected_unit = null
 		else:
@@ -326,8 +357,8 @@ func _queue_move(unit: UnitInstance, from_row: int, from_col: int, to_row: int, 
 	})
 
 	# Update visual - make original position semi-transparent
-	if grid_unit_displays[from_row][from_col]:
-		grid_unit_displays[from_row][from_col].modulate = Color(1, 1, 1, 0.4)
+	if grid_player_displays[from_row][from_col]:
+		grid_player_displays[from_row][from_col].modulate = Color(1, 1, 1, 0.4)
 
 	# Show preview at destination
 	_show_placement_preview(unit, to_row, to_col)
@@ -356,9 +387,9 @@ func _cancel_pending_placement(index: int):
 	unit.remove_from_grid()
 
 	# Remove visual preview
-	if grid_unit_displays[row][col]:
-		grid_unit_displays[row][col].queue_free()
-		grid_unit_displays[row][col] = null
+	if grid_player_displays[row][col]:
+		grid_player_displays[row][col].queue_free()
+		grid_player_displays[row][col] = null
 
 	# Refund action
 	actions_remaining += 1
@@ -378,13 +409,13 @@ func _cancel_pending_move(index: int):
 	player_pending_moves.remove_at(index)
 
 	# Remove destination preview
-	if grid_unit_displays[to_row][to_col]:
-		grid_unit_displays[to_row][to_col].queue_free()
-		grid_unit_displays[to_row][to_col] = null
+	if grid_player_displays[to_row][to_col]:
+		grid_player_displays[to_row][to_col].queue_free()
+		grid_player_displays[to_row][to_col] = null
 
 	# Restore original position visual
-	if grid_unit_displays[from_row][from_col]:
-		grid_unit_displays[from_row][from_col].modulate = Color(1, 1, 1, 1)
+	if grid_player_displays[from_row][from_col]:
+		grid_player_displays[from_row][from_col].modulate = Color(1, 1, 1, 1)
 
 	# Refund action
 	actions_remaining += 1
@@ -400,12 +431,15 @@ func _show_placement_preview(unit: UnitInstance, row: int, col: int):
 	var offset = -grid_total_size / 2
 	var x = offset + (col * (CELL_SIZE + CELL_GAP)) + CELL_SIZE / 2
 	var y = offset + (row * (CELL_SIZE + CELL_GAP)) + CELL_SIZE / 2
+	# Offset player units slightly left if there might be an enemy
+	if grid_enemy_units[row][col] != null:
+		x -= 25
 	display.position = Vector2(x, y)
 	display.scale = Vector2(0.7, 0.7)
 	display.setup(unit)
 	display.modulate = Color(1, 1, 1, 0.7)  # Semi-transparent to show it's pending
 
-	grid_unit_displays[row][col] = display
+	grid_player_displays[row][col] = display
 
 func _on_end_turn_pressed():
 	if current_phase != GamePhase.PLAYER_TURN:
@@ -432,20 +466,20 @@ func _on_end_turn_pressed():
 func _do_enemy_turn():
 	print("Enemy is thinking...")
 
-	# Simple AI: place up to 2 units on random empty cells
-	var empty_cells = _get_empty_cells()
+	# Simple AI: place up to 2 units on cells without enemy units
+	var available_cells = _get_cells_without_enemy()
 	var available_units = enemy_units.filter(func(u): return u.can_act() and not u.is_placed())
 
-	var ai_actions = min(ACTIONS_PER_TURN, min(empty_cells.size(), available_units.size()))
+	var ai_actions = min(ACTIONS_PER_TURN, min(available_cells.size(), available_units.size()))
 
 	for i in range(ai_actions):
-		if empty_cells.is_empty() or available_units.is_empty():
+		if available_cells.is_empty() or available_units.is_empty():
 			break
 
 		var unit = available_units.pop_front()
-		var cell_idx = randi() % empty_cells.size()
-		var cell = empty_cells[cell_idx]
-		empty_cells.remove_at(cell_idx)
+		var cell_idx = randi() % available_cells.size()
+		var cell = available_cells[cell_idx]
+		available_cells.remove_at(cell_idx)
 
 		# Enemy picks a random ability
 		if unit.unit_data.abilities.size() > 0:
@@ -472,20 +506,21 @@ func _is_cell_being_vacated(row: int, col: int) -> bool:
 			return true
 	return false
 
-func _get_empty_cells() -> Array:
-	var empty = []
+func _get_cells_without_enemy() -> Array:
+	# Returns cells where enemy can place (no enemy unit already there)
+	var available = []
 	for row in range(GRID_SIZE):
 		for col in range(GRID_SIZE):
-			if grid_units[row][col] == null:
-				# Also check pending placements
+			if grid_enemy_units[row][col] == null:
+				# Also check pending enemy placements
 				var is_pending = false
-				for p in player_pending_placements:
+				for p in enemy_pending_placements:
 					if p.row == row and p.col == col:
 						is_pending = true
 						break
 				if not is_pending:
-					empty.append({"row": row, "col": col})
-	return empty
+					available.append({"row": row, "col": col})
+	return available
 
 func _resolve_turn():
 	print("=== Resolving Turn ===")
@@ -498,14 +533,14 @@ func _resolve_turn():
 		var from_col = move.from_col
 
 		# Clear the original position
-		grid_units[from_row][from_col] = null
-		grid_ownership[from_row][from_col] = 0
-		grid_cells[from_row][from_col].set_ownership(0)
+		grid_player_units[from_row][from_col] = null
 
 		# Remove old display
-		if grid_unit_displays[from_row][from_col]:
-			grid_unit_displays[from_row][from_col].queue_free()
-			grid_unit_displays[from_row][from_col] = null
+		if grid_player_displays[from_row][from_col]:
+			grid_player_displays[from_row][from_col].queue_free()
+			grid_player_displays[from_row][from_col] = null
+
+		_update_cell_ownership(from_row, from_col)
 
 		# Add move destination as a pending placement
 		player_pending_placements.append({
@@ -516,79 +551,83 @@ func _resolve_turn():
 
 		print("Executed move: ", move.unit.unit_data.unit_name, " vacated (", from_row, ",", from_col, ")")
 
-	# Check for contested squares (both players placed/moved to same cell)
-	var contests = []
-	for p_placement in player_pending_placements:
-		for e_placement in enemy_pending_placements:
-			if p_placement.row == e_placement.row and p_placement.col == e_placement.col:
-				contests.append({
-					"row": p_placement.row,
-					"col": p_placement.col,
-					"player_unit": p_placement.unit,
-					"enemy_unit": e_placement.unit
-				})
-
-	# Also check if player moves into enemy-occupied square (challenge)
-	for p_placement in player_pending_placements:
-		var target_unit = grid_units[p_placement.row][p_placement.col]
-		if target_unit != null and target_unit.owner == 2:
-			# Player is challenging an enemy square
-			contests.append({
-				"row": p_placement.row,
-				"col": p_placement.col,
-				"player_unit": p_placement.unit,
-				"enemy_unit": target_unit
-			})
-
-	# Resolve contests (duels)
-	for contest in contests:
-		await _resolve_duel(contest)
-
-	# Place non-contested units
+	# Place all player units from pending placements
 	for placement in player_pending_placements:
-		var dominated = false
-		for contest in contests:
-			if contest.row == placement.row and contest.col == placement.col:
-				dominated = true
-				break
-		if not dominated:
-			_confirm_placement(placement.unit, placement.row, placement.col, 1)
+		_confirm_placement(placement.unit, placement.row, placement.col, 1)
 
+	# Place all enemy units from pending placements
 	for placement in enemy_pending_placements:
-		var contested = false
-		for contest in contests:
-			if contest.row == placement.row and contest.col == placement.col:
-				contested = true
-				break
-		if not contested:
-			_confirm_placement(placement.unit, placement.row, placement.col, 2)
+		_confirm_placement(placement.unit, placement.row, placement.col, 2)
 
 	# Clear pending actions
 	player_pending_placements.clear()
 	player_pending_moves.clear()
 	enemy_pending_placements.clear()
 
+	# Find ALL contested squares and resolve combat
+	print("Resolving combat on contested squares...")
+	for row in range(GRID_SIZE):
+		for col in range(GRID_SIZE):
+			var p_unit = grid_player_units[row][col]
+			var e_unit = grid_enemy_units[row][col]
+			if p_unit != null and e_unit != null and p_unit.is_alive() and e_unit.is_alive():
+				await _resolve_duel(row, col, p_unit, e_unit)
+
 	# Process field effects for all units on the grid
 	print("Processing field effects...")
 	for row in range(GRID_SIZE):
 		for col in range(GRID_SIZE):
-			var unit = grid_units[row][col]
-			if unit and unit.is_alive():
-				var field_result = process_field_effects_for_unit(unit, row, col)
+			# Process for player unit
+			var p_unit = grid_player_units[row][col]
+			if p_unit and p_unit.is_alive():
+				var field_result = process_field_effects_for_unit(p_unit, row, col)
 				if field_result.damage > 0:
-					unit.take_damage(field_result.damage)
-					# Show damage on display
-					if grid_unit_displays[row][col]:
-						grid_unit_displays[row][col].show_damage_number(field_result.damage, false)
-						grid_unit_displays[row][col].update_hp_display()
+					p_unit.take_damage(field_result.damage)
+					if grid_player_displays[row][col]:
+						grid_player_displays[row][col].show_damage_number(field_result.damage, false)
+						grid_player_displays[row][col].update_hp_display()
 				if field_result.healing > 0:
-					unit.heal(field_result.healing)
-					if grid_unit_displays[row][col]:
-						grid_unit_displays[row][col].show_damage_number(field_result.healing, true)
-						grid_unit_displays[row][col].update_hp_display()
+					p_unit.heal(field_result.healing)
+					if grid_player_displays[row][col]:
+						grid_player_displays[row][col].show_damage_number(field_result.healing, true)
+						grid_player_displays[row][col].update_hp_display()
+				# Check if unit died from field effect
+				if not p_unit.is_alive():
+					_remove_unit_from_grid(p_unit, row, col)
+
+			# Process for enemy unit
+			var e_unit = grid_enemy_units[row][col]
+			if e_unit and e_unit.is_alive():
+				var field_result = process_field_effects_for_unit(e_unit, row, col)
+				if field_result.damage > 0:
+					e_unit.take_damage(field_result.damage)
+					if grid_enemy_displays[row][col]:
+						grid_enemy_displays[row][col].show_damage_number(field_result.damage, false)
+						grid_enemy_displays[row][col].update_hp_display()
+				if field_result.healing > 0:
+					e_unit.heal(field_result.healing)
+					if grid_enemy_displays[row][col]:
+						grid_enemy_displays[row][col].show_damage_number(field_result.healing, true)
+						grid_enemy_displays[row][col].update_hp_display()
+				# Check if unit died from field effect
+				if not e_unit.is_alive():
+					_remove_unit_from_grid(e_unit, row, col)
 
 	# Process field effect durations
 	_process_all_field_durations()
+
+	# Process cooldowns and status effects for all units
+	for unit in player_units + enemy_units:
+		var effect_result = unit.process_turn_end()
+		# Update display if unit is on grid
+		if unit.is_placed():
+			var display = _get_display_for_unit(unit)
+			if display:
+				display.update_hp_display()
+				display.update_status_display()
+			# Check if unit died from status effect
+			if not unit.is_alive():
+				_remove_unit_from_grid(unit, unit.grid_row, unit.grid_col)
 
 	# Check win condition
 	var winner = _check_win_condition()
@@ -596,16 +635,6 @@ func _resolve_turn():
 		current_phase = GamePhase.GAME_OVER
 		_show_results(winner)
 		return
-
-	# Process cooldowns and status effects
-	for unit in player_units + enemy_units:
-		var effect_result = unit.process_turn_end()
-		# Update display if unit is on grid and took damage/healing from status effects
-		if unit.is_placed() and (effect_result.damage > 0 or effect_result.healing > 0):
-			var display = grid_unit_displays[unit.grid_row][unit.grid_col]
-			if display:
-				display.update_hp_display()
-				display.update_status_display()
 
 	# Update roster displays after combat
 	_update_roster_displays()
@@ -618,12 +647,58 @@ func _resolve_turn():
 
 	print("=== Turn ", current_turn, " ===")
 
-func _resolve_duel(contest: Dictionary):
-	var p_unit = contest.player_unit as UnitInstance
-	var e_unit = contest.enemy_unit as UnitInstance
-	var row = contest.row
-	var col = contest.col
+func _get_display_for_unit(unit: UnitInstance) -> Node2D:
+	if not unit.is_placed():
+		return null
+	if unit.owner == 1:
+		return grid_player_displays[unit.grid_row][unit.grid_col]
+	else:
+		return grid_enemy_displays[unit.grid_row][unit.grid_col]
 
+func _remove_unit_from_grid(unit: UnitInstance, row: int, col: int):
+	if unit.owner == 1:
+		grid_player_units[row][col] = null
+		if grid_player_displays[row][col]:
+			grid_player_displays[row][col].queue_free()
+			grid_player_displays[row][col] = null
+	else:
+		grid_enemy_units[row][col] = null
+		if grid_enemy_displays[row][col]:
+			grid_enemy_displays[row][col].queue_free()
+			grid_enemy_displays[row][col] = null
+
+	unit.remove_from_grid()
+	unit.start_cooldown()
+	_update_cell_ownership(row, col)
+
+	# Recenter the remaining unit if the square is no longer contested
+	_recenter_remaining_unit(row, col)
+
+	print("  ", unit.unit_data.unit_name, " removed from grid")
+
+func _recenter_remaining_unit(row: int, col: int):
+	# If only one unit remains on this square, recenter it
+	var has_player = grid_player_units[row][col] != null
+	var has_enemy = grid_enemy_units[row][col] != null
+
+	if has_player and not has_enemy:
+		# Only player unit remains - recenter it
+		var grid_total_size = (CELL_SIZE * GRID_SIZE) + (CELL_GAP * (GRID_SIZE - 1))
+		var offset = -grid_total_size / 2
+		var x = offset + (col * (CELL_SIZE + CELL_GAP)) + CELL_SIZE / 2
+		var y = offset + (row * (CELL_SIZE + CELL_GAP)) + CELL_SIZE / 2
+		if grid_player_displays[row][col]:
+			grid_player_displays[row][col].position = Vector2(x, y)
+	elif has_enemy and not has_player:
+		# Only enemy unit remains - recenter it
+		var grid_total_size = (CELL_SIZE * GRID_SIZE) + (CELL_GAP * (GRID_SIZE - 1))
+		var offset = -grid_total_size / 2
+		var x = offset + (col * (CELL_SIZE + CELL_GAP)) + CELL_SIZE / 2
+		var y = offset + (row * (CELL_SIZE + CELL_GAP)) + CELL_SIZE / 2
+		if grid_enemy_displays[row][col]:
+			grid_enemy_displays[row][col].position = Vector2(x, y)
+
+func _resolve_duel(row: int, col: int, p_unit: UnitInstance, e_unit: UnitInstance):
 	# Get selected abilities (nullify if disrupted)
 	var p_ability = null if p_unit.is_disrupted() else p_unit.get_selected_ability()
 	var e_ability = null if e_unit.is_disrupted() else e_unit.get_selected_ability()
@@ -636,7 +711,11 @@ func _resolve_duel(contest: Dictionary):
 	var p_ability_name = p_ability.ability_name if p_ability else "Strike"
 	var e_ability_name = e_ability.ability_name if e_ability else "Strike"
 
-	print("DUEL at (", row, ", ", col, "): ", p_unit.unit_data.unit_name, " (", p_ability_name, ") vs ", e_unit.unit_data.unit_name, " (", e_ability_name, ")")
+	# Get speed for combat order
+	var p_speed = p_unit.unit_data.speed
+	var e_speed = e_unit.unit_data.speed
+
+	print("DUEL at (", row, ", ", col, "): ", p_unit.unit_data.unit_name, " (SPD:", p_speed, ", ", p_ability_name, ") vs ", e_unit.unit_data.unit_name, " (SPD:", e_speed, ", ", e_ability_name, ")")
 
 	# Show combat announcement
 	var announcement = p_unit.unit_data.unit_name + " vs " + e_unit.unit_data.unit_name + "!"
@@ -648,7 +727,7 @@ func _resolve_duel(contest: Dictionary):
 	if not e_unit.is_disrupted():
 		e_unit.put_ability_on_cooldown(e_ability)
 
-	# Calculate base damage
+	# Calculate base stats
 	var p_base_attack = p_unit.unit_data.attack
 	var e_base_attack = e_unit.unit_data.attack
 	var p_base_defense = p_unit.unit_data.defense
@@ -705,120 +784,190 @@ func _resolve_duel(contest: Dictionary):
 	p_damage_taken = p_unit.absorb_damage_with_shield(p_damage_taken)
 	e_damage_taken = e_unit.absorb_damage_with_shield(e_damage_taken)
 
-	print("  Player deals ", e_damage_taken, ", takes ", p_damage_taken)
+	# Get displays for visual effects
+	var p_display = grid_player_displays[row][col]
+	var e_display = grid_enemy_displays[row][col]
 
-	# Get display at this position for visual effects
-	var display = grid_unit_displays[row][col]
+	# Speed-based combat resolution
+	# Faster unit attacks first; if they kill the target, target doesn't retaliate
+	# Speed ties = simultaneous damage
+	if p_speed > e_speed:
+		# Player attacks first
+		print("  Player attacks first (faster)")
+		e_unit.take_damage(e_damage_taken)
+		if e_display:
+			e_display.show_damage_number(e_damage_taken, false)
+			e_display.flash_color(Color(1, 0.5, 0.5), 0.3)
+			e_display.update_hp_display()
 
-	# Apply damage with visual feedback
-	e_unit.take_damage(e_damage_taken)
-	p_unit.take_damage(p_damage_taken)
+		# Apply guaranteed survive for enemy
+		if e_guaranteed_survive and e_unit.current_hp <= 0:
+			e_unit.current_hp = 1
+			print("  Enemy survives with ability!")
 
-	# Show damage numbers
-	if display:
-		display.show_damage_number(p_damage_taken, false)
-		display.flash_color(Color(1, 0.5, 0.5), 0.3)
-		display.update_hp_display()
+		# Enemy retaliates only if still alive
+		if e_unit.is_alive():
+			p_unit.take_damage(p_damage_taken)
+			if p_display:
+				p_display.show_damage_number(p_damage_taken, false)
+				p_display.flash_color(Color(1, 0.5, 0.5), 0.3)
+				p_display.update_hp_display()
 
-	# Apply guaranteed survive
-	if p_guaranteed_survive and p_unit.current_hp <= 0:
-		p_unit.current_hp = 1
-		print("  Player survives with Nature's Resilience!")
-		if display:
-			display.show_damage_number(1, true)  # Show survival
-	if e_guaranteed_survive and e_unit.current_hp <= 0:
-		e_unit.current_hp = 1
-		print("  Enemy survives with ability!")
+			# Apply guaranteed survive for player
+			if p_guaranteed_survive and p_unit.current_hp <= 0:
+				p_unit.current_hp = 1
+				print("  Player survives with Nature's Resilience!")
+		else:
+			print("  Enemy defeated before retaliating!")
+
+		print("  Player dealt ", e_damage_taken, ", took ", p_damage_taken if e_unit.is_alive() or not e_unit.is_alive() and p_unit.current_hp < p_unit.unit_data.max_hp else 0)
+
+	elif e_speed > p_speed:
+		# Enemy attacks first
+		print("  Enemy attacks first (faster)")
+		p_unit.take_damage(p_damage_taken)
+		if p_display:
+			p_display.show_damage_number(p_damage_taken, false)
+			p_display.flash_color(Color(1, 0.5, 0.5), 0.3)
+			p_display.update_hp_display()
+
+		# Apply guaranteed survive for player
+		if p_guaranteed_survive and p_unit.current_hp <= 0:
+			p_unit.current_hp = 1
+			print("  Player survives with Nature's Resilience!")
+
+		# Player retaliates only if still alive
+		if p_unit.is_alive():
+			e_unit.take_damage(e_damage_taken)
+			if e_display:
+				e_display.show_damage_number(e_damage_taken, false)
+				e_display.flash_color(Color(1, 0.5, 0.5), 0.3)
+				e_display.update_hp_display()
+
+			# Apply guaranteed survive for enemy
+			if e_guaranteed_survive and e_unit.current_hp <= 0:
+				e_unit.current_hp = 1
+				print("  Enemy survives with ability!")
+		else:
+			print("  Player defeated before retaliating!")
+
+		print("  Player dealt ", e_damage_taken if p_unit.is_alive() else 0, ", took ", p_damage_taken)
+
+	else:
+		# Speed tie - simultaneous damage
+		print("  Speed tie - simultaneous attacks!")
+		e_unit.take_damage(e_damage_taken)
+		p_unit.take_damage(p_damage_taken)
+
+		if p_display:
+			p_display.show_damage_number(p_damage_taken, false)
+			p_display.flash_color(Color(1, 0.5, 0.5), 0.3)
+			p_display.update_hp_display()
+		if e_display:
+			e_display.show_damage_number(e_damage_taken, false)
+			e_display.flash_color(Color(1, 0.5, 0.5), 0.3)
+			e_display.update_hp_display()
+
+		# Apply guaranteed survive
+		if p_guaranteed_survive and p_unit.current_hp <= 0:
+			p_unit.current_hp = 1
+			print("  Player survives with Nature's Resilience!")
+		if e_guaranteed_survive and e_unit.current_hp <= 0:
+			e_unit.current_hp = 1
+			print("  Enemy survives with ability!")
+
+		print("  Player dealt ", e_damage_taken, ", took ", p_damage_taken)
 
 	# Apply healing after combat with visual feedback
-	if p_heal > 0:
+	if p_heal > 0 and p_unit.is_alive():
 		p_unit.heal(p_heal)
 		print("  Player heals for ", p_heal)
-		if display:
-			display.show_damage_number(p_heal, true)
-			display.update_hp_display()
-	if e_heal > 0:
+		if p_display:
+			p_display.show_damage_number(p_heal, true)
+			p_display.update_hp_display()
+	if e_heal > 0 and e_unit.is_alive():
 		e_unit.heal(e_heal)
 		print("  Enemy heals for ", e_heal)
+		if e_display:
+			e_display.show_damage_number(e_heal, true)
+			e_display.update_hp_display()
 
-	# Apply status effects from abilities
-	if p_ability and p_ability.applies_status_effect:
+	# Apply status effects from abilities (only if attacker is alive)
+	if p_ability and p_ability.applies_status_effect and p_unit.is_alive():
 		if p_ability.applies_to_self:
 			p_unit.apply_status_effect(p_ability.applies_status_effect, 1)
-		else:
+		elif e_unit.is_alive():
 			e_unit.apply_status_effect(p_ability.applies_status_effect, 1)
-	if e_ability and e_ability.applies_status_effect:
+	if e_ability and e_ability.applies_status_effect and e_unit.is_alive():
 		if e_ability.applies_to_self:
 			e_unit.apply_status_effect(e_ability.applies_status_effect, 2)
-		else:
+		elif p_unit.is_alive():
 			p_unit.apply_status_effect(e_ability.applies_status_effect, 2)
 
-	# Apply field effects from abilities
+	# Apply field effects from abilities (even if unit died - they created the field)
 	if p_ability and p_ability.applies_field_effect:
 		apply_field_effect(row, col, p_ability.applies_field_effect, 1)
 	if e_ability and e_ability.applies_field_effect:
 		apply_field_effect(row, col, e_ability.applies_field_effect, 2)
 
-	# Determine winner
-	var winner_unit: UnitInstance = null
-	var winner_owner: int = 0
+	# Handle knockouts - units only leave when HP = 0
+	if not p_unit.is_alive():
+		print("  Player unit knocked out!")
+		_remove_unit_from_grid(p_unit, row, col)
 
-	if p_unit.current_hp <= 0 and e_unit.current_hp <= 0:
-		print("  Both units knocked out! Square remains empty.")
-		p_unit.remove_from_grid()
-		e_unit.remove_from_grid()
-		p_unit.start_cooldown()
-		e_unit.start_cooldown()
-		if grid_unit_displays[row][col]:
-			grid_unit_displays[row][col].queue_free()
-			grid_unit_displays[row][col] = null
-	elif p_unit.current_hp <= 0:
-		print("  Enemy wins the duel!")
-		winner_unit = e_unit
-		winner_owner = 2
-		p_unit.remove_from_grid()
-		p_unit.start_cooldown()
-	elif e_unit.current_hp <= 0:
-		print("  Player wins the duel!")
-		winner_unit = p_unit
-		winner_owner = 1
-		e_unit.remove_from_grid()
-		e_unit.start_cooldown()
-	else:
-		if p_unit.current_hp >= e_unit.current_hp:
-			print("  Player wins (more HP)!")
-			winner_unit = p_unit
-			winner_owner = 1
-			e_unit.remove_from_grid()
-			e_unit.start_cooldown()
-		else:
-			print("  Enemy wins (more HP)!")
-			winner_unit = e_unit
-			winner_owner = 2
-			p_unit.remove_from_grid()
-			p_unit.start_cooldown()
+	if not e_unit.is_alive():
+		print("  Enemy unit knocked out!")
+		_remove_unit_from_grid(e_unit, row, col)
 
-	if winner_unit:
-		_confirm_placement(winner_unit, row, col, winner_owner)
+	# Both units survive - they remain on the contested square
+	if p_unit.is_alive() and e_unit.is_alive():
+		print("  Both units survive - square remains contested!")
+
+	# Update cell ownership
+	_update_cell_ownership(row, col)
+
+	# Update status displays
+	if p_unit.is_alive() and p_display:
+		p_display.update_status_display()
+	if e_unit.is_alive() and e_display:
+		e_display.update_status_display()
 
 	await get_tree().create_timer(0.3).timeout
 
 func _confirm_placement(unit: UnitInstance, row: int, col: int, owner: int):
-	grid_units[row][col] = unit
-	grid_ownership[row][col] = owner
-	grid_cells[row][col].set_ownership(owner)
+	# Place unit in the appropriate array
+	if owner == 1:
+		grid_player_units[row][col] = unit
+	else:
+		grid_enemy_units[row][col] = unit
+
+	# Update ownership
+	_update_cell_ownership(row, col)
+
+	# Get the appropriate display array
+	var display_array = grid_player_displays if owner == 1 else grid_enemy_displays
 
 	# Update or create display
-	if grid_unit_displays[row][col]:
-		grid_unit_displays[row][col].queue_free()
+	if display_array[row][col]:
+		display_array[row][col].queue_free()
 
 	var display = UnitDisplayScene.instantiate()
 	grid_container.add_child(display)
 
+	# Calculate position with offset for contested squares
 	var grid_total_size = (CELL_SIZE * GRID_SIZE) + (CELL_GAP * (GRID_SIZE - 1))
 	var offset = -grid_total_size / 2
 	var x = offset + (col * (CELL_SIZE + CELL_GAP)) + CELL_SIZE / 2
 	var y = offset + (row * (CELL_SIZE + CELL_GAP)) + CELL_SIZE / 2
+
+	# Offset units on contested squares so both are visible
+	var is_contested = (owner == 1 and grid_enemy_units[row][col] != null) or (owner == 2 and grid_player_units[row][col] != null)
+	if is_contested:
+		if owner == 1:
+			x -= 25  # Player unit offset left
+		else:
+			x += 25  # Enemy unit offset right
+
 	display.position = Vector2(x, y)
 	display.scale = Vector2(0.7, 0.7)
 	display.setup(unit)
@@ -831,26 +980,56 @@ func _confirm_placement(unit: UnitInstance, row: int, col: int, owner: int):
 	else:
 		display.drag_enabled = false  # Enemies can't be dragged
 
-	grid_unit_displays[row][col] = display
+	display_array[row][col] = display
+
+	# Reposition existing unit on contested squares
+	if is_contested:
+		_reposition_displays_for_contested(row, col)
+
+func _reposition_displays_for_contested(row: int, col: int):
+	# Reposition both displays when a square becomes contested
+	var grid_total_size = (CELL_SIZE * GRID_SIZE) + (CELL_GAP * (GRID_SIZE - 1))
+	var offset = -grid_total_size / 2
+	var base_x = offset + (col * (CELL_SIZE + CELL_GAP)) + CELL_SIZE / 2
+	var base_y = offset + (row * (CELL_SIZE + CELL_GAP)) + CELL_SIZE / 2
+
+	if grid_player_displays[row][col]:
+		grid_player_displays[row][col].position = Vector2(base_x - 25, base_y)
+
+	if grid_enemy_displays[row][col]:
+		grid_enemy_displays[row][col].position = Vector2(base_x + 25, base_y)
 
 func _check_win_condition() -> int:
+	# Check rows
 	for row in range(GRID_SIZE):
-		if _check_line(grid_ownership[row][0], grid_ownership[row][1], grid_ownership[row][2]):
-			return grid_ownership[row][0]
+		var winner = _check_line(grid_ownership[row][0], grid_ownership[row][1], grid_ownership[row][2])
+		if winner > 0:
+			return winner
 
+	# Check columns
 	for col in range(GRID_SIZE):
-		if _check_line(grid_ownership[0][col], grid_ownership[1][col], grid_ownership[2][col]):
-			return grid_ownership[0][col]
+		var winner = _check_line(grid_ownership[0][col], grid_ownership[1][col], grid_ownership[2][col])
+		if winner > 0:
+			return winner
 
-	if _check_line(grid_ownership[0][0], grid_ownership[1][1], grid_ownership[2][2]):
-		return grid_ownership[0][0]
-	if _check_line(grid_ownership[0][2], grid_ownership[1][1], grid_ownership[2][0]):
-		return grid_ownership[0][2]
+	# Check diagonals
+	var winner = _check_line(grid_ownership[0][0], grid_ownership[1][1], grid_ownership[2][2])
+	if winner > 0:
+		return winner
+	winner = _check_line(grid_ownership[0][2], grid_ownership[1][1], grid_ownership[2][0])
+	if winner > 0:
+		return winner
 
 	return 0
 
-func _check_line(a: int, b: int, c: int) -> bool:
-	return a != 0 and a == b and b == c
+func _check_line(a: int, b: int, c: int) -> int:
+	# Only sole occupancy counts (1 = player only, 2 = enemy only)
+	# Contested squares (3) don't count as owned by either side
+	if a == 1 and b == 1 and c == 1:
+		return 1  # Player wins
+	if a == 2 and b == 2 and c == 2:
+		return 2  # Enemy wins
+	return 0  # No winner
 
 func _update_ui():
 	turn_label.text = "Turn: " + str(current_turn)
@@ -895,11 +1074,11 @@ func _input(event):
 func _handle_drag_release():
 	# Find and restore the source display
 	if dragging_from_grid:
-		# Restore grid display
+		# Restore grid display (player units only since enemies can't be dragged)
 		var row = dragging_from_pos.row
 		var col = dragging_from_pos.col
-		if grid_unit_displays[row][col]:
-			grid_unit_displays[row][col].modulate = Color(1, 1, 1, 1)
+		if grid_player_displays[row][col]:
+			grid_player_displays[row][col].modulate = Color(1, 1, 1, 1)
 	else:
 		# Restore roster display
 		for display in roster_displays:
@@ -1131,7 +1310,7 @@ func _get_cell_at_mouse() -> Dictionary:
 func _handle_drop_on_cell(row: int, col: int):
 	if dragging_from_grid:
 		# Moving from grid
-		var cell_unit = grid_units[row][col]
+		var player_unit = grid_player_units[row][col]
 
 		# Check pending placements
 		for pending in player_pending_placements:
@@ -1139,16 +1318,16 @@ func _handle_drop_on_cell(row: int, col: int):
 				print("Already have a pending placement there!")
 				return
 
-		# Can't move onto own unit
-		if cell_unit != null and cell_unit.owner == 1:
+		# Can't move onto own unit (unless being vacated)
+		if player_unit != null and not _is_cell_being_vacated(row, col):
 			print("Can't move onto your own unit!")
 			return
 
-		# Queue the move
+		# Queue the move (can move to empty, enemy-only, or contested squares)
 		_queue_move(dragging_unit, dragging_from_pos.row, dragging_from_pos.col, row, col)
 	else:
 		# Placing from roster
-		var cell_unit = grid_units[row][col]
+		var player_unit = grid_player_units[row][col]
 
 		# Check pending placements
 		for pending in player_pending_placements:
@@ -1156,8 +1335,8 @@ func _handle_drop_on_cell(row: int, col: int):
 				print("Already have a pending placement there!")
 				return
 
-		# Allow empty, enemy cell, or cell being vacated
-		var cell_available = cell_unit == null or cell_unit.owner == 2 or _is_cell_being_vacated(row, col)
+		# Allow any cell that doesn't have your own unit (or is being vacated)
+		var cell_available = player_unit == null or _is_cell_being_vacated(row, col)
 		if cell_available:
 			_queue_placement(dragging_unit, row, col)
 		else:

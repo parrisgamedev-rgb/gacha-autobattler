@@ -26,6 +26,7 @@ var field_tween: Tween = null
 # Colors for ownership
 const PLAYER_COLOR = Color(0.2, 0.6, 1.0, 0.6)  # Blue
 const ENEMY_COLOR = Color(1.0, 0.3, 0.3, 0.6)   # Red
+const CONTESTED_COLOR = Color(0.8, 0.5, 1.0, 0.6)  # Purple (contested)
 const EMPTY_COLOR = Color(0.2, 0.2, 0.25, 1.0)  # Dark gray
 
 func _ready():
@@ -93,12 +94,15 @@ func set_ownership(new_owner: int):
 		0:  # Empty
 			owner_indicator.visible = false
 			background.color = EMPTY_COLOR
-		1:  # Player
+		1:  # Player only
 			owner_indicator.visible = true
 			owner_indicator.color = PLAYER_COLOR
-		2:  # Enemy
+		2:  # Enemy only
 			owner_indicator.visible = true
 			owner_indicator.color = ENEMY_COLOR
+		3:  # Contested (both)
+			owner_indicator.visible = true
+			owner_indicator.color = CONTESTED_COLOR
 
 func _on_mouse_entered():
 	is_hovered = true
