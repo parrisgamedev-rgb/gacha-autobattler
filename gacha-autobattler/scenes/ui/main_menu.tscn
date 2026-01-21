@@ -63,6 +63,13 @@ size_flags_horizontal = 4
 theme_override_font_sizes/font_size = 28
 text = "SUMMON"
 
+[node name="CollectionButton" type="Button" parent="CenterContainer/VBoxContainer"]
+custom_minimum_size = Vector2(300, 60)
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_font_sizes/font_size = 28
+text = "COLLECTION"
+
 [node name="VersionLabel" type="Label" parent="."]
 layout_mode = 1
 anchors_preset = 12

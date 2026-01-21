@@ -1,0 +1,182 @@
+[gd_scene load_steps=2 format=3 uid="uid://collection_screen_001"]
+
+[ext_resource type="Script" path="res://scripts/ui/collection_screen.gd" id="1_script"]
+
+[node name="CollectionScreen" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_script")
+
+[node name="Background" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.06, 0.06, 0.1, 1)
+
+[node name="TopBar" type="HBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_left = 20.0
+offset_top = 20.0
+offset_right = -20.0
+offset_bottom = 70.0
+grow_horizontal = 2
+
+[node name="BackButton" type="Button" parent="TopBar"]
+custom_minimum_size = Vector2(120, 50)
+layout_mode = 2
+text = "< BACK"
+
+[node name="Spacer" type="Control" parent="TopBar"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="Title" type="Label" parent="TopBar"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 36
+text = "COLLECTION"
+vertical_alignment = 1
+
+[node name="Spacer2" type="Control" parent="TopBar"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="UnitCountLabel" type="Label" parent="TopBar"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 20
+text = "Units: 0"
+vertical_alignment = 1
+
+[node name="ScrollContainer" type="ScrollContainer" parent="."]
+layout_mode = 1
+anchors_preset = -1
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 20.0
+offset_top = 90.0
+offset_right = -20.0
+offset_bottom = -20.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="UnitsGrid" type="GridContainer" parent="ScrollContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/h_separation = 20
+theme_override_constants/v_separation = 20
+columns = 8
+
+[node name="DetailPanel" type="Panel" parent="."]
+visible = false
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -250.0
+offset_top = -200.0
+offset_right = 250.0
+offset_bottom = 200.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="DetailBackground" type="ColorRect" parent="DetailPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.1, 0.1, 0.15, 1)
+
+[node name="DetailName" type="Label" parent="DetailPanel"]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_top = 20.0
+offset_bottom = 60.0
+grow_horizontal = 2
+theme_override_font_sizes/font_size = 32
+text = "Unit Name"
+horizontal_alignment = 1
+
+[node name="DetailStars" type="Label" parent="DetailPanel"]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_top = 60.0
+offset_bottom = 90.0
+grow_horizontal = 2
+theme_override_font_sizes/font_size = 24
+theme_override_colors/font_color = Color(1, 0.85, 0.3, 1)
+text = "★★★★★"
+horizontal_alignment = 1
+
+[node name="DetailElement" type="Label" parent="DetailPanel"]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_top = 100.0
+offset_bottom = 130.0
+grow_horizontal = 2
+theme_override_font_sizes/font_size = 20
+text = "Element: Fire"
+horizontal_alignment = 1
+
+[node name="DetailStats" type="Label" parent="DetailPanel"]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_top = 150.0
+offset_bottom = 180.0
+grow_horizontal = 2
+theme_override_font_sizes/font_size = 18
+text = "HP: 100  ATK: 20  DEF: 10  SPD: 10"
+horizontal_alignment = 1
+
+[node name="DetailCopies" type="Label" parent="DetailPanel"]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_top = 210.0
+offset_bottom = 240.0
+grow_horizontal = 2
+theme_override_font_sizes/font_size = 18
+text = "Copies: 1/6"
+horizontal_alignment = 1
+
+[node name="DetailImprint" type="Label" parent="DetailPanel"]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_top = 240.0
+offset_bottom = 270.0
+grow_horizontal = 2
+theme_override_font_sizes/font_size = 18
+theme_override_colors/font_color = Color(0.5, 1, 0.5, 1)
+text = "Imprint Level: 0/5"
+horizontal_alignment = 1
+
+[node name="CloseButton" type="Button" parent="DetailPanel"]
+layout_mode = 1
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 150.0
+offset_top = -60.0
+offset_right = -150.0
+offset_bottom = -15.0
+grow_horizontal = 2
+grow_vertical = 0
+text = "CLOSE"
