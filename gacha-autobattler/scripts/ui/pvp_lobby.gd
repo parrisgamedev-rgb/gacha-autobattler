@@ -4,6 +4,7 @@ extends Control
 @onready var host_button = $CenterContainer/VBoxContainer/HostButton
 @onready var room_code_container = $CenterContainer/VBoxContainer/RoomCodeContainer
 @onready var room_code_display = $CenterContainer/VBoxContainer/RoomCodeContainer/RoomCodeDisplay
+@onready var copy_button = $CenterContainer/VBoxContainer/RoomCodeContainer/CopyButton
 @onready var room_code_input = $CenterContainer/VBoxContainer/JoinContainer/RoomCodeInput
 @onready var join_button = $CenterContainer/VBoxContainer/JoinContainer/JoinButton
 @onready var status_label = $CenterContainer/VBoxContainer/StatusLabel
@@ -19,6 +20,7 @@ func _ready():
 	start_battle_button.pressed.connect(_on_start_battle_pressed)
 	back_button.pressed.connect(_on_back_pressed)
 	disconnect_button.pressed.connect(_on_disconnect_pressed)
+	copy_button.pressed.connect(_on_copy_pressed)
 
 	# Auto-format room code input
 	room_code_input.text_changed.connect(_on_room_code_text_changed)
@@ -40,6 +42,13 @@ func _on_host_pressed():
 	else:
 		room_code_display.text = NetworkManager.get_room_code()
 	_update_ui_state()
+
+func _on_copy_pressed():
+	DisplayServer.clipboard_set(NetworkManager.get_room_code())
+	copy_button.text = "COPIED!"
+	# Reset button text after a short delay
+	await get_tree().create_timer(1.5).timeout
+	copy_button.text = "COPY CODE"
 
 func _on_join_pressed():
 	var code = room_code_input.text.strip_edges()
