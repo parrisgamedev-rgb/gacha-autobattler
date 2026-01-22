@@ -11,7 +11,7 @@ config_version=5
 [application]
 
 config/name="GachaAutobattler"
-config/version="0.5"
+config/version="0.6"
 run/main_scene="res://scenes/ui/main_menu.tscn"
 config/features=PackedStringArray("4.5", "GL Compatibility")
 config/icon="res://icon.svg"
@@ -21,6 +21,7 @@ config/icon="res://icon.svg"
 PlayerData="*res://scripts/core/player_data.gd"
 NetworkManager="*res://scripts/autoload/network_manager.gd"
 UITheme="*res://scripts/core/ui_theme.gd"
+AISpriteLoader="*res://scripts/core/ai_sprite_loader.gd"
 
 [display]
 

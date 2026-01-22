@@ -11,6 +11,10 @@ var drag_enabled: bool = true  # Can be disabled for certain contexts
 # Status effect icons
 var status_icons: Array = []
 
+# AI sprite support
+var ai_sprite: AnimatedSprite2D = null
+var uses_ai_sprite: bool = false
+
 # Visual references
 @onready var body = $Body
 @onready var element_rings = [$ElementRing, $ElementRing2, $ElementRing3, $ElementRing4]
@@ -60,8 +64,8 @@ func setup(instance: UnitInstance):
 			element_label.text = _get_element_letter(data.element)
 			element_label.add_theme_color_override("font_color", element_color)
 
-		# Generate pixel art for this unit
-		body.texture = PixelArtGenerator.generate_unit_texture(data)
+		# Check for AI sprite first, fall back to procedural pixel art
+		_setup_sprite(data)
 
 		# Update HP bar
 		update_hp_display()
@@ -187,6 +191,55 @@ func set_selected(selected: bool):
 		modulate = Color(1.2, 1.2, 1.2)  # Brighten
 	else:
 		modulate = Color(1.0, 1.0, 1.0)  # Normal
+
+func _setup_sprite(data: UnitData):
+	"""Set up the unit sprite - AI sprite if available, otherwise procedural."""
+	# Clean up existing AI sprite if any
+	if ai_sprite:
+		ai_sprite.queue_free()
+		ai_sprite = null
+		uses_ai_sprite = false
+
+	# Check if this unit has an AI sprite
+	if AISpriteLoader.has_ai_sprite(data.unit_id):
+		ai_sprite = AISpriteLoader.create_animated_sprite(data.unit_id)
+		if ai_sprite:
+			uses_ai_sprite = true
+			body.visible = false
+			ai_sprite.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+			ai_sprite.scale = Vector2(1, 1)  # AI sprites are already 128px
+			add_child(ai_sprite)
+			ai_sprite.play("idle")
+			return
+
+	# Fall back to procedural pixel art
+	uses_ai_sprite = false
+	body.visible = true
+	body.texture = PixelArtGenerator.generate_unit_texture(data)
+
+
+func play_attack_animation():
+	"""Play attack animation if using AI sprites."""
+	if uses_ai_sprite and ai_sprite and ai_sprite.sprite_frames.has_animation("attack"):
+		ai_sprite.play("attack")
+		# Return to idle when done
+		if not ai_sprite.animation_finished.is_connected(_on_animation_finished):
+			ai_sprite.animation_finished.connect(_on_animation_finished, CONNECT_ONE_SHOT)
+
+
+func play_hurt_animation():
+	"""Play hurt animation if using AI sprites."""
+	if uses_ai_sprite and ai_sprite and ai_sprite.sprite_frames.has_animation("hurt"):
+		ai_sprite.play("hurt")
+		if not ai_sprite.animation_finished.is_connected(_on_animation_finished):
+			ai_sprite.animation_finished.connect(_on_animation_finished, CONNECT_ONE_SHOT)
+
+
+func _on_animation_finished():
+	"""Return to idle after attack/hurt animation."""
+	if ai_sprite:
+		ai_sprite.play("idle")
+
 
 func _get_element_letter(element: String) -> String:
 	match element:
