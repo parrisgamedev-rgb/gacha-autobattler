@@ -1062,8 +1062,11 @@ func _resolve_duel(row: int, col: int, p_unit: UnitInstance, e_unit: UnitInstanc
 	if p_speed > e_speed:
 		# Player attacks first
 		print("  Player attacks first (faster)")
+		if p_display:
+			p_display.play_attack_animation()
 		e_unit.take_damage(e_damage_taken)
 		if e_display:
+			e_display.play_hurt_animation()
 			e_display.show_damage_number(e_damage_taken, false)
 			e_display.flash_color(Color(1, 0.5, 0.5), 0.3)
 			e_display.update_hp_display()
@@ -1075,8 +1078,11 @@ func _resolve_duel(row: int, col: int, p_unit: UnitInstance, e_unit: UnitInstanc
 
 		# Enemy retaliates only if still alive
 		if e_unit.is_alive():
+			if e_display:
+				e_display.play_attack_animation()
 			p_unit.take_damage(p_damage_taken)
 			if p_display:
+				p_display.play_hurt_animation()
 				p_display.show_damage_number(p_damage_taken, false)
 				p_display.flash_color(Color(1, 0.5, 0.5), 0.3)
 				p_display.update_hp_display()
@@ -1093,8 +1099,11 @@ func _resolve_duel(row: int, col: int, p_unit: UnitInstance, e_unit: UnitInstanc
 	elif e_speed > p_speed:
 		# Enemy attacks first
 		print("  Enemy attacks first (faster)")
+		if e_display:
+			e_display.play_attack_animation()
 		p_unit.take_damage(p_damage_taken)
 		if p_display:
+			p_display.play_hurt_animation()
 			p_display.show_damage_number(p_damage_taken, false)
 			p_display.flash_color(Color(1, 0.5, 0.5), 0.3)
 			p_display.update_hp_display()
@@ -1106,8 +1115,11 @@ func _resolve_duel(row: int, col: int, p_unit: UnitInstance, e_unit: UnitInstanc
 
 		# Player retaliates only if still alive
 		if p_unit.is_alive():
+			if p_display:
+				p_display.play_attack_animation()
 			e_unit.take_damage(e_damage_taken)
 			if e_display:
+				e_display.play_hurt_animation()
 				e_display.show_damage_number(e_damage_taken, false)
 				e_display.flash_color(Color(1, 0.5, 0.5), 0.3)
 				e_display.update_hp_display()
@@ -1124,14 +1136,20 @@ func _resolve_duel(row: int, col: int, p_unit: UnitInstance, e_unit: UnitInstanc
 	else:
 		# Speed tie - simultaneous damage
 		print("  Speed tie - simultaneous attacks!")
+		if p_display:
+			p_display.play_attack_animation()
+		if e_display:
+			e_display.play_attack_animation()
 		e_unit.take_damage(e_damage_taken)
 		p_unit.take_damage(p_damage_taken)
 
 		if p_display:
+			p_display.play_hurt_animation()
 			p_display.show_damage_number(p_damage_taken, false)
 			p_display.flash_color(Color(1, 0.5, 0.5), 0.3)
 			p_display.update_hp_display()
 		if e_display:
+			e_display.play_hurt_animation()
 			e_display.show_damage_number(e_damage_taken, false)
 			e_display.flash_color(Color(1, 0.5, 0.5), 0.3)
 			e_display.update_hp_display()
