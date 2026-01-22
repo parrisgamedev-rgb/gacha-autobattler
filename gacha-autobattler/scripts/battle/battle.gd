@@ -12,8 +12,8 @@ const PERSPECTIVE_SCALE_TOP = 1.0      # Scale for top row (1.0 = no perspective
 const PERSPECTIVE_SCALE_BOTTOM = 1.0   # Scale for bottom row
 const PERSPECTIVE_Y_SQUEEZE = 1.0      # Vertical compression (1.0 = none)
 const PERSPECTIVE_Y_OFFSET = 0         # No offset needed
-const MIDDLE_ROW_EXTRA_OFFSET = 0      # No extra offset for flat grid
-const BOTTOM_ROW_EXTRA_OFFSET = 0      # No extra offset for flat grid
+const MIDDLE_ROW_EXTRA_OFFSET = 25     # Push middle row down
+const BOTTOM_ROW_EXTRA_OFFSET = 55     # Push bottom row down more
 const ACTIONS_PER_TURN = 2
 const MAX_TURNS = 50  # Turn limit to prevent infinite stalemates
 const KNOCKOUTS_TO_WIN = 3  # Knock out this many enemy units to win
