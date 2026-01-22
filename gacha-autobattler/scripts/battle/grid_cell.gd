@@ -76,7 +76,7 @@ func _setup_ai_overlays(size: int):
 
 	# Calculate scale to fit cell size (assets are 512x512)
 	var asset_size = 512.0
-	var scale_factor = size / asset_size
+	var scale_factor = (size * 0.9) / asset_size  # Slightly smaller than cell
 
 	# Create field effect overlay (rendered below ownership but above background)
 	field_effect_overlay = Sprite2D.new()

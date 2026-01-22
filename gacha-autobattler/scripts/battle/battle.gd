@@ -4,14 +4,14 @@ extends Node2D
 
 # Grid settings
 const GRID_SIZE = 3
-const CELL_SIZE = 240  # Base cell size (adjusted for new grid image)
-const CELL_GAP = 35    # Gap between cells
+const CELL_SIZE = 195  # Base cell size (adjusted for new grid image)
+const CELL_GAP = 18    # Gap between cells
 
 # Perspective settings for 2.5D effect (disabled for flat AI grid)
 const PERSPECTIVE_SCALE_TOP = 1.0      # Scale for top row (1.0 = no perspective)
 const PERSPECTIVE_SCALE_BOTTOM = 1.0   # Scale for bottom row
 const PERSPECTIVE_Y_SQUEEZE = 1.0      # Vertical compression (1.0 = none)
-const PERSPECTIVE_Y_OFFSET = 20        # Shift grid down to match background
+const PERSPECTIVE_Y_OFFSET = 0         # No offset needed
 const MIDDLE_ROW_EXTRA_OFFSET = 0      # No extra offset for flat grid
 const BOTTOM_ROW_EXTRA_OFFSET = 0      # No extra offset for flat grid
 const ACTIONS_PER_TURN = 2
