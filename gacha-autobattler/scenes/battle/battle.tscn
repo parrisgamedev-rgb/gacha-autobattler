@@ -52,7 +52,7 @@ expand_mode = 1
 stretch_mode = 5
 
 [node name="GridContainer" type="Node2D" parent="."]
-position = Vector2(960, 470)
+position = Vector2(975, 490)
 
 [node name="UI" type="CanvasLayer" parent="."]
 

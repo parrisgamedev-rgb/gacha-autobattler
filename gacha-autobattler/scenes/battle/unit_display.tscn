@@ -6,6 +6,7 @@
 size = Vector2(110, 130)
 
 [node name="UnitDisplay" type="Node2D"]
+z_index = 10
 script = ExtResource("1_unit")
 
 [node name="Body" type="Sprite2D" parent="."]
