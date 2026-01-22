@@ -14,6 +14,7 @@ var status_icons: Array = []
 # AI sprite support
 var ai_sprite: AnimatedSprite2D = null
 var uses_ai_sprite: bool = false
+var is_enemy: bool = false
 
 # Visual references
 @onready var body = $Body
@@ -239,6 +240,23 @@ func _on_animation_finished():
 	"""Return to idle after attack/hurt animation."""
 	if ai_sprite:
 		ai_sprite.play("idle")
+
+
+func set_enemy(enemy: bool):
+	"""Set whether this unit is an enemy (affects sprite facing direction)."""
+	is_enemy = enemy
+	_update_sprite_facing()
+
+
+func _update_sprite_facing():
+	"""Update sprite flip based on ownership. Player faces right, enemy faces left."""
+	# Player units face right (no flip), enemy units face left (flip)
+	var should_flip = is_enemy
+
+	if uses_ai_sprite and ai_sprite:
+		ai_sprite.flip_h = should_flip
+	else:
+		body.flip_h = should_flip
 
 
 func _get_element_letter(element: String) -> String:

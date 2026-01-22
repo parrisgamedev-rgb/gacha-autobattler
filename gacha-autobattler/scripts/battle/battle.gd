@@ -368,6 +368,7 @@ func _create_roster_displays():
 		player_roster.add_child(display)
 		display.position = Vector2(60, 60 + y_offset)
 		display.setup(unit)
+		display.set_enemy(false)
 		display.scale = Vector2(0.7, 0.7)
 
 		# Connect click and drag signals for player roster units
@@ -383,6 +384,7 @@ func _create_roster_displays():
 		enemy_roster.add_child(display)
 		display.position = Vector2(60, 60 + y_offset)
 		display.setup(unit)
+		display.set_enemy(true)
 		display.scale = Vector2(0.7, 0.7)
 		display.drag_enabled = false  # Enemies can't be dragged
 		y_offset += 110
@@ -589,6 +591,7 @@ func _show_placement_preview(unit: UnitInstance, row: int, col: int):
 	display.position = pos
 	display.scale = Vector2(0.7, 0.7) * row_scale
 	display.setup(unit)
+	display.set_enemy(false)
 	display.modulate = Color(1, 1, 1, 0.7)  # Semi-transparent to show it's pending
 
 	grid_player_displays[row][col] = display
@@ -1267,6 +1270,7 @@ func _confirm_placement(unit: UnitInstance, row: int, col: int, owner: int):
 	display.position = pos
 	display.scale = Vector2(0.7, 0.7) * row_scale
 	display.setup(unit)
+	display.set_enemy(owner == 2)
 	display.modulate = Color(1, 1, 1, 1)  # Full opacity for confirmed
 
 	# Connect drag signals for player units on the grid
@@ -1650,6 +1654,7 @@ func _create_drag_preview(unit: UnitInstance):
 	drag_preview = UnitDisplayScene.instantiate()
 	add_child(drag_preview)
 	drag_preview.setup(unit)
+	drag_preview.set_enemy(false)
 	drag_preview.scale = Vector2(0.6, 0.6)
 	drag_preview.modulate = Color(1, 1, 1, 0.7)
 	drag_preview.z_index = 100  # Draw on top
