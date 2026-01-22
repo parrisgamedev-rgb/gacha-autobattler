@@ -14,9 +14,8 @@ const PERSPECTIVE_Y_SQUEEZE = 1.0      # Vertical compression (1.0 = none)
 const PERSPECTIVE_Y_OFFSET = 0         # No offset needed
 const MIDDLE_ROW_EXTRA_OFFSET = 50     # Push middle row down
 const BOTTOM_ROW_EXTRA_OFFSET = 135    # Push bottom row down more
-const ACTIONS_PER_TURN = 2
+const ACTIONS_PER_TURN = 3
 const MAX_TURNS = 50  # Turn limit to prevent infinite stalemates
-const KNOCKOUTS_TO_WIN = 3  # Knock out this many enemy units to win
 
 # AI Difficulty
 enum AIDifficulty { EASY, MEDIUM, HARD }
@@ -1212,12 +1211,12 @@ func _resolve_duel(row: int, col: int, p_unit: UnitInstance, e_unit: UnitInstanc
 	# Handle knockouts - units only leave when HP = 0
 	if not p_unit.is_alive():
 		enemy_knockouts += 1
-		print("  Player unit knocked out! (Enemy has ", enemy_knockouts, "/", KNOCKOUTS_TO_WIN, " knockouts)")
+		print("  Player unit knocked out! (Enemy has ", enemy_knockouts, "/", player_units.size(), " knockouts)")
 		_remove_unit_from_grid(p_unit, row, col)
 
 	if not e_unit.is_alive():
 		player_knockouts += 1
-		print("  Enemy unit knocked out! (Player has ", player_knockouts, "/", KNOCKOUTS_TO_WIN, " knockouts)")
+		print("  Enemy unit knocked out! (Player has ", player_knockouts, "/", enemy_units.size(), " knockouts)")
 		_remove_unit_from_grid(e_unit, row, col)
 
 	# Both units survive - they remain on the contested square
@@ -1303,58 +1302,91 @@ func _reposition_displays_for_contested(row: int, col: int):
 		grid_enemy_displays[row][col].position = Vector2(pos.x + offset_amount, pos.y)
 
 func _check_win_condition() -> int:
-	# Check knockout victory first (knock out 3 enemy units)
-	if player_knockouts >= KNOCKOUTS_TO_WIN:
-		print("Player wins by knockout! (", player_knockouts, " enemies eliminated)")
+	# Check knockout victory - eliminate all enemy units
+	var enemy_team_size = enemy_units.size()
+	var player_team_size = player_units.size()
+
+	if player_knockouts >= enemy_team_size:
+		print("Player wins by total elimination! (", player_knockouts, "/", enemy_team_size, " enemies eliminated)")
 		return 1
-	if enemy_knockouts >= KNOCKOUTS_TO_WIN:
-		print("Enemy wins by knockout! (", enemy_knockouts, " player units eliminated)")
+	if enemy_knockouts >= player_team_size:
+		print("Enemy wins by total elimination! (", enemy_knockouts, "/", player_team_size, " player units eliminated)")
 		return 2
 
-	# Check rows (3 in a row)
+	# Check turn limit - determine winner by tiebreakers
+	if current_turn >= MAX_TURNS:
+		return _determine_winner_at_turn_limit()
+
+	return 0
+
+func _determine_winner_at_turn_limit() -> int:
+	print("TURN LIMIT REACHED! Checking tiebreakers...")
+
+	# Tiebreaker 1: Line control (tic-tac-toe style)
+	var line_winner = _check_line_control()
+	if line_winner > 0:
+		return line_winner
+
+	# Tiebreaker 2: HP percentage
+	return _determine_winner_by_hp()
+
+func _check_line_control() -> int:
+	# Check all lines for sole control
+	print("  Checking line control...")
+
+	# Check rows
 	for row in range(GRID_SIZE):
 		var winner = _check_line(grid_ownership[row][0], grid_ownership[row][1], grid_ownership[row][2])
 		if winner > 0:
+			print("  ", ["", "Player", "Enemy"][winner], " wins by controlling row ", row, "!")
 			return winner
 
 	# Check columns
 	for col in range(GRID_SIZE):
 		var winner = _check_line(grid_ownership[0][col], grid_ownership[1][col], grid_ownership[2][col])
 		if winner > 0:
+			print("  ", ["", "Player", "Enemy"][winner], " wins by controlling column ", col, "!")
 			return winner
 
 	# Check diagonals
 	var winner = _check_line(grid_ownership[0][0], grid_ownership[1][1], grid_ownership[2][2])
 	if winner > 0:
+		print("  ", ["", "Player", "Enemy"][winner], " wins by controlling diagonal!")
 		return winner
 	winner = _check_line(grid_ownership[0][2], grid_ownership[1][1], grid_ownership[2][0])
 	if winner > 0:
+		print("  ", ["", "Player", "Enemy"][winner], " wins by controlling diagonal!")
 		return winner
 
-	# Check turn limit - determine winner by HP percentage
-	if current_turn >= MAX_TURNS:
-		return _determine_winner_by_hp()
-
+	print("  No line control - checking HP%...")
 	return 0
+
+func _check_line(a: int, b: int, c: int) -> int:
+	# Only sole occupancy counts (1 = player only, 2 = enemy only)
+	# Contested squares (3) don't count as owned by either side
+	if a == 1 and b == 1 and c == 1:
+		return 1  # Player wins
+	if a == 2 and b == 2 and c == 2:
+		return 2  # Enemy wins
+	return 0  # No winner
 
 func _determine_winner_by_hp() -> int:
 	# Calculate total HP percentage for each team
 	var player_hp_percent = _calculate_team_hp_percent(player_units)
 	var enemy_hp_percent = _calculate_team_hp_percent(enemy_units)
 
-	print("TURN LIMIT REACHED! Determining winner by HP%...")
 	print("  Player team HP: ", snapped(player_hp_percent * 100, 0.1), "%")
 	print("  Enemy team HP: ", snapped(enemy_hp_percent * 100, 0.1), "%")
 
 	if player_hp_percent > enemy_hp_percent:
-		print("  Player wins by HP advantage!")
+		print("  Player wins by HP% advantage!")
 		return 1
 	elif enemy_hp_percent > player_hp_percent:
-		print("  Enemy wins by HP advantage!")
+		print("  Enemy wins by HP% advantage!")
 		return 2
 	else:
 		# Tie goes to player (slight advantage for reaching the limit)
-		print("  HP tied - Player wins by tiebreaker!")
+		print("  HP% tied - Player wins by final tiebreaker!")
 		return 1
 
 func _calculate_team_hp_percent(units: Array) -> float:
@@ -1398,15 +1430,6 @@ func revive_unit(unit: UnitInstance, hp_percent: float = 0.5) -> bool:
 func get_knocked_out_units(team: int) -> Array:
 	var units = player_units if team == 1 else enemy_units
 	return units.filter(func(u): return u.is_knocked_out())
-
-func _check_line(a: int, b: int, c: int) -> int:
-	# Only sole occupancy counts (1 = player only, 2 = enemy only)
-	# Contested squares (3) don't count as owned by either side
-	if a == 1 and b == 1 and c == 1:
-		return 1  # Player wins
-	if a == 2 and b == 2 and c == 2:
-		return 2  # Enemy wins
-	return 0  # No winner
 
 func _update_ui():
 	turn_label.text = "Turn: " + str(current_turn)
@@ -1744,7 +1767,7 @@ func _show_results(winner: int):
 
 		# Check victory type
 		var ended_by_turn_limit = current_turn >= MAX_TURNS
-		var ended_by_knockout = player_knockouts >= KNOCKOUTS_TO_WIN or enemy_knockouts >= KNOCKOUTS_TO_WIN
+		var ended_by_knockout = player_knockouts >= enemy_units.size() or enemy_knockouts >= player_units.size()
 
 		if winner == 1:
 			if ended_by_knockout:
@@ -1917,18 +1940,14 @@ func _show_combat_announcement(text: String, duration: float = 1.0):
 # --- Cheat Functions ---
 
 func _cheat_instant_win():
-	# Force player to own a complete line
-	for col in range(GRID_SIZE):
-		grid_ownership[0][col] = 1  # Player owns top row
-		grid_cells[0][col].set_ownership(1)
+	# Force knockout victory for player
+	player_knockouts = enemy_units.size()
 	current_phase = GamePhase.GAME_OVER
 	_show_results(1)
 
 func _cheat_instant_lose():
-	# Force enemy to own a complete line
-	for col in range(GRID_SIZE):
-		grid_ownership[0][col] = 2  # Enemy owns top row
-		grid_cells[0][col].set_ownership(2)
+	# Force knockout victory for enemy
+	enemy_knockouts = player_units.size()
 	current_phase = GamePhase.GAME_OVER
 	_show_results(2)
 

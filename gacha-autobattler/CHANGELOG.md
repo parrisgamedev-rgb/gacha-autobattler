@@ -2,6 +2,27 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.8.2] - Combat Balance Update
+
+### Changed
+- **Actions Per Turn: 2 → 3**
+  - Players and AI now have 3 actions per turn instead of 2
+  - Allows faster team deployment and more tactical repositioning
+  - Makes battles feel more dynamic with more decisions per turn
+
+- **Victory Condition: Total Elimination**
+  - Win by knocking out ALL enemy units (was: knock out 3)
+  - Victory now scales with team size - bigger teams = longer battles
+  - More satisfying victories that feel earned
+
+- **Turn Limit Tiebreakers (50 turns)**
+  - 1st tiebreaker: Line control (tic-tac-toe) - control a row/column/diagonal
+  - 2nd tiebreaker: HP percentage - team with higher % HP remaining wins
+  - Line control now only matters at turn limit, not as instant win
+  - HP% prevents tank-heavy teams from having unfair advantage over glass cannons
+
+---
+
 ## [0.8.1] - AI-Generated Sprites & Dynamic Board
 
 ### Added
