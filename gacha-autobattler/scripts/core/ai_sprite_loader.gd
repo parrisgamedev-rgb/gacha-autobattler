@@ -14,7 +14,9 @@ var _atlas_cache: Dictionary = {}
 # Animation settings
 const FRAME_SIZE = 128
 const FRAME_COUNT = 3
-const IDLE_FPS = 4.0  # Frames per second for idle animation
+const IDLE_FPS = 3.0  # Frames per second for idle animation
+const ATTACK_FPS = 5.0  # Frames per second for attack animation
+const HURT_FPS = 4.0  # Frames per second for hurt animation
 
 
 func has_ai_sprite(unit_id: String) -> bool:
@@ -105,7 +107,7 @@ func create_animated_sprite(unit_id: String) -> AnimatedSprite2D:
 	# Add attack animation if available
 	if load_sprite_sheet(unit_id, "attack"):
 		frames.add_animation("attack")
-		frames.set_animation_speed("attack", 8.0)  # Faster for attack
+		frames.set_animation_speed("attack", ATTACK_FPS)
 		frames.set_animation_loop("attack", false)
 
 		for i in range(FRAME_COUNT):
@@ -116,7 +118,7 @@ func create_animated_sprite(unit_id: String) -> AnimatedSprite2D:
 	# Add hurt animation if available
 	if load_sprite_sheet(unit_id, "hurt"):
 		frames.add_animation("hurt")
-		frames.set_animation_speed("hurt", 6.0)
+		frames.set_animation_speed("hurt", HURT_FPS)
 		frames.set_animation_loop("hurt", false)
 
 		for i in range(FRAME_COUNT):

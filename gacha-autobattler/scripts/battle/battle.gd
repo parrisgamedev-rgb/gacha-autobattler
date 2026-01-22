@@ -1064,12 +1064,14 @@ func _resolve_duel(row: int, col: int, p_unit: UnitInstance, e_unit: UnitInstanc
 		print("  Player attacks first (faster)")
 		if p_display:
 			p_display.play_attack_animation()
+		await get_tree().create_timer(get_scaled_time(0.4)).timeout
 		e_unit.take_damage(e_damage_taken)
 		if e_display:
 			e_display.play_hurt_animation()
 			e_display.show_damage_number(e_damage_taken, false)
 			e_display.flash_color(Color(1, 0.5, 0.5), 0.3)
 			e_display.update_hp_display()
+		await get_tree().create_timer(get_scaled_time(0.3)).timeout
 
 		# Apply guaranteed survive for enemy
 		if e_guaranteed_survive and e_unit.current_hp <= 0:
@@ -1080,12 +1082,14 @@ func _resolve_duel(row: int, col: int, p_unit: UnitInstance, e_unit: UnitInstanc
 		if e_unit.is_alive():
 			if e_display:
 				e_display.play_attack_animation()
+			await get_tree().create_timer(get_scaled_time(0.4)).timeout
 			p_unit.take_damage(p_damage_taken)
 			if p_display:
 				p_display.play_hurt_animation()
 				p_display.show_damage_number(p_damage_taken, false)
 				p_display.flash_color(Color(1, 0.5, 0.5), 0.3)
 				p_display.update_hp_display()
+			await get_tree().create_timer(get_scaled_time(0.3)).timeout
 
 			# Apply guaranteed survive for player
 			if p_guaranteed_survive and p_unit.current_hp <= 0:
@@ -1101,12 +1105,14 @@ func _resolve_duel(row: int, col: int, p_unit: UnitInstance, e_unit: UnitInstanc
 		print("  Enemy attacks first (faster)")
 		if e_display:
 			e_display.play_attack_animation()
+		await get_tree().create_timer(get_scaled_time(0.4)).timeout
 		p_unit.take_damage(p_damage_taken)
 		if p_display:
 			p_display.play_hurt_animation()
 			p_display.show_damage_number(p_damage_taken, false)
 			p_display.flash_color(Color(1, 0.5, 0.5), 0.3)
 			p_display.update_hp_display()
+		await get_tree().create_timer(get_scaled_time(0.3)).timeout
 
 		# Apply guaranteed survive for player
 		if p_guaranteed_survive and p_unit.current_hp <= 0:
@@ -1117,12 +1123,14 @@ func _resolve_duel(row: int, col: int, p_unit: UnitInstance, e_unit: UnitInstanc
 		if p_unit.is_alive():
 			if p_display:
 				p_display.play_attack_animation()
+			await get_tree().create_timer(get_scaled_time(0.4)).timeout
 			e_unit.take_damage(e_damage_taken)
 			if e_display:
 				e_display.play_hurt_animation()
 				e_display.show_damage_number(e_damage_taken, false)
 				e_display.flash_color(Color(1, 0.5, 0.5), 0.3)
 				e_display.update_hp_display()
+			await get_tree().create_timer(get_scaled_time(0.3)).timeout
 
 			# Apply guaranteed survive for enemy
 			if e_guaranteed_survive and e_unit.current_hp <= 0:
@@ -1140,6 +1148,7 @@ func _resolve_duel(row: int, col: int, p_unit: UnitInstance, e_unit: UnitInstanc
 			p_display.play_attack_animation()
 		if e_display:
 			e_display.play_attack_animation()
+		await get_tree().create_timer(get_scaled_time(0.4)).timeout
 		e_unit.take_damage(e_damage_taken)
 		p_unit.take_damage(p_damage_taken)
 
@@ -1153,6 +1162,7 @@ func _resolve_duel(row: int, col: int, p_unit: UnitInstance, e_unit: UnitInstanc
 			e_display.show_damage_number(e_damage_taken, false)
 			e_display.flash_color(Color(1, 0.5, 0.5), 0.3)
 			e_display.update_hp_display()
+		await get_tree().create_timer(get_scaled_time(0.3)).timeout
 
 		# Apply guaranteed survive
 		if p_guaranteed_survive and p_unit.current_hp <= 0:
