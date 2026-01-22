@@ -12,6 +12,7 @@ var cell_size: int = 150
 # Cell state
 var ownership: int = 0  # 0 = empty, 1 = player, 2 = enemy
 var is_hovered: bool = false
+var current_field_effect: String = ""
 
 # Visual references
 @onready var background = $Background
@@ -19,9 +20,14 @@ var is_hovered: bool = false
 @onready var hover_effect = $HoverEffect
 @onready var collision_shape = $CollisionShape2D
 
-# Field effect visuals - particle-based
+# Field effect visuals - particle-based (fallback)
 var active_effect_node: Node2D = null
 var field_tween: Tween = null
+
+# AI-generated overlay sprites
+var ownership_overlay: Sprite2D = null
+var field_effect_overlay: Sprite2D = null
+var use_ai_board_assets: bool = false
 
 func _ready():
 	# Connect mouse signals
@@ -57,9 +63,87 @@ func setup(row: int, col: int, size: int):
 	hover_effect.color = Color(1.0, 1.0, 1.0, 0.1)
 	hover_effect.visible = false
 
+	# Setup AI board asset overlays if available
+	_setup_ai_overlays(size)
+
+func _setup_ai_overlays(size: int):
+	"""Create overlay sprites for AI-generated board assets."""
+	use_ai_board_assets = BoardAssetLoader.has_board_assets()
+
+	if not use_ai_board_assets:
+		return
+
+	# Calculate scale to fit cell size (assets are 512x512)
+	var asset_size = 512.0
+	var scale_factor = size / asset_size
+
+	# Create field effect overlay (rendered below ownership)
+	field_effect_overlay = Sprite2D.new()
+	field_effect_overlay.z_index = -2
+	field_effect_overlay.scale = Vector2(scale_factor, scale_factor)
+	field_effect_overlay.visible = false
+	add_child(field_effect_overlay)
+
+	# Create ownership overlay (rendered above field effect)
+	ownership_overlay = Sprite2D.new()
+	ownership_overlay.z_index = -1
+	ownership_overlay.scale = Vector2(scale_factor, scale_factor)
+	ownership_overlay.modulate.a = 0.85  # Slight transparency so field effects show through
+	ownership_overlay.visible = false
+	add_child(ownership_overlay)
+
+
 func set_ownership(new_owner: int):
 	ownership = new_owner
-	# No visual change - units on the cell show ownership
+
+	# Update AI board overlay if available
+	if use_ai_board_assets and ownership_overlay:
+		var board_ownership: BoardAssetLoader.Ownership
+		match new_owner:
+			1:
+				board_ownership = BoardAssetLoader.Ownership.PLAYER
+			2:
+				board_ownership = BoardAssetLoader.Ownership.ENEMY
+			3:
+				board_ownership = BoardAssetLoader.Ownership.CONTESTED
+			_:
+				board_ownership = BoardAssetLoader.Ownership.NONE
+
+		var texture = BoardAssetLoader.get_ownership_texture(board_ownership)
+		if texture:
+			ownership_overlay.texture = texture
+			_fade_in_overlay(ownership_overlay)
+		else:
+			_fade_out_overlay(ownership_overlay)
+
+
+func set_contested(is_contested: bool):
+	"""Set the cell as contested (both player and enemy present)."""
+	if use_ai_board_assets and ownership_overlay and is_contested:
+		var texture = BoardAssetLoader.get_ownership_texture(BoardAssetLoader.Ownership.CONTESTED)
+		if texture:
+			ownership_overlay.texture = texture
+			_fade_in_overlay(ownership_overlay)
+
+
+func _fade_in_overlay(overlay: Sprite2D):
+	"""Fade in an overlay sprite."""
+	if not overlay.visible:
+		overlay.modulate.a = 0.0
+		overlay.visible = true
+
+	var tween = create_tween()
+	tween.tween_property(overlay, "modulate:a", 0.85, 0.3)
+
+
+func _fade_out_overlay(overlay: Sprite2D):
+	"""Fade out an overlay sprite."""
+	if not overlay.visible:
+		return
+
+	var tween = create_tween()
+	tween.tween_property(overlay, "modulate:a", 0.0, 0.3)
+	tween.tween_callback(func(): overlay.visible = false)
 
 func _on_mouse_entered():
 	is_hovered = true
@@ -82,10 +166,46 @@ func show_field_effect(field_data: FieldEffectData):
 	# Clear any existing effect
 	clear_field_effect()
 
-	# Create particle effect based on field type
+	# Try AI board assets first
+	if use_ai_board_assets and field_effect_overlay:
+		var effect_type = _field_type_to_board_effect(field_data.field_type)
+		var texture = BoardAssetLoader.get_field_effect_texture(effect_type)
+
+		if texture:
+			current_field_effect = field_data.field_name
+			field_effect_overlay.texture = texture
+			_fade_in_field_effect()
+			return
+
+	# Fallback to particle effects
 	active_effect_node = _create_effect_for_type(field_data.field_type, field_data.field_color)
 	if active_effect_node:
 		add_child(active_effect_node)
+
+
+func _field_type_to_board_effect(field_type: FieldEffectData.FieldType) -> BoardAssetLoader.FieldEffect:
+	"""Convert FieldEffectData type to BoardAssetLoader effect enum."""
+	match field_type:
+		FieldEffectData.FieldType.THERMAL:
+			return BoardAssetLoader.FieldEffect.THERMAL
+		FieldEffectData.FieldType.REPAIR:
+			return BoardAssetLoader.FieldEffect.REPAIR
+		FieldEffectData.FieldType.BOOST:
+			return BoardAssetLoader.FieldEffect.BOOST
+		FieldEffectData.FieldType.SUPPRESSION:
+			return BoardAssetLoader.FieldEffect.SUPPRESSION
+		_:
+			return BoardAssetLoader.FieldEffect.NONE
+
+
+func _fade_in_field_effect():
+	"""Fade in the field effect overlay."""
+	if not field_effect_overlay.visible:
+		field_effect_overlay.modulate.a = 0.0
+		field_effect_overlay.visible = true
+
+	var tween = create_tween()
+	tween.tween_property(field_effect_overlay, "modulate:a", 0.9, 0.4)
 
 func _create_effect_for_type(field_type: FieldEffectData.FieldType, color: Color) -> Node2D:
 	var effect_container = Node2D.new()
@@ -264,6 +384,15 @@ func _create_generic_particles(half_size: float, color: Color) -> GPUParticles2D
 	return particles
 
 func clear_field_effect():
+	current_field_effect = ""
+
+	# Clear AI overlay
+	if field_effect_overlay and field_effect_overlay.visible:
+		var tween = create_tween()
+		tween.tween_property(field_effect_overlay, "modulate:a", 0.0, 0.3)
+		tween.tween_callback(func(): field_effect_overlay.visible = false)
+
+	# Clear particle fallback
 	if field_tween:
 		field_tween.kill()
 		field_tween = null
@@ -271,3 +400,10 @@ func clear_field_effect():
 	if active_effect_node:
 		active_effect_node.queue_free()
 		active_effect_node = null
+
+
+func clear_ownership():
+	"""Clear the ownership overlay."""
+	ownership = 0
+	if ownership_overlay and ownership_overlay.visible:
+		_fade_out_overlay(ownership_overlay)
