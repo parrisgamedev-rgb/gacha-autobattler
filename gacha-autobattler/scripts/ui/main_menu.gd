@@ -11,6 +11,7 @@ extends Control
 @onready var collection_button = $CenterContainer/VBoxContainer/SecondaryButtons/CollectionButton
 @onready var gear_button = $CenterContainer/VBoxContainer/SecondaryButtons/GearButton
 @onready var pvp_button = $CenterContainer/VBoxContainer/SecondaryButtons/PvPButton
+@onready var how_to_play_button = $CenterContainer/VBoxContainer/SecondaryButtons/HowToPlayButton
 
 # Currency labels
 @onready var gold_label = $CurrencyBar/GoldLabel
@@ -50,6 +51,9 @@ func _ready():
 
 	if pvp_button:
 		pvp_button.pressed.connect(_on_pvp_pressed)
+
+	if how_to_play_button:
+		how_to_play_button.pressed.connect(_on_how_to_play_pressed)
 
 	# Update currency display
 	_update_currency_display()
@@ -104,7 +108,7 @@ func _style_primary_buttons():
 
 
 func _style_secondary_buttons():
-	var secondary_names = ["SummonButton", "CollectionButton", "GearButton", "PvPButton"]
+	var secondary_names = ["SummonButton", "CollectionButton", "GearButton", "PvPButton", "HowToPlayButton"]
 	for btn_name in secondary_names:
 		var path = "CenterContainer/VBoxContainer/SecondaryButtons/" + btn_name
 		if has_node(path):
@@ -186,3 +190,7 @@ func _on_gear_pressed():
 
 func _on_collection_pressed():
 	get_tree().change_scene_to_file("res://scenes/ui/collection_screen.tscn")
+
+
+func _on_how_to_play_pressed():
+	get_tree().change_scene_to_file("res://scenes/ui/how_to_play_screen.tscn")
