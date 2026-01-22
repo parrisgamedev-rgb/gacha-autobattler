@@ -253,7 +253,7 @@ func _update_currency_display():
 	currency_label.add_theme_color_override("font_color", UITheme.GOLD)
 
 func _on_back():
-	get_tree().change_scene_to_file("res://scenes/ui/main_menu.tscn")
+	SceneTransition.change_scene("res://scenes/ui/main_menu.tscn")
 
 func _apply_theme():
 	# Background

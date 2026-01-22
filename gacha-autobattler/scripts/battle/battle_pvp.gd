@@ -391,6 +391,6 @@ func _on_play_again_pressed():
 		# In PvP, go back to lobby instead of restarting
 		NetworkManager.disconnect_from_game()
 		PlayerData.pvp_mode = false
-		get_tree().change_scene_to_file("res://scenes/ui/pvp_lobby.tscn")
+		SceneTransition.change_scene("res://scenes/ui/pvp_lobby.tscn")
 	else:
 		super._on_play_again_pressed()

@@ -78,7 +78,7 @@ func _apply_theme():
 	# Version label
 	if has_node("CenterContainer/VBoxContainer/VersionLabel"):
 		var version = $CenterContainer/VBoxContainer/VersionLabel
-		version.text = "v0.9"
+		version.text = "v0.11"
 		version.add_theme_font_size_override("font_size", UITheme.FONT_CAPTION)
 		version.add_theme_color_override("font_color", UITheme.TEXT_SECONDARY)
 		version.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -165,32 +165,32 @@ func _update_currency_display():
 
 
 func _on_campaign_pressed():
-	get_tree().change_scene_to_file("res://scenes/ui/campaign_select_screen.tscn")
+	SceneTransition.change_scene("res://scenes/ui/campaign_select_screen.tscn")
 
 
 func _on_dungeons_pressed():
-	get_tree().change_scene_to_file("res://scenes/ui/dungeon_select_screen.tscn")
+	SceneTransition.change_scene("res://scenes/ui/dungeon_select_screen.tscn")
 
 
 func _on_quick_battle_pressed():
-	get_tree().change_scene_to_file("res://scenes/ui/team_select_screen.tscn")
+	SceneTransition.change_scene("res://scenes/ui/team_select_screen.tscn")
 
 
 func _on_pvp_pressed():
-	get_tree().change_scene_to_file("res://scenes/ui/pvp_lobby.tscn")
+	SceneTransition.change_scene("res://scenes/ui/pvp_lobby.tscn")
 
 
 func _on_summon_pressed():
-	get_tree().change_scene_to_file("res://scenes/ui/gacha_screen.tscn")
+	SceneTransition.change_scene("res://scenes/ui/gacha_screen.tscn")
 
 
 func _on_gear_pressed():
-	get_tree().change_scene_to_file("res://scenes/ui/gear_inventory_screen.tscn")
+	SceneTransition.change_scene("res://scenes/ui/gear_inventory_screen.tscn")
 
 
 func _on_collection_pressed():
-	get_tree().change_scene_to_file("res://scenes/ui/collection_screen.tscn")
+	SceneTransition.change_scene("res://scenes/ui/collection_screen.tscn")
 
 
 func _on_how_to_play_pressed():
-	get_tree().change_scene_to_file("res://scenes/ui/how_to_play_screen.tscn")
+	SceneTransition.change_scene("res://scenes/ui/how_to_play_screen.tscn")

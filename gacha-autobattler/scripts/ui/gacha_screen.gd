@@ -122,7 +122,7 @@ func _on_continue():
 	_update_ui()
 
 func _on_back():
-	get_tree().change_scene_to_file("res://scenes/ui/main_menu.tscn")
+	SceneTransition.change_scene("res://scenes/ui/main_menu.tscn")
 
 # === SUMMON ANIMATION SYSTEM ===
 

@@ -342,11 +342,11 @@ func _on_start_dungeon():
 	PlayerData.start_dungeon(selected_dungeon, selected_tier)
 
 	# Go to team select
-	get_tree().change_scene_to_file("res://scenes/ui/team_select_screen.tscn")
+	SceneTransition.change_scene("res://scenes/ui/team_select_screen.tscn")
 
 func _update_stones_display():
 	if stones_label:
 		stones_label.text = str(PlayerData.enhancement_stones) + " Stones"
 
 func _on_back():
-	get_tree().change_scene_to_file("res://scenes/ui/main_menu.tscn")
+	SceneTransition.change_scene("res://scenes/ui/main_menu.tscn")

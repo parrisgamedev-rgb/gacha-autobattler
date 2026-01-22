@@ -366,7 +366,7 @@ func _on_start_stage():
 	PlayerData.start_campaign_stage(selected_stage)
 
 	# Go to team select screen
-	get_tree().change_scene_to_file("res://scenes/ui/team_select_screen.tscn")
+	SceneTransition.change_scene("res://scenes/ui/team_select_screen.tscn")
 
 func _on_back():
-	get_tree().change_scene_to_file("res://scenes/ui/main_menu.tscn")
+	SceneTransition.change_scene("res://scenes/ui/main_menu.tscn")

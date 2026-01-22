@@ -651,19 +651,19 @@ func _on_start():
 
 	# Go to appropriate battle scene
 	if PlayerData.pvp_mode:
-		get_tree().change_scene_to_file("res://scenes/battle/battle_pvp.tscn")
+		SceneTransition.change_scene("res://scenes/battle/battle_pvp.tscn")
 	else:
-		get_tree().change_scene_to_file("res://scenes/battle/battle.tscn")
+		SceneTransition.change_scene("res://scenes/battle/battle.tscn")
 
 func _on_back():
 	if PlayerData.is_campaign_mode():
 		PlayerData.end_campaign_stage()
-		get_tree().change_scene_to_file("res://scenes/ui/campaign_select_screen.tscn")
+		SceneTransition.change_scene("res://scenes/ui/campaign_select_screen.tscn")
 	elif PlayerData.is_dungeon_mode():
 		PlayerData.end_dungeon()
-		get_tree().change_scene_to_file("res://scenes/ui/dungeon_select_screen.tscn")
+		SceneTransition.change_scene("res://scenes/ui/dungeon_select_screen.tscn")
 	else:
-		get_tree().change_scene_to_file("res://scenes/ui/main_menu.tscn")
+		SceneTransition.change_scene("res://scenes/ui/main_menu.tscn")
 
 func _setup_mode_ui():
 	# Show/hide mode-specific UI

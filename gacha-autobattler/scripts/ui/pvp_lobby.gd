@@ -88,11 +88,11 @@ func _on_start_battle_pressed():
 func _start_pvp_battle():
 	# Change to team select, then battle with PvP mode
 	PlayerData.pvp_mode = true
-	get_tree().change_scene_to_file("res://scenes/ui/team_select_screen.tscn")
+	SceneTransition.change_scene("res://scenes/ui/team_select_screen.tscn")
 
 func _on_back_pressed():
 	NetworkManager.disconnect_from_game()
-	get_tree().change_scene_to_file("res://scenes/ui/main_menu.tscn")
+	SceneTransition.change_scene("res://scenes/ui/main_menu.tscn")
 
 func _on_disconnect_pressed():
 	NetworkManager.disconnect_from_game()

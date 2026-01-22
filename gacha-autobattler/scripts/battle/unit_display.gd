@@ -242,6 +242,107 @@ func _on_animation_finished():
 		ai_sprite.play("idle")
 
 
+func play_knockout_animation(battle_speed: float = 1.0, callback: Callable = Callable()):
+	"""Play dramatic knockout animation: red flash, shake, element particles, fade out."""
+	var original_pos = position
+
+	# Get element color for particles
+	var element_color = Color(0.8, 0.8, 0.8)  # Default gray
+	if unit_instance and unit_instance.unit_data:
+		element_color = unit_instance.unit_data.get_element_color()
+
+	# Helper for speed-adjusted times
+	var get_time = func(base_time: float) -> float:
+		return base_time / battle_speed
+
+	# Step 1: Red flash (0.15s)
+	modulate = Color(1.5, 0.3, 0.3)
+	await get_tree().create_timer(get_time.call(0.15)).timeout
+
+	# Step 2: Death shake (0.3s, 5 oscillations)
+	var shake_duration = get_time.call(0.3)
+	var shake_count = 5
+	var shake_time = shake_duration / shake_count
+	var shake_amount = 8.0
+
+	for i in range(shake_count):
+		var offset = Vector2(randf_range(-shake_amount, shake_amount), randf_range(-shake_amount * 0.5, shake_amount * 0.5))
+		position = original_pos + offset
+		await get_tree().create_timer(shake_time).timeout
+		shake_amount *= 0.7
+	position = original_pos
+
+	# Step 3: Spawn element particles
+	_spawn_knockout_particles(element_color)
+
+	# Step 4: Fade out (0.3s, scale to 0.8, opacity to 0)
+	var fade_tween = create_tween()
+	fade_tween.set_parallel(true)
+	fade_tween.tween_property(self, "scale", scale * 0.8, get_time.call(0.3)).set_ease(Tween.EASE_IN)
+	fade_tween.tween_property(self, "modulate:a", 0.0, get_time.call(0.3)).set_ease(Tween.EASE_IN)
+	await fade_tween.finished
+
+	# Call callback when done
+	if callback.is_valid():
+		callback.call()
+
+
+func _spawn_knockout_particles(element_color: Color):
+	"""Create particle burst for knockout effect."""
+	var particles = CPUParticles2D.new()
+	particles.emitting = true
+	particles.amount = 25
+	particles.lifetime = 0.8
+	particles.one_shot = true
+	particles.explosiveness = 0.9
+	particles.position = Vector2.ZERO
+
+	# Emission shape - small burst from center
+	particles.emission_shape = CPUParticles2D.EMISSION_SHAPE_SPHERE
+	particles.emission_sphere_radius = 15.0
+
+	# Movement - burst outward
+	particles.direction = Vector2(0, -1)
+	particles.spread = 180.0
+	particles.gravity = Vector2(0, 150)
+	particles.initial_velocity_min = 80
+	particles.initial_velocity_max = 180
+
+	# Appearance
+	particles.scale_amount_min = 2.0
+	particles.scale_amount_max = 5.0
+
+	# Color gradient - element color fading out
+	var color_ramp = Gradient.new()
+	color_ramp.set_color(0, element_color)
+	color_ramp.set_color(1, Color(element_color.r, element_color.g, element_color.b, 0))
+	particles.color_ramp = color_ramp
+
+	# Add variation with lighter/darker shades
+	var initial_ramp = Gradient.new()
+	initial_ramp.offsets = [0.0, 0.5, 1.0]
+	initial_ramp.colors = [
+		element_color.lightened(0.3),
+		element_color,
+		element_color.darkened(0.2)
+	]
+	particles.color_initial_ramp = initial_ramp
+
+	# Add to scene (parent to ensure it stays visible after unit fades)
+	var parent = get_parent()
+	if parent:
+		parent.add_child(particles)
+		particles.global_position = global_position
+	else:
+		add_child(particles)
+
+	# Auto-cleanup after particles finish
+	get_tree().create_timer(1.5).timeout.connect(func():
+		if is_instance_valid(particles):
+			particles.queue_free()
+	)
+
+
 func set_enemy(enemy: bool):
 	"""Set whether this unit is an enemy (affects sprite facing direction)."""
 	is_enemy = enemy

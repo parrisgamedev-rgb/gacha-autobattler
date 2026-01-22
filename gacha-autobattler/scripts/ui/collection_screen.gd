@@ -302,7 +302,7 @@ func _on_close_detail():
 	_stop_idle_animation()
 
 func _on_back():
-	get_tree().change_scene_to_file("res://scenes/ui/main_menu.tscn")
+	SceneTransition.change_scene("res://scenes/ui/main_menu.tscn")
 
 func _update_detail_sprite(unit_data: UnitData):
 	if not detail_sprite_container:

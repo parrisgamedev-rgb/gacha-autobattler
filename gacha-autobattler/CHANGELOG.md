@@ -2,6 +2,34 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.11] - Polish & Transitions Update
+
+### Added
+- **Unit Knockout Animations**
+  - Red flash effect when unit is defeated (0.15s)
+  - Death shake animation (0.3s, 5 oscillations with decay)
+  - Element-colored particle burst (25 particles matching unit's element)
+  - Fade out with scale reduction (0.3s)
+  - Animations respect battle speed setting (1x/2x/3x)
+
+- **Scene Transitions**
+  - Smooth fade-to-black transitions between all screens
+  - Fade color matches dark UI theme
+  - 0.2s fade out, 0.2s fade in (0.4s total)
+  - Input blocked during transitions to prevent double-clicks
+  - New SceneTransition autoload singleton for consistent transitions
+
+### Technical
+- New files:
+  - `scripts/core/scene_transition.gd` - Global scene transition handler
+- Modified:
+  - `scripts/battle/unit_display.gd` - Added play_knockout_animation(), _spawn_knockout_particles()
+  - `scripts/battle/battle.gd` - Updated _remove_unit_from_grid() to use knockout animation
+  - `project.godot` - Registered SceneTransition autoload
+  - All UI screens updated to use SceneTransition.change_scene()
+
+---
+
 ## [0.9] - Visual Polish Update
 
 ### Added

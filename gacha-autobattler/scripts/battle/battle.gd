@@ -932,16 +932,23 @@ func _get_display_for_unit(unit: UnitInstance) -> Node2D:
 		return grid_enemy_displays[unit.grid_row][unit.grid_col]
 
 func _remove_unit_from_grid(unit: UnitInstance, row: int, col: int):
+	# Convert battle_speed from time multiplier to animation speed multiplier
+	var anim_speed = 1.0 / battle_speed if battle_speed > 0 else 1.0
+
 	if unit.owner == 1:
 		grid_player_units[row][col] = null
 		if grid_player_displays[row][col]:
-			grid_player_displays[row][col].queue_free()
+			var display = grid_player_displays[row][col]
 			grid_player_displays[row][col] = null
+			# Play knockout animation, then free the display
+			display.play_knockout_animation(anim_speed, display.queue_free)
 	else:
 		grid_enemy_units[row][col] = null
 		if grid_enemy_displays[row][col]:
-			grid_enemy_displays[row][col].queue_free()
+			var display = grid_enemy_displays[row][col]
 			grid_enemy_displays[row][col] = null
+			# Play knockout animation, then free the display
+			display.play_knockout_animation(anim_speed, display.queue_free)
 
 	unit.remove_from_grid()
 	unit.start_cooldown()
@@ -1948,12 +1955,12 @@ func _on_play_again_pressed():
 func _on_main_menu_pressed():
 	if PlayerData.is_campaign_mode():
 		PlayerData.end_campaign_stage()
-		get_tree().change_scene_to_file("res://scenes/ui/campaign_select_screen.tscn")
+		SceneTransition.change_scene("res://scenes/ui/campaign_select_screen.tscn")
 	elif PlayerData.is_dungeon_mode():
 		PlayerData.end_dungeon()
-		get_tree().change_scene_to_file("res://scenes/ui/dungeon_select_screen.tscn")
+		SceneTransition.change_scene("res://scenes/ui/dungeon_select_screen.tscn")
 	else:
-		get_tree().change_scene_to_file("res://scenes/ui/main_menu.tscn")
+		SceneTransition.change_scene("res://scenes/ui/main_menu.tscn")
 
 func _show_combat_announcement(text: String, duration: float = 1.0):
 	if combat_announcement:
