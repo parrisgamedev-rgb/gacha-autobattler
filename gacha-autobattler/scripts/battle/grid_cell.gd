@@ -74,26 +74,26 @@ func _setup_ai_overlays(size: int):
 	if not use_ai_board_assets:
 		return
 
-	# Calculate scale to fit cell size (assets are 512x512)
-	var asset_size = 512.0
-	var scale_factor = (size * 0.9) / asset_size  # Slightly smaller than cell
+	# Store cell size for dynamic scaling (assets have varying sizes)
+	var target_size = size * 0.85  # Slightly smaller than cell
 
 	# Create field effect overlay (rendered below ownership but above background)
 	field_effect_overlay = Sprite2D.new()
 	field_effect_overlay.z_index = 1
-	field_effect_overlay.scale = Vector2(scale_factor, scale_factor)
 	field_effect_overlay.visible = false
 	add_child(field_effect_overlay)
 
 	# Create ownership overlay (rendered above field effect)
 	ownership_overlay = Sprite2D.new()
 	ownership_overlay.z_index = 2
-	ownership_overlay.scale = Vector2(scale_factor, scale_factor)
 	ownership_overlay.modulate.a = 0.85  # Slight transparency so field effects show through
 	ownership_overlay.visible = false
 	add_child(ownership_overlay)
 
-	print("GridCell [", grid_row, ",", grid_col, "]: Overlays created with scale ", scale_factor)
+	# Store target size for use when setting textures
+	set_meta("overlay_target_size", target_size)
+
+	print("GridCell [", grid_row, ",", grid_col, "]: Overlays created, target size = ", target_size)
 
 
 func set_ownership(new_owner: int):
@@ -116,6 +116,12 @@ func set_ownership(new_owner: int):
 		var texture = BoardAssetLoader.get_ownership_texture(board_ownership)
 		if texture:
 			ownership_overlay.texture = texture
+			# Scale based on actual texture size
+			var target_size = get_meta("overlay_target_size", 180.0)
+			var tex_size = texture.get_size().x  # Assume square
+			var scale_factor = target_size / tex_size
+			ownership_overlay.scale = Vector2(scale_factor, scale_factor)
+			print("GridCell [", grid_row, ",", grid_col, "]: Texture size=", tex_size, ", scale=", scale_factor)
 			_fade_in_overlay(ownership_overlay)
 		else:
 			_fade_out_overlay(ownership_overlay)
@@ -204,6 +210,13 @@ func _field_type_to_board_effect(field_type: FieldEffectData.FieldType) -> Board
 
 func _fade_in_field_effect():
 	"""Fade in the field effect overlay."""
+	# Scale based on actual texture size
+	if field_effect_overlay.texture:
+		var target_size = get_meta("overlay_target_size", 180.0)
+		var tex_size = field_effect_overlay.texture.get_size().x
+		var scale_factor = target_size / tex_size
+		field_effect_overlay.scale = Vector2(scale_factor, scale_factor)
+
 	if not field_effect_overlay.visible:
 		field_effect_overlay.modulate.a = 0.0
 		field_effect_overlay.visible = true
