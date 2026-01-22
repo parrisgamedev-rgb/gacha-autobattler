@@ -78,20 +78,22 @@ func _setup_ai_overlays(size: int):
 	var asset_size = 512.0
 	var scale_factor = size / asset_size
 
-	# Create field effect overlay (rendered below ownership)
+	# Create field effect overlay (rendered below ownership but above background)
 	field_effect_overlay = Sprite2D.new()
-	field_effect_overlay.z_index = -2
+	field_effect_overlay.z_index = 1
 	field_effect_overlay.scale = Vector2(scale_factor, scale_factor)
 	field_effect_overlay.visible = false
 	add_child(field_effect_overlay)
 
 	# Create ownership overlay (rendered above field effect)
 	ownership_overlay = Sprite2D.new()
-	ownership_overlay.z_index = -1
+	ownership_overlay.z_index = 2
 	ownership_overlay.scale = Vector2(scale_factor, scale_factor)
 	ownership_overlay.modulate.a = 0.85  # Slight transparency so field effects show through
 	ownership_overlay.visible = false
 	add_child(ownership_overlay)
+
+	print("GridCell [", grid_row, ",", grid_col, "]: Overlays created with scale ", scale_factor)
 
 
 func set_ownership(new_owner: int):
