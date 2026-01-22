@@ -75,7 +75,7 @@ func _setup_ai_overlays(size: int):
 		return
 
 	# Store cell size for dynamic scaling (assets have varying sizes)
-	var target_size = size * 0.85  # Slightly smaller than cell
+	var target_size = size * 1.05  # Fill out the cell more
 
 	# Create field effect overlay (rendered below ownership but above background)
 	field_effect_overlay = Sprite2D.new()
