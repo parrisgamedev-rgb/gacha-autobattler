@@ -40,6 +40,7 @@ var current_gear_slot: int = -1  # 0=weapon, 1=armor, 2=acc1, 3=acc2
 
 # Detail panel animated sprite
 var detail_sprite: Sprite2D = null
+var detail_ai_sprite: AnimatedSprite2D = null
 var detail_sprite_container: Control = null
 var idle_animation_tween: Tween = null
 
@@ -75,11 +76,12 @@ func _setup_detail_sprite():
 	detail_sprite_container.position = Vector2(20, 40)
 	detail_panel.add_child(detail_sprite_container)
 
-	# Create the sprite
+	# Create the pixel art sprite (fallback)
 	detail_sprite = Sprite2D.new()
 	detail_sprite.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 	detail_sprite.position = Vector2(100, 100)
 	detail_sprite.scale = Vector2(5, 5)  # Large display
+	detail_sprite.visible = false
 	detail_sprite_container.add_child(detail_sprite)
 
 func _populate_collection():
@@ -303,14 +305,34 @@ func _on_back():
 	get_tree().change_scene_to_file("res://scenes/ui/main_menu.tscn")
 
 func _update_detail_sprite(unit_data: UnitData):
-	if not detail_sprite:
+	if not detail_sprite_container:
 		return
 
-	# Generate and set the texture
-	detail_sprite.texture = PixelArtGenerator.generate_unit_texture(unit_data)
+	# Clean up existing AI sprite if any
+	if detail_ai_sprite:
+		detail_ai_sprite.queue_free()
+		detail_ai_sprite = null
 
-	# Start idle animation
-	_start_idle_animation()
+	# Check if unit has AI sprites
+	if AISpriteLoader.has_ai_sprite(unit_data.unit_id):
+		# Use AI sprite
+		detail_sprite.visible = false
+		detail_ai_sprite = AISpriteLoader.create_animated_sprite(unit_data.unit_id)
+		if detail_ai_sprite:
+			detail_ai_sprite.position = Vector2(100, 100)
+			detail_ai_sprite.scale = Vector2(1.5, 1.5)  # AI sprites are larger, scale appropriately
+			detail_sprite_container.add_child(detail_ai_sprite)
+			detail_ai_sprite.play("idle")
+			# No need for tween animation - AI sprite has its own idle
+			_stop_idle_animation()
+			return
+
+	# Fall back to pixel art
+	if detail_sprite:
+		detail_sprite.visible = true
+		detail_sprite.texture = PixelArtGenerator.generate_unit_texture(unit_data)
+		# Start idle animation for pixel art
+		_start_idle_animation()
 
 func _start_idle_animation():
 	_stop_idle_animation()

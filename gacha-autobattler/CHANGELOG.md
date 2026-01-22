@@ -2,6 +2,42 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.8.1] - AI-Generated Sprites & Dynamic Board
+
+### Added
+- **AI-Generated Unit Sprites**
+  - All 10 units now have AI-generated animated sprites
+  - 3 animations per unit: idle (8 frames), attack (6 frames), hurt (4 frames)
+  - Sprites display in battle with proper facing direction (player right, enemy left)
+  - Collection screen detail panel shows animated AI sprites
+  - Dynamic frame count detection for flexible sprite sheet sizes
+  - Sprite sheet generation tool with video-to-spritesheet conversion
+  - Prompt templates for generating consistent unit animations
+
+- **Dynamic Game Board System**
+  - AI-generated board background with 3x3 grid
+  - Ownership overlays: player (blue hologram), enemy (red), contested (purple)
+  - Field effect overlays replace particle effects (thermal, repair, boost, suppression)
+  - BoardAssetLoader autoload for managing board textures
+  - Layered rendering: field effects (z=1), ownership (z=2), units (z=10)
+  - Smooth fade transitions for overlay changes
+
+### Changed
+- AISpriteLoader updated with mappings for all 10 units
+- Collection screen uses AI sprites when available, falls back to pixel art
+- Grid cell system updated with overlay sprite support
+- Increased animation FPS for smoother playback (idle=8, attack=10, hurt=8)
+
+### Technical
+- New files:
+  - `scripts/core/board_asset_loader.gd` - Board texture management
+  - `tools/sprite_prompts.md` - AI generation prompt templates
+  - `tools/sprite_sheet_maker.py` - Video to sprite sheet converter
+  - `assets/sprites/{unit}/` - AI sprite sheets for all units
+  - `assets/board/` - Board background and overlay textures
+
+---
+
 ## [0.8] - Enhanced Pixel Art & UI Polish
 
 ### Added

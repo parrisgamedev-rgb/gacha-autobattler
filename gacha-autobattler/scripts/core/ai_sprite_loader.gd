@@ -4,7 +4,15 @@ extends Node
 # Maps unit_id to sprite folder name
 const SPRITE_MAPPINGS = {
 	"fire_warrior_001": "kael",
-	# Add more mappings as sprites are created
+	"fire_imp_001": "fire_imp",
+	"water_sprite_001": "water_sprite",
+	"water_mage_001": "water_mage",
+	"nature_wisp_001": "nature_wisp",
+	"nature_tank_001": "nature_tank",
+	"light_cleric_001": "light_cleric",
+	"radiant_paladin_001": "radiant_paladin",
+	"shadow_scout_001": "shadow_scout",
+	"dark_knight_001": "dark_knight",
 }
 
 # Cache loaded textures
@@ -13,10 +21,12 @@ var _atlas_cache: Dictionary = {}
 
 # Animation settings
 const FRAME_SIZE = 128
-const FRAME_COUNT = 3
-const IDLE_FPS = 3.0  # Frames per second for idle animation
-const ATTACK_FPS = 5.0  # Frames per second for attack animation
-const HURT_FPS = 4.0  # Frames per second for hurt animation
+const IDLE_FRAME_COUNT = 8
+const ATTACK_FRAME_COUNT = 6
+const HURT_FRAME_COUNT = 4
+const IDLE_FPS = 8.0  # Frames per second for idle animation
+const ATTACK_FPS = 10.0  # Frames per second for attack animation
+const HURT_FPS = 8.0  # Frames per second for hurt animation
 
 
 func has_ai_sprite(unit_id: String) -> bool:
@@ -74,11 +84,33 @@ func get_frame_texture(unit_id: String, animation: String, frame: int) -> AtlasT
 	return atlas
 
 
+func get_frame_count_for_sheet(sheet: Texture2D) -> int:
+	"""Detect frame count from sprite sheet width."""
+	if not sheet:
+		return 0
+	return int(sheet.get_width() / FRAME_SIZE)
+
+
+func get_frame_count(animation: String) -> int:
+	"""Get the default number of frames for an animation type."""
+	match animation:
+		"idle":
+			return IDLE_FRAME_COUNT
+		"attack":
+			return ATTACK_FRAME_COUNT
+		"hurt":
+			return HURT_FRAME_COUNT
+		_:
+			return IDLE_FRAME_COUNT
+
+
 func get_all_frames(unit_id: String, animation: String = "idle") -> Array[AtlasTexture]:
 	"""Get all frames for an animation."""
 	var frames: Array[AtlasTexture] = []
+	var sheet = load_sprite_sheet(unit_id, animation)
+	var frame_count = get_frame_count_for_sheet(sheet)
 
-	for i in range(FRAME_COUNT):
+	for i in range(frame_count):
 		var frame = get_frame_texture(unit_id, animation, i)
 		if frame:
 			frames.append(frame)
@@ -95,33 +127,39 @@ func create_animated_sprite(unit_id: String) -> AnimatedSprite2D:
 	var frames = SpriteFrames.new()
 
 	# Add idle animation
+	var idle_sheet = load_sprite_sheet(unit_id, "idle")
+	var idle_frame_count = get_frame_count_for_sheet(idle_sheet)
 	frames.add_animation("idle")
 	frames.set_animation_speed("idle", IDLE_FPS)
 	frames.set_animation_loop("idle", true)
 
-	for i in range(FRAME_COUNT):
+	for i in range(idle_frame_count):
 		var frame_texture = get_frame_texture(unit_id, "idle", i)
 		if frame_texture:
 			frames.add_frame("idle", frame_texture)
 
 	# Add attack animation if available
-	if load_sprite_sheet(unit_id, "attack"):
+	var attack_sheet = load_sprite_sheet(unit_id, "attack")
+	if attack_sheet:
+		var attack_frame_count = get_frame_count_for_sheet(attack_sheet)
 		frames.add_animation("attack")
 		frames.set_animation_speed("attack", ATTACK_FPS)
 		frames.set_animation_loop("attack", false)
 
-		for i in range(FRAME_COUNT):
+		for i in range(attack_frame_count):
 			var frame_texture = get_frame_texture(unit_id, "attack", i)
 			if frame_texture:
 				frames.add_frame("attack", frame_texture)
 
 	# Add hurt animation if available
-	if load_sprite_sheet(unit_id, "hurt"):
+	var hurt_sheet = load_sprite_sheet(unit_id, "hurt")
+	if hurt_sheet:
+		var hurt_frame_count = get_frame_count_for_sheet(hurt_sheet)
 		frames.add_animation("hurt")
 		frames.set_animation_speed("hurt", HURT_FPS)
 		frames.set_animation_loop("hurt", false)
 
-		for i in range(FRAME_COUNT):
+		for i in range(hurt_frame_count):
 			var frame_texture = get_frame_texture(unit_id, "hurt", i)
 			if frame_texture:
 				frames.add_frame("hurt", frame_texture)
