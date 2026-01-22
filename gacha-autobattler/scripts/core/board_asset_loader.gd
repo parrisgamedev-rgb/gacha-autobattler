@@ -21,9 +21,6 @@ var _field_effect_textures: Dictionary = {}
 
 func _ready():
 	_preload_assets()
-	print("BoardAssetLoader: Base grid loaded = ", _base_grid != null)
-	print("BoardAssetLoader: Ownership textures = ", _ownership_textures.size())
-	print("BoardAssetLoader: Field effect textures = ", _field_effect_textures.size())
 
 
 func _preload_assets():

@@ -17,7 +17,6 @@ signal instant_lose_requested
 @onready var instant_lose_button = $Panel/VBox/InstantLoseButton
 @onready var add_gems_button = $Panel/VBox/AddGemsButton
 @onready var add_gold_button = $Panel/VBox/AddGoldButton
-@onready var fill_grid_button = $Panel/VBox/FillGridButton
 
 var battle_ref: Node = null
 
@@ -33,8 +32,6 @@ func _ready():
 	instant_lose_button.pressed.connect(_on_instant_lose_pressed)
 	add_gems_button.pressed.connect(_on_add_gems_pressed)
 	add_gold_button.pressed.connect(_on_add_gold_pressed)
-	if fill_grid_button:
-		fill_grid_button.pressed.connect(_on_fill_grid_pressed)
 
 func setup(battle: Node):
 	battle_ref = battle
@@ -98,9 +95,3 @@ func _on_add_gems_pressed():
 func _on_add_gold_pressed():
 	PlayerData.add_gold(10000)
 	print("[CHEAT] Added 10000 gold")
-
-
-func _on_fill_grid_pressed():
-	if battle_ref:
-		print("[CHEAT] Filling all grid cells for visual testing")
-		battle_ref._cheat_fill_grid()
