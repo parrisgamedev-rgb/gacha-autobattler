@@ -1932,6 +1932,26 @@ func _cheat_instant_lose():
 	current_phase = GamePhase.GAME_OVER
 	_show_results(2)
 
+
+func _cheat_fill_grid():
+	# Fill all 9 cells with ownership for visual testing
+	# Pattern: Player on left column, Enemy on right column, Contested in middle
+	for row in range(GRID_SIZE):
+		for col in range(GRID_SIZE):
+			var owner_type: int
+			if col == 0:
+				owner_type = 1  # Player (left column)
+			elif col == 2:
+				owner_type = 2  # Enemy (right column)
+			else:
+				owner_type = 3  # Contested (middle column)
+
+			grid_ownership[row][col] = owner_type
+			grid_cells[row][col].set_ownership(owner_type)
+
+	print("[CHEAT] Filled all cells - Left=Player, Middle=Contested, Right=Enemy")
+
+
 func _update_roster_displays():
 	# Update all player roster displays to show current HP/cooldowns
 	for display in roster_displays:
