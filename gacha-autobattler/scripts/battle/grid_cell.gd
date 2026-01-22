@@ -69,6 +69,7 @@ func setup(row: int, col: int, size: int):
 func _setup_ai_overlays(size: int):
 	"""Create overlay sprites for AI-generated board assets."""
 	use_ai_board_assets = BoardAssetLoader.has_board_assets()
+	print("GridCell [", grid_row, ",", grid_col, "]: AI board assets = ", use_ai_board_assets)
 
 	if not use_ai_board_assets:
 		return
@@ -95,6 +96,7 @@ func _setup_ai_overlays(size: int):
 
 func set_ownership(new_owner: int):
 	ownership = new_owner
+	print("GridCell [", grid_row, ",", grid_col, "]: set_ownership(", new_owner, ") - AI assets: ", use_ai_board_assets, ", overlay: ", ownership_overlay != null)
 
 	# Update AI board overlay if available
 	if use_ai_board_assets and ownership_overlay:
