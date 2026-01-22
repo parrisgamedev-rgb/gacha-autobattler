@@ -1,0 +1,270 @@
+# Grid Battler - Development Roadmap
+
+**Current Version:** 0.11
+**Target Release:** 1.0
+**Last Updated:** January 2026
+
+---
+
+## Overview
+
+This roadmap outlines the path from v0.11 to v1.0 release. Each version focuses on a specific area to ensure steady, testable progress.
+
+---
+
+## Version History (Completed)
+
+| Version | Theme | Key Features |
+|---------|-------|--------------|
+| 0.1 | Initial Release | Core battle, units, gacha, PvP |
+| 0.2 | Story Campaign | Chapter 1, stage progression |
+| 0.2.1 | Save System | Persistence, starter units |
+| 0.3 | Unit Leveling | XP, gold/materials economy |
+| 0.4 | Gear System | Equipment, enhancement, dungeons |
+| 0.5 | Auto-Battle | AI control, speed settings, UI overhaul |
+| 0.6 | Visual Polish | Summon animations, pixel art, knockout system |
+| 0.7 | Battle Board | Custom backgrounds, 2.5D perspective, tooltips |
+| 0.8 | Enhanced Art | Better pixel art, collection preview |
+| 0.8.1 | AI Sprites | Animated sprites, dynamic board |
+| 0.8.2 | Combat Balance | 3 actions, turn limit, cooldown adjustments |
+| 0.8.3 | Help System | How to Play screen, Content Editor tool |
+| 0.9 | Victory/Defeat | Animated results screens |
+| **0.11** | **Polish** | **Knockout animations, scene transitions** |
+
+---
+
+## Upcoming Versions
+
+### v0.12 - Audio Foundation
+**Goal:** Add sound and music to make the game feel complete.
+
+#### Features
+- [ ] **Sound Effects**
+  - Attack/hit sounds
+  - Ability activation sounds
+  - UI click/hover sounds
+  - Victory fanfare
+  - Defeat sound
+  - Summon reveal sounds (with rarity tiers)
+
+- [ ] **Background Music**
+  - Main menu theme (calm, inviting)
+  - Battle theme (energetic, tactical)
+  - Victory theme (triumphant, short)
+  - Defeat theme (somber, short)
+
+- [ ] **Settings Menu**
+  - Master volume slider
+  - Music volume slider
+  - SFX volume slider
+  - Save preferences
+
+#### Technical Notes
+- Use Godot's AudioStreamPlayer and AudioBus system
+- Implement audio manager autoload
+- Consider royalty-free music sources or AI generation
+
+---
+
+### v0.13 - Combat Polish
+**Goal:** Make combat feel impactful and satisfying.
+
+#### Features
+- [ ] **Attack Animations**
+  - Unit lunges toward target (quick forward movement)
+  - Returns to position after attack
+  - Respects battle speed setting
+
+- [ ] **Hit Impact Effects**
+  - Brief screen shake on significant hits
+  - Impact particles at hit location
+  - Camera punch effect for crits/kills
+
+- [ ] **Ability Cast Effects**
+  - Element-colored aura/glow when using abilities
+  - Particle effects for special abilities
+  - Visual distinction between ability types
+
+#### Technical Notes
+- Extend unit_display.gd with new animation methods
+- Create reusable particle effect scenes
+- Ensure all effects scale with battle speed
+
+---
+
+### v0.14 - Tutorial & Onboarding
+**Goal:** Help new players understand the game quickly.
+
+#### Features
+- [ ] **Interactive Tutorial**
+  - Triggered on first launch (or from menu)
+  - Step-by-step guided first battle
+  - Highlights UI elements with prompts
+  - Covers: placing units, combat basics, winning
+
+- [ ] **Extended Onboarding**
+  - Gacha explanation (after first battle)
+  - Team building tips
+  - Gear basics introduction
+  - Campaign introduction
+
+- [ ] **Tutorial Skip**
+  - Option to skip for returning players
+  - "Show tutorial again" in settings
+
+#### Technical Notes
+- Create tutorial_manager.gd autoload
+- Use overlay system for highlighting UI
+- Store tutorial completion in save file
+
+---
+
+### v0.15 - Content Expansion I
+**Goal:** More content for players to engage with.
+
+#### Features
+- [ ] **Chapter 2 Campaign**
+  - 5 new stages (2-1 through 2-5)
+  - New enemy configurations
+  - Increased difficulty curve
+  - New first-clear rewards
+  - Story text for chapter
+
+- [ ] **5 New Units**
+  - At least 1 per element
+  - Mix of 3★, 4★ rarities
+  - Unique ability combinations
+  - AI-generated sprites
+
+#### New Units (Suggested)
+| Name | Element | Stars | Role |
+|------|---------|-------|------|
+| TBD | Fire | 4★ | DPS |
+| TBD | Water | 3★ | Support |
+| TBD | Nature | 4★ | Tank |
+| TBD | Light | 3★ | Healer |
+| TBD | Dark | 3★ | Assassin |
+
+---
+
+### v0.16 - Retention Systems
+**Goal:** Give players reasons to return daily.
+
+#### Features
+- [ ] **Daily Login Rewards**
+  - 7-day calendar system
+  - Escalating rewards (Gems, Gold, Materials, Stones)
+  - Monthly reset
+  - Catch-up mechanic (miss a day, still progress)
+
+- [ ] **Achievements System**
+  - Categories: Battle, Collection, Progression
+  - Gem rewards for completion
+  - Achievement notification popup
+  - Achievement gallery screen
+
+#### Achievement Ideas
+| Achievement | Requirement | Reward |
+|-------------|-------------|--------|
+| First Blood | Win 1 battle | 50 Gems |
+| Collector | Own 10 units | 100 Gems |
+| Chapter 1 Clear | Complete 1-5 | 200 Gems |
+| Gear Up | Enhance gear to +6 | 50 Gems |
+| Speed Demon | Win in under 10 turns | 75 Gems |
+
+---
+
+### v0.17 - Content Expansion II
+**Goal:** More content depth for engaged players.
+
+#### Features
+- [ ] **Chapter 3 Campaign**
+  - 5 new stages (3-1 through 3-5)
+  - Boss encounter at 3-5
+  - Higher difficulty
+  - Premium rewards
+
+- [ ] **5 More Units (20 Total)**
+  - Include at least one new 5★
+  - Fill gaps in team compositions
+  - More ability variety
+
+#### Unit Distribution Goal (20 units)
+| Stars | Current | Target |
+|-------|---------|--------|
+| 3★ | 6 | 10 |
+| 4★ | 2 | 6 |
+| 5★ | 2 | 4 |
+
+---
+
+### v0.18 - Pre-Release Polish
+**Goal:** Final preparation for v1.0 release.
+
+#### Features
+- [ ] **Bug Fixes**
+  - Address all known issues
+  - Edge case handling
+  - Performance optimization
+
+- [ ] **Balance Pass**
+  - Review unit stats
+  - Adjust ability cooldowns/damage
+  - Ensure viable team compositions
+
+- [ ] **Credits Screen**
+  - List contributors
+  - Asset attributions
+  - Special thanks
+
+- [ ] **Final UI Polish**
+  - Consistent styling
+  - Animation smoothness
+  - Loading states
+
+---
+
+### v1.0 - Release
+**Goal:** Ship a complete, polished game.
+
+#### Checklist
+- [ ] All features implemented and tested
+- [ ] No critical bugs
+- [ ] Tutorial complete and helpful
+- [ ] Audio fully integrated
+- [ ] 15+ campaign stages
+- [ ] 20 units
+- [ ] Achievements working
+- [ ] Daily rewards working
+- [ ] Settings menu complete
+- [ ] Credits screen
+- [ ] Windows build tested
+- [ ] Save/load thoroughly tested
+
+---
+
+## Post-1.0 Considerations
+
+Features that could come after release:
+
+- **Events System:** Limited-time challenges with special rewards
+- **Guild System:** Player groups with shared goals
+- **Additional Chapters:** Continuing the story
+- **New Game Modes:** Challenge modes, endless dungeon
+- **More Units:** Expanding the roster
+- **Steam Release:** Publishing on Steam platform
+- **Mobile Port:** Android/iOS versions
+
+---
+
+## Development Principles
+
+1. **Ship incrementally:** Each version should be playable and testable
+2. **Polish before features:** A polished small game beats a buggy big one
+3. **Test on target platform:** Regular Windows builds for testing
+4. **Player feedback:** Incorporate feedback between versions
+5. **Keep scope manageable:** Better to release 1.0 than chase perfection
+
+---
+
+*This roadmap is a living document and may be adjusted based on development progress and priorities.*
