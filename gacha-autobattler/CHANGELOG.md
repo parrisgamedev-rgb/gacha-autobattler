@@ -2,6 +2,106 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.7] - Battle Board Visual Overhaul
+
+### Added
+- **Custom Game Board Background**
+  - Support for custom background images as the battle board
+  - Grid cells are now invisible (background image provides visuals)
+  - Click detection maintained via invisible hitboxes
+  - Subtle hover highlight when mousing over cells
+
+- **2.5D Perspective System**
+  - Units scale based on grid row (smaller at top, larger at bottom)
+  - Perspective creates depth illusion similar to HD-2D style
+  - Per-row Y offset adjustments for precise alignment
+  - Grid positioning matches background image perspective
+
+- **Particle-Based Field Effects**
+  - Fire particles for THERMAL/damage effects (rising flames)
+  - Green sparkles for REPAIR/healing effects
+  - Swirling ring particles for SUPPRESSION effects
+  - Golden energy particles for BOOST effects
+  - Replaced old colored rectangle overlays
+
+- **Floating Ability Tooltip**
+  - Tooltip appears near units when placed or selected
+  - Shows all abilities with cooldown indicators
+  - Displays ability description
+  - Arrow points to the unit
+  - Click anywhere outside to dismiss
+  - Smooth show/hide animations
+
+- **Post-Processing Effects**
+  - Vignette shader for cinematic edge darkening
+  - Light rays shader for atmospheric lighting
+  - WorldEnvironment color adjustments
+
+- **Unit Entry Animations**
+  - Units animate onto the board when placed
+  - Player units slide in from bottom
+  - Enemy units slide in from top
+  - Subtle bounce effect on landing
+
+### Changed
+- Grid cells no longer display backgrounds or borders
+- Ability panel replaced with floating tooltip near units
+- Removed ownership indicator overlays (units show ownership)
+
+### Technical
+- New files:
+  - `scenes/battle/ability_tooltip.tscn` - Floating tooltip scene
+  - `scripts/battle/ability_tooltip.gd` - Tooltip logic
+  - `shaders/vignette.gdshader` - Vignette post-process
+  - `shaders/light_rays.gdshader` - Atmospheric light rays
+  - `shaders/dof_blur.gdshader` - Depth of field (disabled)
+  - `Game Art Assets/` - Custom background images
+
+---
+
+## [0.6] - Polish & Visual Update
+
+### Added
+- **Summon Animation System**
+  - Cinematic pull animations with dramatic buildup
+  - One-by-one unit reveals for multi-pulls
+  - Rarity-based effects (gold burst for 5-star, purple for 4-star)
+  - Skip button to jump to final results
+  - Summoning circle with pulsing glow
+
+- **Procedural Pixel Art Characters**
+  - Units now display as 32x32 pixel art instead of colored rectangles
+  - Unique silhouettes per class (Warrior, Mage, Cleric, Knight, Tank, Imp, Sprite, Scout)
+  - Element-based color palettes (Fire=red/orange, Water=blue, Nature=green, etc.)
+  - Rarity glow effects (5-star gold outline, 4-star purple accents)
+  - Texture caching for performance
+
+- **Knockout Victory System**
+  - New win condition: knock out 3 enemy units to win
+  - Knockout counter tracking for both sides
+  - Units removed from combat when defeated (no respawn)
+  - Revive infrastructure added for future abilities
+
+- **Battle Balance Improvements**
+  - 50 turn limit with HP percentage tiebreaker
+  - Fixed bug where abilities on cooldown were still being used
+
+- **Cheat Menu Additions**
+  - +10000 Gems button
+  - +10000 Gold button
+
+### Changed
+- **Ability Cooldowns Increased** (to prevent infinite healing stalemates)
+  - Holy Light: 1 → 3 turns
+  - Tidal Shield: 1 → 3 turns
+  - Life Drain: 1 → 2 turns
+  - Guard: 0 → 2 turns
+  - Counter Stance: 1 → 2 turns
+
+- Starting gems increased from 1000 to 10000 for testing
+
+---
+
 ## [0.5] - Auto-Battle & UI Overhaul
 
 ### Added

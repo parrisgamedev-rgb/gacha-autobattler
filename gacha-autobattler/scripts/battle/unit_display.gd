@@ -60,8 +60,8 @@ func setup(instance: UnitInstance):
 			element_label.text = _get_element_letter(data.element)
 			element_label.add_theme_color_override("font_color", element_color)
 
-		# Set body color (placeholder - would be portrait later)
-		body.color = data.portrait_color
+		# Generate pixel art for this unit
+		body.texture = PixelArtGenerator.generate_unit_texture(data)
 
 		# Update HP bar
 		update_hp_display()
@@ -118,6 +118,64 @@ func flash_color(color: Color, duration: float = 0.2):
 	modulate = color
 	var tween = create_tween()
 	tween.tween_property(self, "modulate", original_modulate, duration)
+
+func play_entry_animation(from_direction: String = "bottom"):
+	# Store final position and scale
+	var final_position = position
+	var final_scale = scale
+
+	# Start off-screen or scaled down based on direction
+	match from_direction:
+		"bottom":
+			position = final_position + Vector2(0, 150)
+			modulate.a = 0.0
+		"top":
+			position = final_position + Vector2(0, -150)
+			modulate.a = 0.0
+		"left":
+			position = final_position + Vector2(-150, 0)
+			modulate.a = 0.0
+		"right":
+			position = final_position + Vector2(150, 0)
+			modulate.a = 0.0
+		"scale":
+			scale = Vector2.ZERO
+			modulate.a = 0.0
+		_:
+			position = final_position + Vector2(0, 100)
+			modulate.a = 0.0
+
+	# Create entry animation
+	var tween = create_tween()
+	tween.set_parallel(true)
+	tween.set_ease(Tween.EASE_OUT)
+	tween.set_trans(Tween.TRANS_BACK)
+
+	# Animate position/scale
+	if from_direction == "scale":
+		tween.tween_property(self, "scale", final_scale, 0.4)
+	else:
+		tween.tween_property(self, "position", final_position, 0.35).set_trans(Tween.TRANS_QUAD)
+
+	# Fade in
+	tween.tween_property(self, "modulate:a", 1.0, 0.25)
+
+	# Add a subtle bounce at the end
+	tween.chain().tween_property(self, "scale", final_scale * 1.1, 0.1).set_trans(Tween.TRANS_QUAD)
+	tween.tween_property(self, "scale", final_scale, 0.1).set_trans(Tween.TRANS_QUAD)
+
+func play_exit_animation(callback: Callable = Callable()):
+	var tween = create_tween()
+	tween.set_parallel(true)
+	tween.set_ease(Tween.EASE_IN)
+	tween.set_trans(Tween.TRANS_QUAD)
+
+	# Scale down and fade out
+	tween.tween_property(self, "scale", Vector2.ZERO, 0.3)
+	tween.tween_property(self, "modulate:a", 0.0, 0.25)
+
+	if callback.is_valid():
+		tween.chain().tween_callback(callback)
 
 func update_cooldown_display():
 	if unit_instance:

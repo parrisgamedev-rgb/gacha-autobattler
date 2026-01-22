@@ -4,8 +4,16 @@ extends Node2D
 
 # Grid settings
 const GRID_SIZE = 3
-const CELL_SIZE = 150
-const CELL_GAP = 10
+const CELL_SIZE = 180  # Base cell size
+const CELL_GAP = 20    # Gap between cells
+
+# Perspective settings for 2.5D effect
+const PERSPECTIVE_SCALE_TOP = 0.85     # Scale for top row (further away)
+const PERSPECTIVE_SCALE_BOTTOM = 1.15  # Scale for bottom row (closer)
+const PERSPECTIVE_Y_SQUEEZE = 0.75     # Vertical compression for isometric look
+const PERSPECTIVE_Y_OFFSET = -30       # Shift grid up slightly
+const MIDDLE_ROW_EXTRA_OFFSET = 15     # Extra Y offset for middle row alignment
+const BOTTOM_ROW_EXTRA_OFFSET = 40     # Extra Y offset for bottom row alignment
 const ACTIONS_PER_TURN = 2
 const MAX_TURNS = 50  # Turn limit to prevent infinite stalemates
 const KNOCKOUTS_TO_WIN = 3  # Knock out this many enemy units to win
@@ -87,6 +95,10 @@ var pending_edit_unit: UnitInstance = null
 # Preload scenes
 var GridCellScene = preload("res://scenes/battle/grid_cell.tscn")
 var UnitDisplayScene = preload("res://scenes/battle/unit_display.tscn")
+var AbilityTooltipScene = preload("res://scenes/battle/ability_tooltip.tscn")
+
+# Ability tooltip instance
+var ability_tooltip: Control = null
 
 func _ready():
 	_create_grid()
@@ -94,11 +106,21 @@ func _ready():
 	_create_roster_displays()
 	_update_ui()
 
+	# Create ability tooltip
+	ability_tooltip = AbilityTooltipScene.instantiate()
+	$UI.add_child(ability_tooltip)
+	ability_tooltip.ability_selected.connect(_on_tooltip_ability_selected)
+	ability_tooltip.dismissed.connect(_on_tooltip_dismissed)
+
+	# Hide old ability panel (keeping for fallback)
+	if ability_panel:
+		ability_panel.visible = false
+
 	# Connect end turn button
 	if end_turn_button:
 		end_turn_button.pressed.connect(_on_end_turn_pressed)
 
-	# Connect ability buttons
+	# Connect ability buttons (legacy - keep for compatibility)
 	for i in range(ability_buttons.size()):
 		var btn = ability_buttons[i]
 		if btn:
@@ -129,6 +151,40 @@ func _ready():
 	# Apply theme styling
 	_apply_battle_theme()
 
+func _get_perspective_scale(row: int) -> float:
+	# Interpolate scale based on row (0 = top/far, 2 = bottom/near)
+	var t = float(row) / float(GRID_SIZE - 1)
+	return lerp(PERSPECTIVE_SCALE_TOP, PERSPECTIVE_SCALE_BOTTOM, t)
+
+func _get_cell_position(row: int, col: int) -> Vector2:
+	# Calculate position with perspective
+	var row_scale = _get_perspective_scale(row)
+
+	# Base grid calculation
+	var base_cell_size = CELL_SIZE * row_scale
+	var base_gap = CELL_GAP * row_scale
+
+	# X position (centered, scaled per row for perspective convergence)
+	var row_width = (base_cell_size * GRID_SIZE) + (base_gap * (GRID_SIZE - 1))
+	var x_offset = -row_width / 2
+	var x = x_offset + (col * (base_cell_size + base_gap)) + base_cell_size / 2
+
+	# Y position (compressed vertically for isometric look)
+	var y_spacing = CELL_SIZE * PERSPECTIVE_Y_SQUEEZE
+	var total_height = y_spacing * (GRID_SIZE - 1)
+	var y = -total_height / 2 + (row * y_spacing) + PERSPECTIVE_Y_OFFSET
+
+	# Add extra offset for middle and bottom rows
+	if row == 1:
+		y += MIDDLE_ROW_EXTRA_OFFSET
+	elif row == GRID_SIZE - 1:
+		y += BOTTOM_ROW_EXTRA_OFFSET
+
+	return Vector2(x, y)
+
+func _get_cell_size_for_row(row: int) -> float:
+	return CELL_SIZE * _get_perspective_scale(row)
+
 func _create_grid():
 	grid_ownership = []
 	grid_cells = []
@@ -137,9 +193,6 @@ func _create_grid():
 	grid_player_displays = []
 	grid_enemy_displays = []
 	grid_field_effects = []
-
-	var grid_total_size = (CELL_SIZE * GRID_SIZE) + (CELL_GAP * (GRID_SIZE - 1))
-	var offset = -grid_total_size / 2
 
 	for row in range(GRID_SIZE):
 		var cell_row = []
@@ -150,15 +203,18 @@ func _create_grid():
 		var enemy_display_row = []
 		var field_row = []
 
+		var row_scale = _get_perspective_scale(row)
+		var cell_size_for_row = _get_cell_size_for_row(row)
+
 		for col in range(GRID_SIZE):
 			var cell = GridCellScene.instantiate()
 			grid_container.add_child(cell)
 
-			var x = offset + (col * (CELL_SIZE + CELL_GAP)) + CELL_SIZE / 2
-			var y = offset + (row * (CELL_SIZE + CELL_GAP)) + CELL_SIZE / 2
-			cell.position = Vector2(x, y)
+			var pos = _get_cell_position(row, col)
+			cell.position = pos
+			cell.scale = Vector2(row_scale, row_scale)
 
-			cell.setup(row, col, CELL_SIZE)
+			cell.setup(row, col, int(cell_size_for_row))
 			cell.cell_clicked.connect(_on_cell_clicked)
 
 			cell_row.append(cell)
@@ -523,15 +579,15 @@ func _show_placement_preview(unit: UnitInstance, row: int, col: int):
 	var display = UnitDisplayScene.instantiate()
 	grid_container.add_child(display)
 
-	var grid_total_size = (CELL_SIZE * GRID_SIZE) + (CELL_GAP * (GRID_SIZE - 1))
-	var offset = -grid_total_size / 2
-	var x = offset + (col * (CELL_SIZE + CELL_GAP)) + CELL_SIZE / 2
-	var y = offset + (row * (CELL_SIZE + CELL_GAP)) + CELL_SIZE / 2
+	var pos = _get_cell_position(row, col)
+	var row_scale = _get_perspective_scale(row)
+
 	# Offset player units slightly left if there might be an enemy
 	if grid_enemy_units[row][col] != null:
-		x -= 25
-	display.position = Vector2(x, y)
-	display.scale = Vector2(0.7, 0.7)
+		pos.x -= 25 * row_scale
+
+	display.position = pos
+	display.scale = Vector2(0.7, 0.7) * row_scale
 	display.setup(unit)
 	display.modulate = Color(1, 1, 1, 0.7)  # Semi-transparent to show it's pending
 
@@ -890,23 +946,16 @@ func _recenter_remaining_unit(row: int, col: int):
 	# If only one unit remains on this square, recenter it
 	var has_player = grid_player_units[row][col] != null
 	var has_enemy = grid_enemy_units[row][col] != null
+	var pos = _get_cell_position(row, col)
 
 	if has_player and not has_enemy:
 		# Only player unit remains - recenter it
-		var grid_total_size = (CELL_SIZE * GRID_SIZE) + (CELL_GAP * (GRID_SIZE - 1))
-		var offset = -grid_total_size / 2
-		var x = offset + (col * (CELL_SIZE + CELL_GAP)) + CELL_SIZE / 2
-		var y = offset + (row * (CELL_SIZE + CELL_GAP)) + CELL_SIZE / 2
 		if grid_player_displays[row][col]:
-			grid_player_displays[row][col].position = Vector2(x, y)
+			grid_player_displays[row][col].position = pos
 	elif has_enemy and not has_player:
 		# Only enemy unit remains - recenter it
-		var grid_total_size = (CELL_SIZE * GRID_SIZE) + (CELL_GAP * (GRID_SIZE - 1))
-		var offset = -grid_total_size / 2
-		var x = offset + (col * (CELL_SIZE + CELL_GAP)) + CELL_SIZE / 2
-		var y = offset + (row * (CELL_SIZE + CELL_GAP)) + CELL_SIZE / 2
 		if grid_enemy_displays[row][col]:
-			grid_enemy_displays[row][col].position = Vector2(x, y)
+			grid_enemy_displays[row][col].position = pos
 
 func _resolve_duel(row: int, col: int, p_unit: UnitInstance, e_unit: UnitInstance):
 	# Get selected abilities (nullify if disrupted OR on cooldown)
@@ -1175,22 +1224,20 @@ func _confirm_placement(unit: UnitInstance, row: int, col: int, owner: int):
 	var display = UnitDisplayScene.instantiate()
 	grid_container.add_child(display)
 
-	# Calculate position with offset for contested squares
-	var grid_total_size = (CELL_SIZE * GRID_SIZE) + (CELL_GAP * (GRID_SIZE - 1))
-	var offset = -grid_total_size / 2
-	var x = offset + (col * (CELL_SIZE + CELL_GAP)) + CELL_SIZE / 2
-	var y = offset + (row * (CELL_SIZE + CELL_GAP)) + CELL_SIZE / 2
+	# Calculate position with perspective
+	var pos = _get_cell_position(row, col)
+	var row_scale = _get_perspective_scale(row)
 
 	# Offset units on contested squares so both are visible
 	var is_contested = (owner == 1 and grid_enemy_units[row][col] != null) or (owner == 2 and grid_player_units[row][col] != null)
 	if is_contested:
 		if owner == 1:
-			x -= 25  # Player unit offset left
+			pos.x -= 25 * row_scale  # Player unit offset left
 		else:
-			x += 25  # Enemy unit offset right
+			pos.x += 25 * row_scale  # Enemy unit offset right
 
-	display.position = Vector2(x, y)
-	display.scale = Vector2(0.7, 0.7)
+	display.position = pos
+	display.scale = Vector2(0.7, 0.7) * row_scale
 	display.setup(unit)
 	display.modulate = Color(1, 1, 1, 1)  # Full opacity for confirmed
 
@@ -1203,22 +1250,25 @@ func _confirm_placement(unit: UnitInstance, row: int, col: int, owner: int):
 
 	display_array[row][col] = display
 
+	# Play entry animation - player from bottom, enemy from top
+	var entry_direction = "bottom" if owner == 1 else "top"
+	display.play_entry_animation(entry_direction)
+
 	# Reposition existing unit on contested squares
 	if is_contested:
 		_reposition_displays_for_contested(row, col)
 
 func _reposition_displays_for_contested(row: int, col: int):
 	# Reposition both displays when a square becomes contested
-	var grid_total_size = (CELL_SIZE * GRID_SIZE) + (CELL_GAP * (GRID_SIZE - 1))
-	var offset = -grid_total_size / 2
-	var base_x = offset + (col * (CELL_SIZE + CELL_GAP)) + CELL_SIZE / 2
-	var base_y = offset + (row * (CELL_SIZE + CELL_GAP)) + CELL_SIZE / 2
+	var pos = _get_cell_position(row, col)
+	var row_scale = _get_perspective_scale(row)
+	var offset_amount = 25 * row_scale
 
 	if grid_player_displays[row][col]:
-		grid_player_displays[row][col].position = Vector2(base_x - 25, base_y)
+		grid_player_displays[row][col].position = Vector2(pos.x - offset_amount, pos.y)
 
 	if grid_enemy_displays[row][col]:
-		grid_enemy_displays[row][col].position = Vector2(base_x + 25, base_y)
+		grid_enemy_displays[row][col].position = Vector2(pos.x + offset_amount, pos.y)
 
 func _check_win_condition() -> int:
 	# Check knockout victory first (knock out 3 enemy units)
@@ -1428,43 +1478,42 @@ func _get_active_unit_for_ability() -> UnitInstance:
 func _update_ability_panel():
 	var active_unit = _get_active_unit_for_ability()
 
-	if active_unit and ability_panel:
-		ability_panel.visible = true
+	if active_unit and ability_tooltip:
+		# Get the unit's screen position
+		var screen_pos = _get_unit_screen_position(active_unit)
+		ability_tooltip.show_for_unit(active_unit, screen_pos)
+	elif ability_tooltip:
+		ability_tooltip.hide_tooltip()
 
-		# Update button labels and highlight selected
-		for i in range(ability_buttons.size()):
-			var btn = ability_buttons[i]
-			if btn and active_unit.unit_data.abilities.size() > i:
-				var ability = active_unit.unit_data.abilities[i]
-				var cd = active_unit.get_ability_cooldown(i)
+func _get_unit_screen_position(unit: UnitInstance) -> Vector2:
+	# Find where this unit is displayed
+	if unit.is_placed():
+		var row = unit.grid_row
+		var col = unit.grid_col
+		var cell_pos = _get_cell_position(row, col)
+		# Convert from grid_container local to screen position
+		return grid_container.global_position + cell_pos
+	else:
+		# Check pending placements
+		for pending in player_pending_placements:
+			if pending["unit"] == unit:
+				var cell_pos = _get_cell_position(pending["row"], pending["col"])
+				return grid_container.global_position + cell_pos
+	# Fallback to center of screen
+	return Vector2(960, 400)
 
-				# Show cooldown on button if on cooldown
-				if cd > 0:
-					btn.text = ability.ability_name + " (" + str(cd) + ")"
-					btn.disabled = true
-					btn.modulate = Color(0.5, 0.5, 0.5)
-				else:
-					btn.text = ability.ability_name
-					btn.disabled = false
-					# Highlight selected ability
-					if i == active_unit.selected_ability_index:
-						btn.modulate = Color(1, 1, 0.5)  # Yellow tint
-					else:
-						btn.modulate = Color(1, 1, 1)
-			elif btn:
-				btn.text = "---"
-				btn.disabled = true
-				btn.modulate = Color(0.5, 0.5, 0.5)
+func _on_tooltip_ability_selected(index: int):
+	# Called when ability is selected via tooltip
+	var active_unit = _get_active_unit_for_ability()
+	if active_unit:
+		print("Ability changed to: ", active_unit.unit_data.abilities[index].ability_name)
 
-		# Update description
-		if ability_desc and active_unit.unit_data.abilities.size() > active_unit.selected_ability_index:
-			var ability = active_unit.unit_data.abilities[active_unit.selected_ability_index]
-			var cd_text = ""
-			if ability.cooldown > 0:
-				cd_text = " [CD: " + str(ability.cooldown) + "]"
-			ability_desc.text = ability.description + cd_text
-	elif ability_panel:
-		ability_panel.visible = false
+func _on_tooltip_dismissed():
+	# Clear editing state when tooltip is dismissed
+	pending_edit_unit = null
+	selected_unit = null
+	moving_unit = null
+	moving_from = {}
 
 func _try_select_unit(index: int):
 	if index >= player_units.size():
