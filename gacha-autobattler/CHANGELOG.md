@@ -2,6 +2,40 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.8.3] - Help System & Content Editor
+
+### Added
+- **How to Play Screen**
+  - Accessible from main menu via "HOW TO PLAY" button
+  - Tabbed interface with three sections:
+    - Combat: Battle basics, victory conditions, controls
+    - Progression: Unit leveling, gear system, currencies
+    - Elements: Advantage triangle with colored diagram
+  - BBCode formatting with color-coded text
+
+- **Content Editor (Desktop Tool)**
+  - Standalone Windows application for managing game content
+  - Located in `tools/content_editor/` - run with `run.bat`
+  - **Units Panel**: Create/edit units, assign abilities, set stats and elements
+  - **Abilities Panel**: Configure damage, healing, cooldowns, special effects
+  - **Gear Panel**: Define weapons, armor, accessories with stat bonuses
+  - **Stages Panel**: Set up campaign stages with enemy configs and rewards
+  - **Dungeons Panel**: Configure gear farming dungeons
+  - **Assets Panel**: Import sprites and board images
+  - Custom .tres parser for reading/writing Godot resource files
+  - Dark theme matching the game's UI style
+
+### Technical
+- New files:
+  - `scenes/ui/how_to_play_screen.tscn` - Help screen scene
+  - `scripts/ui/how_to_play_screen.gd` - Help screen logic
+  - `tools/content_editor/editor.py` - Content editor application
+  - `tools/content_editor/tres_parser.py` - Godot resource parser
+  - `tools/content_editor/run.bat` - Quick launch script
+  - `tools/content_editor/build.bat` - Build standalone .exe
+
+---
+
 ## [0.8.2] - Combat Balance Update
 
 ### Changed
