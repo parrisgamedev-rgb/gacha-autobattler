@@ -15,11 +15,15 @@ All notable changes to this project will be documented in this file.
   - Victory now scales with team size - bigger teams = longer battles
   - More satisfying victories that feel earned
 
-- **Turn Limit Tiebreakers (50 turns)**
+- **Turn Limit: 50 → 25 turns**
+  - Shorter battles feel more urgent and decisive
   - 1st tiebreaker: Line control (tic-tac-toe) - control a row/column/diagonal
   - 2nd tiebreaker: HP percentage - team with higher % HP remaining wins
-  - Line control now only matters at turn limit, not as instant win
   - HP% prevents tank-heavy teams from having unfair advantage over glass cannons
+
+- **Ability Cooldown Adjustments**
+  - Vine Wrap: 0 → 2 turn cooldown (was spammable infinite sustain)
+  - Water Splash: 0 → 1 turn cooldown (was free healing every turn)
 
 ---
 

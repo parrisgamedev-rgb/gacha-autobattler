@@ -15,7 +15,7 @@ const PERSPECTIVE_Y_OFFSET = 0         # No offset needed
 const MIDDLE_ROW_EXTRA_OFFSET = 50     # Push middle row down
 const BOTTOM_ROW_EXTRA_OFFSET = 135    # Push bottom row down more
 const ACTIONS_PER_TURN = 3
-const MAX_TURNS = 50  # Turn limit to prevent infinite stalemates
+const MAX_TURNS = 25  # Turn limit to prevent infinite stalemates
 
 # AI Difficulty
 enum AIDifficulty { EASY, MEDIUM, HARD }
