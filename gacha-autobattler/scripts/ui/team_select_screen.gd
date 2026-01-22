@@ -294,8 +294,8 @@ func _update_team_slot(slot: Panel, unit_entry: Dictionary):
 
 	var display = UnitDisplayScene.instantiate()
 	display_container.add_child(display)
-	display.position = Vector2(TEAM_SLOT_SIZE.x / 2, 40)
-	display.scale = Vector2(0.35, 0.35)
+	display.position = Vector2(TEAM_SLOT_SIZE.x / 2, 45)
+	display.scale = Vector2(0.45, 0.45)
 	display.drag_enabled = false
 
 	var instance = UnitInstance.new(unit_data, 1, unit_level, imprint_level)
@@ -509,8 +509,8 @@ func _create_unit_card(unit_entry: Dictionary) -> Control:
 
 	var display = UnitDisplayScene.instantiate()
 	display_container.add_child(display)
-	display.position = Vector2(card_width / 2, 55)
-	display.scale = Vector2(0.45, 0.45)
+	display.position = Vector2(card_width / 2, 60)
+	display.scale = Vector2(0.55, 0.55)
 	display.drag_enabled = false
 
 	var instance = UnitInstance.new(unit_data, 1, unit_level, imprint_level)

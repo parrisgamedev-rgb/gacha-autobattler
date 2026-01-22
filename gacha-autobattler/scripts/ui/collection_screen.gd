@@ -38,6 +38,11 @@ var current_unit_entry: Dictionary = {}
 var pending_fodder_id: String = ""
 var current_gear_slot: int = -1  # 0=weapon, 1=armor, 2=acc1, 3=acc2
 
+# Detail panel animated sprite
+var detail_sprite: Sprite2D = null
+var detail_sprite_container: Control = null
+var idle_animation_tween: Tween = null
+
 func _ready():
 	_apply_theme()
 	back_btn.pressed.connect(_on_back)
@@ -59,8 +64,23 @@ func _ready():
 	confirm_panel.visible = false
 	if gear_select_panel:
 		gear_select_panel.visible = false
+	_setup_detail_sprite()
 	_update_currency_display()
 	_populate_collection()
+
+func _setup_detail_sprite():
+	# Create container for the animated sprite in detail panel
+	detail_sprite_container = Control.new()
+	detail_sprite_container.custom_minimum_size = Vector2(200, 200)
+	detail_sprite_container.position = Vector2(20, 40)
+	detail_panel.add_child(detail_sprite_container)
+
+	# Create the sprite
+	detail_sprite = Sprite2D.new()
+	detail_sprite.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	detail_sprite.position = Vector2(100, 100)
+	detail_sprite.scale = Vector2(5, 5)  # Large display
+	detail_sprite_container.add_child(detail_sprite)
 
 func _populate_collection():
 	# Clear existing
@@ -120,8 +140,8 @@ func _create_unit_card(unit_entry: Dictionary) -> Control:
 
 	var display = UnitDisplayScene.instantiate()
 	display_container.add_child(display)
-	display.position = Vector2(card_width / 2, 55)
-	display.scale = Vector2(0.45, 0.45)
+	display.position = Vector2(card_width / 2, 60)
+	display.scale = Vector2(0.55, 0.55)
 	display.drag_enabled = false
 
 	# Defer setup until the node is ready
@@ -223,6 +243,9 @@ func _on_unit_clicked(unit_entry: Dictionary):
 	detail_stars.text = "★".repeat(unit_data.star_rating)
 	detail_element.text = "Element: " + unit_data.element.capitalize()
 
+	# Update and animate the detail sprite
+	_update_detail_sprite(unit_data)
+
 	# Show scaled stats based on level
 	var stats = PlayerData.get_unit_stats_at_level(unit_data, unit_level, imprint_level)
 	detail_stats.text = "HP: " + str(stats.max_hp) + "  ATK: " + str(stats.attack) + "  DEF: " + str(stats.defense) + "  SPD: " + str(stats.speed)
@@ -274,9 +297,46 @@ func _on_unit_clicked(unit_entry: Dictionary):
 func _on_close_detail():
 	detail_panel.visible = false
 	current_unit_entry = {}
+	_stop_idle_animation()
 
 func _on_back():
 	get_tree().change_scene_to_file("res://scenes/ui/main_menu.tscn")
+
+func _update_detail_sprite(unit_data: UnitData):
+	if not detail_sprite:
+		return
+
+	# Generate and set the texture
+	detail_sprite.texture = PixelArtGenerator.generate_unit_texture(unit_data)
+
+	# Start idle animation
+	_start_idle_animation()
+
+func _start_idle_animation():
+	_stop_idle_animation()
+
+	if not detail_sprite:
+		return
+
+	# Create looping idle animation - gentle bobbing
+	idle_animation_tween = create_tween()
+	idle_animation_tween.set_loops()
+
+	var base_y = detail_sprite.position.y
+
+	# Bob up and down
+	idle_animation_tween.tween_property(detail_sprite, "position:y", base_y - 4, 0.6).set_ease(Tween.EASE_IN_OUT).set_trans(Tween.TRANS_SINE)
+	idle_animation_tween.tween_property(detail_sprite, "position:y", base_y + 2, 0.6).set_ease(Tween.EASE_IN_OUT).set_trans(Tween.TRANS_SINE)
+	idle_animation_tween.tween_property(detail_sprite, "position:y", base_y, 0.4).set_ease(Tween.EASE_IN_OUT).set_trans(Tween.TRANS_SINE)
+
+func _stop_idle_animation():
+	if idle_animation_tween:
+		idle_animation_tween.kill()
+		idle_animation_tween = null
+
+	# Reset sprite position
+	if detail_sprite:
+		detail_sprite.position.y = 100
 
 func _has_fodder_available(unit_entry: Dictionary) -> bool:
 	var unit_data = unit_entry.unit_data as UnitData
@@ -341,8 +401,8 @@ func _create_fodder_card(unit_entry: Dictionary) -> Control:
 
 	var display = UnitDisplayScene.instantiate()
 	display_container.add_child(display)
-	display.position = Vector2(60, 50)
-	display.scale = Vector2(0.4, 0.4)
+	display.position = Vector2(60, 55)
+	display.scale = Vector2(0.5, 0.5)
 	display.drag_enabled = false
 
 	var instance = UnitInstance.new(unit_data, 1)

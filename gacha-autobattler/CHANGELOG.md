@@ -2,6 +2,44 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.8] - Enhanced Pixel Art & UI Polish
+
+### Added
+- **Enhanced Procedural Pixel Art Generator**
+  - 3-tone shading system (highlight, midtone, shadow)
+  - Automatic black outlines around all characters
+  - Spherical shading for heads and circular shapes
+  - 6 hair styles varying by unit (spiky, long, bald, mohawk, side part, ponytail)
+  - 6 skin tone variants for character diversity
+  - Rarity glow effects (subtle purple for 4-star, full gold aura for 5-star)
+  - New Archer class with bow and quiver
+  - Detailed weapons (swords with highlights, staffs with orbs, shields, bows, daggers)
+  - Animation frame support (IDLE, ATTACK, HURT, SPECIAL)
+
+- **Collection Screen Animated Preview**
+  - Large animated sprite in unit detail panel
+  - Gentle bobbing idle animation while viewing units
+  - 5x scale sprite for clear detail viewing
+
+### Changed
+- **Larger Unit Sprites**
+  - Base sprite scale increased from 3x to 4x (96px → 128px)
+  - Collection card sprites increased (0.45 → 0.55 scale)
+  - Team select sprites increased for better visibility
+
+- **Cleaner Unit Display**
+  - Removed colored border boxes around units
+  - Star rating moved below unit name (was covering face)
+  - Stars now gold-colored with black outline
+  - Repositioned HP bar for cleaner layout
+
+### Technical
+- Enhanced `scripts/core/pixel_art_generator.gd` with modular body part system
+- Added idle animation tween to collection_screen.gd
+- Updated unit_display.tscn layout and styling
+
+---
+
 ## [0.7] - Battle Board Visual Overhaul
 
 ### Added
