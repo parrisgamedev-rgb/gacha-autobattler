@@ -99,6 +99,9 @@ var AbilityTooltipScene = preload("res://scenes/battle/ability_tooltip.tscn")
 # Ability tooltip instance
 var ability_tooltip: Control = null
 
+# Results animator
+var results_animator: BattleResultsAnimator = null
+
 func _ready():
 	_create_grid()
 	_load_units()
@@ -130,6 +133,11 @@ func _ready():
 		play_again_button.pressed.connect(_on_play_again_pressed)
 	if main_menu_button:
 		main_menu_button.pressed.connect(_on_main_menu_pressed)
+
+	# Setup results animator
+	results_animator = BattleResultsAnimator.new()
+	add_child(results_animator)
+	results_animator.setup($UI, results_panel, result_title, result_subtitle, $UI/ResultsPanel/ButtonContainer)
 
 	# Setup cheat menu
 	if cheat_menu:
@@ -1762,103 +1770,124 @@ func _update_roster_selection():
 			display.set_selected(false)
 
 func _show_results(winner: int):
+	# Hide other UI elements first
+	if ability_panel:
+		ability_panel.visible = false
+	if end_turn_button:
+		end_turn_button.visible = false
+
+	# Check victory type
+	var ended_by_turn_limit = current_turn >= MAX_TURNS
+	var ended_by_knockout = player_knockouts >= enemy_units.size() or enemy_knockouts >= player_units.size()
+
+	var title_text: String = ""
+	var subtitle_text: String = ""
+
+	if winner == 1:
+		# Determine title
+		if ended_by_knockout:
+			title_text = "KNOCKOUT!"
+		elif ended_by_turn_limit:
+			title_text = "TIME VICTORY!"
+		else:
+			title_text = "VICTORY!"
+
+		# Give battle rewards
+		var battle_rewards = _give_battle_rewards()
+
+		# Handle campaign rewards
+		if PlayerData.is_campaign_mode():
+			var stage = PlayerData.current_stage
+			var rewards = PlayerData.give_stage_rewards(stage)
+			PlayerData.clear_stage(stage.stage_id, 3)  # Default 3 stars
+
+			subtitle_text = "Stage Complete!\n"
+			subtitle_text += "+" + str(battle_rewards.gold) + " Gold, +" + str(battle_rewards.materials) + " Materials\n"
+
+			if battle_rewards.xp > 0:
+				subtitle_text += "+" + str(battle_rewards.xp) + " XP per unit\n"
+
+			if battle_rewards.level_ups.size() > 0:
+				subtitle_text += "Level Up: " + ", ".join(battle_rewards.level_ups) + "\n"
+
+			if rewards.first_clear:
+				subtitle_text += "\nFIRST CLEAR BONUS!\n"
+				subtitle_text += "+" + str(rewards.gems) + " Gems"
+				if rewards.unit != null:
+					subtitle_text += "\nNew Unit: " + rewards.unit.unit_data.unit_name + "!"
+
+		# Handle dungeon rewards
+		elif PlayerData.is_dungeon_mode():
+			var dungeon_rewards = _give_dungeon_rewards()
+
+			subtitle_text = "Dungeon Complete!\n"
+			subtitle_text += "+" + str(dungeon_rewards.stones) + " Enhancement Stones\n"
+
+			if dungeon_rewards.gear != null:
+				var gear_data = dungeon_rewards.gear.gear_data as GearData
+				subtitle_text += "\nGear Drop: " + gear_data.gear_name
+				subtitle_text += " (" + GearData.GearRarity.keys()[gear_data.rarity] + ")"
+
+		else:
+			# Quick battle rewards
+			if ended_by_knockout:
+				subtitle_text = "Eliminated " + str(player_knockouts) + " enemies!\n"
+			elif ended_by_turn_limit:
+				subtitle_text = "Turn limit reached - you had more HP!\n"
+			else:
+				subtitle_text = "You won in " + str(current_turn) + " turns!\n"
+			subtitle_text += "+" + str(battle_rewards.gold) + " Gold, +" + str(battle_rewards.materials) + " Materials"
+			if battle_rewards.level_ups.size() > 0:
+				subtitle_text += "\nLevel Up: " + ", ".join(battle_rewards.level_ups)
+
+		# Play victory animation
+		if results_animator:
+			results_animator.play_victory(title_text, subtitle_text)
+		else:
+			# Fallback to instant display
+			_show_results_instant(title_text, subtitle_text, true)
+
+	else:
+		# Determine defeat title
+		if ended_by_knockout:
+			title_text = "KNOCKED OUT"
+		elif ended_by_turn_limit:
+			title_text = "TIME DEFEAT"
+		else:
+			title_text = "DEFEAT"
+
+		# Determine defeat subtitle
+		if PlayerData.is_campaign_mode():
+			subtitle_text = "Stage failed. Try again!"
+		elif PlayerData.is_dungeon_mode():
+			subtitle_text = "Dungeon failed. Try again!"
+		elif ended_by_knockout:
+			subtitle_text = "Lost " + str(enemy_knockouts) + " units!"
+		elif ended_by_turn_limit:
+			subtitle_text = "Turn limit reached. Enemy had more HP!"
+		else:
+			subtitle_text = "Better luck next time!"
+
+		# Play defeat animation
+		if results_animator:
+			results_animator.play_defeat(title_text, subtitle_text)
+		else:
+			# Fallback to instant display
+			_show_results_instant(title_text, subtitle_text, false)
+
+	print("Game Over! Winner: ", "Player" if winner == 1 else "Enemy")
+
+
+func _show_results_instant(title_text: String, subtitle_text: String, is_victory: bool):
+	"""Fallback for showing results without animation"""
 	if results_panel:
 		results_panel.visible = true
-
-		# Check victory type
-		var ended_by_turn_limit = current_turn >= MAX_TURNS
-		var ended_by_knockout = player_knockouts >= enemy_units.size() or enemy_knockouts >= player_units.size()
-
-		if winner == 1:
-			if ended_by_knockout:
-				result_title.text = "KNOCKOUT!"
-			elif ended_by_turn_limit:
-				result_title.text = "TIME VICTORY!"
-			else:
-				result_title.text = "VICTORY!"
+		result_title.text = title_text
+		result_subtitle.text = subtitle_text
+		if is_victory:
 			result_title.add_theme_color_override("font_color", Color(0.3, 0.9, 0.3))
-
-			# Give battle rewards
-			var battle_rewards = _give_battle_rewards()
-
-			# Handle campaign rewards
-			if PlayerData.is_campaign_mode():
-				var stage = PlayerData.current_stage
-				var rewards = PlayerData.give_stage_rewards(stage)
-				PlayerData.clear_stage(stage.stage_id, 3)  # Default 3 stars
-
-				var subtitle_text = "Stage Complete!\n"
-
-				# Show gold and materials earned
-				subtitle_text += "+" + str(battle_rewards.gold) + " Gold, +" + str(battle_rewards.materials) + " Materials\n"
-
-				# Show XP earned
-				if battle_rewards.xp > 0:
-					subtitle_text += "+" + str(battle_rewards.xp) + " XP per unit\n"
-
-				# Show level ups
-				if battle_rewards.level_ups.size() > 0:
-					subtitle_text += "Level Up: " + ", ".join(battle_rewards.level_ups) + "\n"
-
-				if rewards.first_clear:
-					subtitle_text += "\nFIRST CLEAR BONUS!\n"
-					subtitle_text += "+" + str(rewards.gems) + " Gems"
-					if rewards.unit != null:
-						subtitle_text += "\nNew Unit: " + rewards.unit.unit_data.unit_name + "!"
-
-				result_subtitle.text = subtitle_text
-			# Handle dungeon rewards
-			elif PlayerData.is_dungeon_mode():
-				var dungeon_rewards = _give_dungeon_rewards()
-
-				var subtitle_text = "Dungeon Complete!\n"
-				subtitle_text += "+" + str(dungeon_rewards.stones) + " Enhancement Stones\n"
-
-				if dungeon_rewards.gear != null:
-					var gear_data = dungeon_rewards.gear.gear_data as GearData
-					subtitle_text += "\nGear Drop: " + gear_data.gear_name
-					subtitle_text += " (" + GearData.GearRarity.keys()[gear_data.rarity] + ")"
-
-				result_subtitle.text = subtitle_text
-			else:
-				# Quick battle rewards
-				var subtitle_text = ""
-				if ended_by_knockout:
-					subtitle_text = "Eliminated " + str(player_knockouts) + " enemies!\n"
-				elif ended_by_turn_limit:
-					subtitle_text = "Turn limit reached - you had more HP!\n"
-				else:
-					subtitle_text = "You won in " + str(current_turn) + " turns!\n"
-				subtitle_text += "+" + str(battle_rewards.gold) + " Gold, +" + str(battle_rewards.materials) + " Materials"
-				if battle_rewards.level_ups.size() > 0:
-					subtitle_text += "\nLevel Up: " + ", ".join(battle_rewards.level_ups)
-				result_subtitle.text = subtitle_text
 		else:
-			if ended_by_knockout:
-				result_title.text = "KNOCKED OUT"
-			elif ended_by_turn_limit:
-				result_title.text = "TIME DEFEAT"
-			else:
-				result_title.text = "DEFEAT"
 			result_title.add_theme_color_override("font_color", Color(0.9, 0.3, 0.3))
-			if PlayerData.is_campaign_mode():
-				result_subtitle.text = "Stage failed. Try again!"
-			elif PlayerData.is_dungeon_mode():
-				result_subtitle.text = "Dungeon failed. Try again!"
-			elif ended_by_knockout:
-				result_subtitle.text = "Lost " + str(enemy_knockouts) + " units!"
-			elif ended_by_turn_limit:
-				result_subtitle.text = "Turn limit reached. Enemy had more HP!"
-			else:
-				result_subtitle.text = "Better luck next time!"
-
-		# Hide other UI elements
-		if ability_panel:
-			ability_panel.visible = false
-		if end_turn_button:
-			end_turn_button.visible = false
-
-		print("Game Over! Winner: ", "Player" if winner == 1 else "Enemy")
 
 func _give_battle_rewards() -> Dictionary:
 	var result = {"gold": 0, "materials": 0, "xp": 0, "level_ups": []}
@@ -2089,6 +2118,8 @@ func _update_auto_button():
 func _set_battle_speed(speed: float):
 	battle_speed = speed
 	_update_speed_buttons()
+	if results_animator:
+		results_animator.set_battle_speed(1.0 / speed)  # Convert from time multiplier to speed multiplier
 
 func _update_speed_buttons():
 	if speed_1x_btn:

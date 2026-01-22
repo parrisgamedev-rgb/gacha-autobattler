@@ -2,6 +2,44 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.9] - Visual Polish Update
+
+### Added
+- **Animated Victory Screen**
+  - Screen flash on win
+  - Background dims with smooth fade
+  - Results panel bounces in with elastic easing
+  - Confetti particle burst from top of screen
+  - Title pulses with golden glow
+  - Rewards text animates in line by line
+  - Buttons fade in after sequence completes
+
+- **Animated Defeat Screen**
+  - Screen shake effect on loss
+  - Dark red-tinted overlay fades in
+  - Results panel slides down from above
+  - Brief pause before showing retry options
+
+- **Animation Controls**
+  - Click anywhere to skip animation sequence
+  - Animations respect battle speed setting (1x/2x/3x)
+
+### Changed
+- **Brighter Battle Screen**
+  - Reduced vignette intensity (0.45 → 0.3)
+  - Reduced vignette opacity (0.6 → 0.35)
+  - Increased vignette softness for gradual edges
+  - Increased overall brightness (1.02 → 1.08)
+
+### Technical
+- New files:
+  - `scripts/battle/battle_results_animator.gd` - Handles all result animations
+- Modified:
+  - `scripts/battle/battle.gd` - Integrated animator, refactored _show_results()
+  - `scenes/battle/battle.tscn` - Adjusted post-processing values
+
+---
+
 ## [0.8.3] - Help System & Content Editor
 
 ### Added
