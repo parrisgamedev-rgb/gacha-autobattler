@@ -1,6 +1,6 @@
 extends Node
 class_name BattleResultsAnimator
-## Handles animated victory and defeat sequences
+## Handles animated victory and defeat sequences with sprite-based UI
 
 signal animation_complete
 
@@ -15,6 +15,11 @@ var battle_speed: float = 1.0
 var screen_flash: ColorRect
 var dim_overlay: ColorRect
 var confetti_emitter: CPUParticles2D
+
+# Sprite-based UI elements
+var banner_rect: NinePatchRect = null
+var star_container: HBoxContainer = null
+var ui_styled: bool = false
 
 # Animation state
 var is_animating: bool = false
@@ -82,6 +87,9 @@ func setup(ui_layer: CanvasLayer, panel: Panel, title: Label, subtitle: Label, b
 	results_panel.modulate.a = 1.0
 	results_panel.scale = Vector2.ONE
 
+	# Apply sprite-based UI styling
+	_apply_sprite_ui_styling()
+
 
 func _create_confetti_emitter(parent: Node):
 	"""Create the confetti particle system"""
@@ -141,6 +149,104 @@ func _create_confetti_colors() -> Gradient:
 	return gradient
 
 
+func _apply_sprite_ui_styling():
+	"""Apply sprite-based UI assets to the results panel."""
+	if ui_styled:
+		return
+	ui_styled = true
+
+	# Style the buttons with sprite buttons
+	_style_result_buttons()
+
+
+func _style_result_buttons():
+	"""Apply sprite styling to result buttons."""
+	if not button_container:
+		return
+
+	for child in button_container.get_children():
+		if child is Button:
+			# Play Again gets gold, Main Menu gets blue
+			if "PlayAgain" in child.name or "Again" in child.name:
+				UISpriteLoader.apply_button_style(child, UISpriteLoader.ButtonColor.GOLD, "ButtonA")
+			else:
+				UISpriteLoader.apply_button_style(child, UISpriteLoader.ButtonColor.BLUE, "ButtonA")
+
+
+func _setup_victory_ui():
+	"""Set up victory-specific UI elements (gold panel, banner, stars)."""
+	# Apply gold panel style
+	if results_panel:
+		UISpriteLoader.apply_panel_style(results_panel, UISpriteLoader.PanelColor.GOLD, "Panel")
+
+	# Create star display for victory (3 stars)
+	_create_victory_stars(3)
+
+
+func _setup_defeat_ui():
+	"""Set up defeat-specific UI elements (red panel)."""
+	# Apply red panel style
+	if results_panel:
+		UISpriteLoader.apply_panel_style(results_panel, UISpriteLoader.PanelColor.RED, "Panel")
+
+	# Remove stars if they exist
+	if star_container and is_instance_valid(star_container):
+		star_container.queue_free()
+		star_container = null
+
+
+func _create_victory_stars(rating: int):
+	"""Create animated star display for victory."""
+	# Remove existing stars
+	if star_container and is_instance_valid(star_container):
+		star_container.queue_free()
+
+	# Create new star display
+	star_container = UISpriteLoader.create_star_display(rating, 3, UISpriteLoader.StarColor.GOLD)
+	if star_container and results_panel:
+		# Position stars above the title
+		star_container.position = Vector2(
+			(results_panel.size.x - star_container.get_minimum_size().x) / 2,
+			20
+		)
+		star_container.modulate.a = 0  # Start invisible for animation
+		results_panel.add_child(star_container)
+
+
+func _animate_stars_reveal(duration: float):
+	"""Animate stars appearing one by one."""
+	if not star_container:
+		return
+
+	var stars = star_container.get_children()
+	var delay_per_star = duration / max(stars.size(), 1)
+
+	for i in range(stars.size()):
+		if skip_requested:
+			star_container.modulate.a = 1.0
+			return
+
+		var star = stars[i]
+		star.scale = Vector2(0.5, 0.5)
+		star.modulate.a = 0
+
+		await get_tree().create_timer(delay_per_star * 0.5).timeout
+
+		var tween = create_tween()
+		tween.set_parallel(true)
+		tween.tween_property(star, "scale", Vector2(1.2, 1.2), delay_per_star * 0.3).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_BACK)
+		tween.tween_property(star, "modulate:a", 1.0, delay_per_star * 0.2)
+		await tween.finished
+
+		# Settle to normal size
+		var settle_tween = create_tween()
+		settle_tween.tween_property(star, "scale", Vector2.ONE, delay_per_star * 0.2).set_ease(Tween.EASE_OUT)
+		await settle_tween.finished
+
+	# Make container fully visible
+	star_container.modulate.a = 1.0
+
+
 func set_battle_speed(speed: float):
 	"""Update animation speed multiplier"""
 	battle_speed = speed
@@ -156,9 +262,14 @@ func play_victory(title_text: String, subtitle_text: String):
 	is_animating = true
 	skip_requested = false
 
+	# Set up victory UI styling (gold panel, stars)
+	_setup_victory_ui()
+
 	# Prepare panel content (hidden initially)
 	result_title.text = title_text
 	result_title.add_theme_color_override("font_color", VICTORY_GOLD)
+	result_title.add_theme_color_override("font_outline_color", Color(0.4, 0.25, 0.0))
+	result_title.add_theme_constant_override("outline_size", 3)
 	result_subtitle.text = ""  # Will animate in
 	button_container.modulate.a = 0
 	results_panel.scale = Vector2(0.5, 0.5)
@@ -177,9 +288,14 @@ func play_defeat(title_text: String, subtitle_text: String):
 	is_animating = true
 	skip_requested = false
 
+	# Set up defeat UI styling (red panel)
+	_setup_defeat_ui()
+
 	# Prepare panel content
 	result_title.text = title_text
 	result_title.add_theme_color_override("font_color", DEFEAT_RED)
+	result_title.add_theme_color_override("font_outline_color", Color(0.3, 0.0, 0.0))
+	result_title.add_theme_constant_override("outline_size", 3)
 	result_subtitle.text = subtitle_text
 	button_container.modulate.a = 0
 	results_panel.position.y -= 50  # Start above final position
@@ -219,6 +335,12 @@ func _victory_sequence(subtitle_text: String):
 	# Step 5: Title pulse
 	if not skip_requested:
 		await _pulse_title(get_scaled_time(0.3))
+
+	# Step 5.5: Animate victory stars
+	if star_container and not skip_requested:
+		await _animate_stars_reveal(get_scaled_time(0.6))
+	elif star_container:
+		star_container.modulate.a = 1.0
 
 	# Step 6: Animate rewards text
 	if not skip_requested:
@@ -385,6 +507,9 @@ func reset():
 		results_panel.modulate.a = 1.0
 	if button_container:
 		button_container.modulate.a = 1.0
+	if star_container and is_instance_valid(star_container):
+		star_container.queue_free()
+		star_container = null
 
 
 func _input(event):

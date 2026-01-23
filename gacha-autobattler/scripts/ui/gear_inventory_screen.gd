@@ -88,20 +88,11 @@ func _create_gear_card(gear_entry: Dictionary) -> Control:
 		return placeholder
 
 	var card = Panel.new()
-	card.custom_minimum_size = Vector2(120, 150)
+	card.custom_minimum_size = Vector2(130, 170)
 
-	var card_style = StyleBoxFlat.new()
-	card_style.bg_color = UITheme.BG_MEDIUM
-	card_style.border_width_left = 3
-	card_style.border_width_right = 3
-	card_style.border_width_top = 3
-	card_style.border_width_bottom = 3
-	card_style.border_color = template.get_rarity_color()
-	card_style.corner_radius_top_left = UITheme.CARD_RADIUS
-	card_style.corner_radius_top_right = UITheme.CARD_RADIUS
-	card_style.corner_radius_bottom_left = UITheme.CARD_RADIUS
-	card_style.corner_radius_bottom_right = UITheme.CARD_RADIUS
-	card.add_theme_stylebox_override("panel", card_style)
+	# Use sprite-based panel styling based on rarity
+	var panel_color = _get_panel_color_for_rarity(template.rarity)
+	UISpriteLoader.apply_panel_style(card, panel_color, "Card")
 
 	var vbox = VBoxContainer.new()
 	vbox.set_anchors_preset(Control.PRESET_FULL_RECT)
@@ -116,24 +107,33 @@ func _create_gear_card(gear_entry: Dictionary) -> Control:
 	margin.add_child(vbox)
 	card.add_child(margin)
 
+	# Star rating for rarity at the top
+	var star_display = UISpriteLoader.create_star_display(template.rarity + 1, 5, UISpriteLoader.StarColor.GOLD)
+	if star_display:
+		star_display.alignment = BoxContainer.ALIGNMENT_CENTER
+		vbox.add_child(star_display)
+
 	# Gear name
 	var name_label = Label.new()
 	name_label.text = template.gear_name
 	name_label.add_theme_font_size_override("font_size", UITheme.FONT_CAPTION)
-	name_label.add_theme_color_override("font_color", UITheme.TEXT_PRIMARY)
+	name_label.add_theme_color_override("font_color", template.get_rarity_color())
+	name_label.add_theme_color_override("font_outline_color", Color.BLACK)
+	name_label.add_theme_constant_override("outline_size", 1)
 	name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	name_label.autowrap_mode = TextServer.AUTOWRAP_WORD
 	vbox.add_child(name_label)
 
-	# Type
+	# Type icon + text
 	var type_label = Label.new()
-	type_label.text = template.get_type_name()
+	var type_icon = _get_gear_type_icon(template.gear_type)
+	type_label.text = type_icon + " " + template.get_type_name()
 	type_label.add_theme_font_size_override("font_size", UITheme.FONT_SMALL)
 	type_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	type_label.add_theme_color_override("font_color", UITheme.TEXT_SECONDARY)
 	vbox.add_child(type_label)
 
-	# Stat value
+	# Stat value with color coding
 	var stat_value = template.get_stat_at_level(gear_entry.level)
 	var stat_text = template.get_stat_name() + ": "
 	if template.is_percentage:
@@ -145,9 +145,11 @@ func _create_gear_card(gear_entry: Dictionary) -> Control:
 	stat_label.add_theme_font_size_override("font_size", UITheme.FONT_BODY)
 	stat_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	stat_label.add_theme_color_override("font_color", UITheme.SUCCESS)
+	stat_label.add_theme_color_override("font_outline_color", Color.BLACK)
+	stat_label.add_theme_constant_override("outline_size", 1)
 	vbox.add_child(stat_label)
 
-	# Level
+	# Level display
 	var level_label = Label.new()
 	level_label.text = "+" + str(gear_entry.level) + "/" + str(template.get_max_level())
 	level_label.add_theme_font_size_override("font_size", UITheme.FONT_CAPTION)
@@ -155,14 +157,16 @@ func _create_gear_card(gear_entry: Dictionary) -> Control:
 	level_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	vbox.add_child(level_label)
 
-	# Equipped status
+	# Equipped status with gold styling
 	var equipped_unit = PlayerData.get_gear_equipped_unit(gear_entry.instance_id)
 	if equipped_unit != "":
 		var eq_label = Label.new()
-		eq_label.text = "[EQUIPPED]"
+		eq_label.text = "EQUIPPED"
 		eq_label.add_theme_font_size_override("font_size", UITheme.FONT_SMALL)
 		eq_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		eq_label.add_theme_color_override("font_color", UITheme.GOLD)
+		eq_label.add_theme_color_override("font_outline_color", Color(0.3, 0.2, 0.0))
+		eq_label.add_theme_constant_override("outline_size", 1)
 		vbox.add_child(eq_label)
 
 	# Make it clickable
@@ -174,6 +178,34 @@ func _create_gear_card(gear_entry: Dictionary) -> Control:
 	card.add_child(btn)
 
 	return card
+
+
+func _get_panel_color_for_rarity(rarity: int) -> int:
+	"""Get the panel color based on gear rarity."""
+	match rarity:
+		0:  # Common
+			return UISpriteLoader.PanelColor.WHITE
+		1:  # Uncommon
+			return UISpriteLoader.PanelColor.BLUE
+		2:  # Rare
+			return UISpriteLoader.PanelColor.PURPLE
+		3:  # Epic
+			return UISpriteLoader.PanelColor.GOLD
+		_:
+			return UISpriteLoader.PanelColor.WHITE
+
+
+func _get_gear_type_icon(gear_type: int) -> String:
+	"""Get an icon character for gear type."""
+	match gear_type:
+		0:  # Weapon
+			return "[W]"
+		1:  # Armor
+			return "[A]"
+		2:  # Accessory
+			return "[R]"
+		_:
+			return "[?]"
 
 func _on_gear_selected(instance_id: String):
 	AudioManager.play_ui_click()
