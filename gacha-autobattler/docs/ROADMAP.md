@@ -1,6 +1,6 @@
 # Grid Battler - Development Roadmap
 
-**Current Version:** 0.15
+**Current Version:** 0.16
 **Target Release:** 1.0
 **Last Updated:** January 2026
 
@@ -34,31 +34,11 @@ This roadmap outlines the path from v0.11 to v1.0 release. Each version focuses 
 | **0.13** | **Combat Polish** | **Attack lunges, screen shake, particles** |
 | **0.14** | **Tutorial** | **Interactive battle tutorial, onboarding** |
 | **0.15** | **Content & Sprites** | **New sprite system, Chapter 2 Arena, 3 new units, 10 monsters** |
+| **0.16** | **Achievements** | **8 achievements, popup notifications, gallery screen** |
 
 ---
 
 ## Upcoming Versions
-
-### v0.16 - Achievements System
-**Goal:** Give players goals to work toward and rewards for milestones.
-
-#### Features
-- [ ] **Achievements System**
-  - Categories: Battle, Collection, Progression
-  - Gem rewards for completion
-  - Achievement notification popup
-  - Achievement gallery screen
-
-#### Achievement Ideas
-| Achievement | Requirement | Reward |
-|-------------|-------------|--------|
-| First Blood | Win 1 battle | 50 Gems |
-| Collector | Own 10 units | 100 Gems |
-| Chapter 1 Clear | Complete 1-5 | 200 Gems |
-| Gear Up | Enhance gear to +6 | 50 Gems |
-| Speed Demon | Win in under 10 turns | 75 Gems |
-
----
 
 ### v0.17 - Content Expansion II
 **Goal:** More content depth for engaged players.
