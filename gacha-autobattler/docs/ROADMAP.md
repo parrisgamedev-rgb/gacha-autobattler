@@ -1,6 +1,6 @@
 # Grid Battler - Development Roadmap
 
-**Current Version:** 0.14
+**Current Version:** 0.15
 **Target Release:** 1.0
 **Last Updated:** January 2026
 
@@ -33,38 +33,11 @@ This roadmap outlines the path from v0.11 to v1.0 release. Each version focuses 
 | **0.12** | **Audio** | **Sound effects, music, settings menu** |
 | **0.13** | **Combat Polish** | **Attack lunges, screen shake, particles** |
 | **0.14** | **Tutorial** | **Interactive battle tutorial, onboarding** |
+| **0.15** | **Content & Sprites** | **New sprite system, Chapter 2 Arena, 3 new units, 10 monsters** |
 
 ---
 
 ## Upcoming Versions
-
-### v0.15 - Content Expansion I
-**Goal:** More content for players to engage with.
-
-#### Features
-- [ ] **Chapter 2 Campaign**
-  - 5 new stages (2-1 through 2-5)
-  - New enemy configurations
-  - Increased difficulty curve
-  - New first-clear rewards
-  - Story text for chapter
-
-- [ ] **5 New Units**
-  - At least 1 per element
-  - Mix of 3★, 4★ rarities
-  - Unique ability combinations
-  - AI-generated sprites
-
-#### New Units (Suggested)
-| Name | Element | Stars | Role |
-|------|---------|-------|------|
-| TBD | Fire | 4★ | DPS |
-| TBD | Water | 3★ | Support |
-| TBD | Nature | 4★ | Tank |
-| TBD | Light | 3★ | Healer |
-| TBD | Dark | 3★ | Assassin |
-
----
 
 ### v0.16 - Retention Systems
 **Goal:** Give players reasons to return daily.
@@ -140,6 +113,11 @@ This roadmap outlines the path from v0.11 to v1.0 release. Each version focuses 
   - Consistent styling
   - Animation smoothness
   - Loading states
+
+- [ ] **Sprite Polish**
+  - Review sprite scaling (currently 2x, may need adjustment)
+  - Ensure sprites fit grid tiles properly
+  - Consider higher resolution sprites if needed
 
 ---
 

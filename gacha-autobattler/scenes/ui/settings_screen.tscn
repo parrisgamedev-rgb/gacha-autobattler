@@ -144,6 +144,21 @@ layout_mode = 2
 size_flags_horizontal = 4
 text = "Reset Tutorials"
 
+[node name="DataSection" type="VBoxContainer" parent="CenterContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="DataLabel" type="Label" parent="CenterContainer/VBoxContainer/DataSection"]
+layout_mode = 2
+text = "SAVE DATA"
+horizontal_alignment = 1
+
+[node name="DeleteSaveButton" type="Button" parent="CenterContainer/VBoxContainer/DataSection"]
+custom_minimum_size = Vector2(200, 40)
+layout_mode = 2
+size_flags_horizontal = 4
+text = "Delete Save Data"
+
 [node name="BackButton" type="Button" parent="CenterContainer/VBoxContainer"]
 custom_minimum_size = Vector2(200, 50)
 layout_mode = 2

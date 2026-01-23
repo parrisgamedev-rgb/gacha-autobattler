@@ -10,6 +10,10 @@ extends Control
 @onready var sfx_value = $CenterContainer/VBoxContainer/SettingsPanel/VBoxContainer/SFXVolume/Value
 @onready var back_button = $CenterContainer/VBoxContainer/BackButton
 @onready var reset_tutorial_button = $CenterContainer/VBoxContainer/TutorialSection/ResetTutorialButton
+@onready var delete_save_button = $CenterContainer/VBoxContainer/DataSection/DeleteSaveButton
+
+# Confirmation dialog
+var delete_confirm_dialog: ConfirmationDialog = null
 
 
 func _ready():
@@ -19,9 +23,11 @@ func _ready():
 
 
 func _apply_theme():
-	# Background
+	# Background - use castle theme with pale variant for settings/official feel
+	UISpriteLoader.apply_background_to_scene(self, UISpriteLoader.BackgroundTheme.CASTLE, UISpriteLoader.BackgroundVariant.PALE, 0.5)
+	# Hide the old solid color background if it exists
 	if has_node("Background"):
-		$Background.color = UITheme.BG_DARK
+		$Background.visible = false
 
 	# Title
 	if has_node("CenterContainer/VBoxContainer/TitleLabel"):
@@ -29,20 +35,10 @@ func _apply_theme():
 		title.add_theme_font_size_override("font_size", UITheme.FONT_TITLE_LARGE)
 		title.add_theme_color_override("font_color", UITheme.TEXT_PRIMARY)
 
-	# Settings panel
+	# Settings panel with sprite styling
 	if has_node("CenterContainer/VBoxContainer/SettingsPanel"):
 		var panel = $CenterContainer/VBoxContainer/SettingsPanel
-		var style = StyleBoxFlat.new()
-		style.bg_color = UITheme.BG_MEDIUM
-		style.corner_radius_top_left = UITheme.CARD_RADIUS
-		style.corner_radius_top_right = UITheme.CARD_RADIUS
-		style.corner_radius_bottom_left = UITheme.CARD_RADIUS
-		style.corner_radius_bottom_right = UITheme.CARD_RADIUS
-		style.content_margin_left = UITheme.SPACING_LG
-		style.content_margin_right = UITheme.SPACING_LG
-		style.content_margin_top = UITheme.SPACING_LG
-		style.content_margin_bottom = UITheme.SPACING_LG
-		panel.add_theme_stylebox_override("panel", style)
+		UISpriteLoader.apply_panel_style(panel, UISpriteLoader.PanelColor.BLUE, "Panel")
 
 	# Section labels
 	for label_name in ["AudioLabel"]:
@@ -74,21 +70,26 @@ func _apply_theme():
 		tutorial_label.add_theme_font_size_override("font_size", UITheme.FONT_BODY)
 		tutorial_label.add_theme_color_override("font_color", UITheme.TEXT_SECONDARY)
 
-	# Reset tutorial button
+	# Reset tutorial button with sprite styling
 	if reset_tutorial_button:
-		reset_tutorial_button.add_theme_stylebox_override("normal", UITheme.create_button_style(UITheme.BG_LIGHT))
-		reset_tutorial_button.add_theme_stylebox_override("hover", UITheme.create_button_style(UITheme.BG_LIGHT.lightened(0.1)))
-		reset_tutorial_button.add_theme_stylebox_override("pressed", UITheme.create_button_style(UITheme.BG_MEDIUM))
+		UISpriteLoader.apply_button_style(reset_tutorial_button, UISpriteLoader.ButtonColor.PURPLE, "ButtonA")
 		reset_tutorial_button.add_theme_font_size_override("font_size", UITheme.FONT_BODY)
-		reset_tutorial_button.add_theme_color_override("font_color", UITheme.TEXT_PRIMARY)
+
+	# Data section label
+	var data_label = get_node_or_null("CenterContainer/VBoxContainer/DataSection/DataLabel")
+	if data_label:
+		data_label.add_theme_font_size_override("font_size", UITheme.FONT_BODY)
+		data_label.add_theme_color_override("font_color", UITheme.TEXT_SECONDARY)
+
+	# Delete save button - danger styling (red)
+	if delete_save_button:
+		UISpriteLoader.apply_button_style(delete_save_button, UISpriteLoader.ButtonColor.RED, "ButtonA")
+		delete_save_button.add_theme_font_size_override("font_size", UITheme.FONT_BODY)
 
 	# Back button
 	if back_button:
-		back_button.add_theme_stylebox_override("normal", UITheme.create_button_style(UITheme.BG_MEDIUM, UITheme.BG_LIGHT))
-		back_button.add_theme_stylebox_override("hover", UITheme.create_button_style(UITheme.BG_LIGHT))
-		back_button.add_theme_stylebox_override("pressed", UITheme.create_button_style(UITheme.BG_MEDIUM.darkened(0.1)))
+		UISpriteLoader.apply_button_style(back_button, UISpriteLoader.ButtonColor.BLUE, "ButtonA")
 		back_button.add_theme_font_size_override("font_size", UITheme.FONT_BODY)
-		back_button.add_theme_color_override("font_color", UITheme.TEXT_PRIMARY)
 
 
 func _setup_sliders():
@@ -132,6 +133,10 @@ func _connect_signals():
 	if reset_tutorial_button:
 		reset_tutorial_button.pressed.connect(_on_reset_tutorial_pressed)
 
+	if delete_save_button:
+		delete_save_button.pressed.connect(_on_delete_save_pressed)
+	_create_delete_confirm_dialog()
+
 
 func _update_value_label(label: Label, value: float):
 	if label:
@@ -168,6 +173,43 @@ func _on_reset_tutorial_pressed():
 		await get_tree().create_timer(1.5).timeout
 		reset_tutorial_button.text = "Reset Tutorials"
 		reset_tutorial_button.disabled = false
+
+
+func _create_delete_confirm_dialog():
+	delete_confirm_dialog = ConfirmationDialog.new()
+	delete_confirm_dialog.title = "Delete Save Data?"
+	delete_confirm_dialog.dialog_text = "Are you sure you want to delete ALL save data?\n\nThis will reset:\n- All owned units\n- Currency (gems, gold, materials)\n- Campaign progress\n- Gear and equipment\n\nThis cannot be undone!"
+	delete_confirm_dialog.ok_button_text = "Delete Everything"
+	delete_confirm_dialog.cancel_button_text = "Cancel"
+	delete_confirm_dialog.confirmed.connect(_on_delete_save_confirmed)
+	add_child(delete_confirm_dialog)
+
+
+func _on_delete_save_pressed():
+	AudioManager.play_ui_click()
+	if delete_confirm_dialog:
+		delete_confirm_dialog.popup_centered()
+
+
+func _on_delete_save_confirmed():
+	AudioManager.play_ui_click()
+	# Delete the save file
+	var save_path = "user://save_data.json"
+	if FileAccess.file_exists(save_path):
+		DirAccess.remove_absolute(ProjectSettings.globalize_path(save_path))
+
+	# Also reset tutorial data
+	TutorialManager.reset_tutorials()
+
+	# Show feedback and restart game
+	if delete_save_button:
+		delete_save_button.text = "Restarting..."
+		delete_save_button.disabled = true
+
+	await get_tree().create_timer(1.0).timeout
+
+	# Restart the game to apply fresh state
+	get_tree().quit()
 
 
 func _on_back_pressed():

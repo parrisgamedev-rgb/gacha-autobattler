@@ -1,32 +1,47 @@
 extends Node
-## Loads and manages AI-generated sprite sheets for units
+## Loads and manages sprite sheets for units (heroes and monsters)
 
 # Maps unit_id to sprite folder name
 const SPRITE_MAPPINGS = {
-	"fire_warrior_001": "kael",
-	"fire_imp_001": "fire_imp",
-	"water_sprite_001": "water_sprite",
+	# PLAYABLE HEROES
+	"fire_warrior_001": "fire_warrior",
+	"ember_001": "ember",
 	"water_mage_001": "water_mage",
+	"coral_001": "coral",
 	"nature_wisp_001": "nature_wisp",
 	"nature_tank_001": "nature_tank",
-	"light_cleric_001": "light_cleric",
 	"radiant_paladin_001": "radiant_paladin",
+	"spark_001": "spark",
 	"shadow_scout_001": "shadow_scout",
 	"dark_knight_001": "dark_knight",
+
+	# MONSTERS (enemy-only)
+	"monster_goblin_001": "monster_goblin",
+	"monster_gladiator_beast_001": "monster_gladiator_beast",
+	"monster_minotaur_001": "monster_minotaur",
+	"monster_wolf_001": "monster_wolf",
+	"monster_arena_champion_001": "monster_arena_champion",
+	"monster_slime_001": "monster_slime",
+	"monster_skeleton_warrior_001": "monster_skeleton_warrior",
+	"monster_harpy_001": "monster_harpy",
+	"monster_chimera_001": "monster_chimera",
+	"monster_gladiator_001": "monster_gladiator",
 }
 
 # Cache loaded textures
 var _texture_cache: Dictionary = {}
 var _atlas_cache: Dictionary = {}
 
-# Animation settings
-const FRAME_SIZE = 128
-const IDLE_FRAME_COUNT = 8
+# Animation settings - Updated for new sprite pack (100x100 frames)
+const FRAME_SIZE = 100
+const IDLE_FRAME_COUNT = 6
 const ATTACK_FRAME_COUNT = 6
 const HURT_FRAME_COUNT = 4
+const DEATH_FRAME_COUNT = 6
 const IDLE_FPS = 8.0  # Frames per second for idle animation
 const ATTACK_FPS = 10.0  # Frames per second for attack animation
 const HURT_FPS = 8.0  # Frames per second for hurt animation
+const DEATH_FPS = 8.0  # Frames per second for death animation
 
 
 func has_ai_sprite(unit_id: String) -> bool:
@@ -100,6 +115,8 @@ func get_frame_count(animation: String) -> int:
 			return ATTACK_FRAME_COUNT
 		"hurt":
 			return HURT_FRAME_COUNT
+		"death":
+			return DEATH_FRAME_COUNT
 		_:
 			return IDLE_FRAME_COUNT
 
@@ -163,6 +180,19 @@ func create_animated_sprite(unit_id: String) -> AnimatedSprite2D:
 			var frame_texture = get_frame_texture(unit_id, "hurt", i)
 			if frame_texture:
 				frames.add_frame("hurt", frame_texture)
+
+	# Add death animation if available
+	var death_sheet = load_sprite_sheet(unit_id, "death")
+	if death_sheet:
+		var death_frame_count = get_frame_count_for_sheet(death_sheet)
+		frames.add_animation("death")
+		frames.set_animation_speed("death", DEATH_FPS)
+		frames.set_animation_loop("death", false)
+
+		for i in range(death_frame_count):
+			var frame_texture = get_frame_texture(unit_id, "death", i)
+			if frame_texture:
+				frames.add_frame("death", frame_texture)
 
 	sprite.sprite_frames = frames
 	sprite.animation = "idle"

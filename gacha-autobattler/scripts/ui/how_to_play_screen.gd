@@ -98,9 +98,11 @@ func _ready():
 
 
 func _apply_theme():
-	# Background
+	# Background - use castle theme for documentation feel
+	UISpriteLoader.apply_background_to_scene(self, UISpriteLoader.BackgroundTheme.CASTLE, UISpriteLoader.BackgroundVariant.PALE, 0.4)
+	# Hide the old solid color background if it exists
 	if has_node("Background"):
-		$Background.color = UITheme.BG_DARK
+		$Background.visible = false
 
 	# Header styling
 	if has_node("VBoxContainer/Header/TitleLabel"):
@@ -108,31 +110,18 @@ func _apply_theme():
 		title.add_theme_font_size_override("font_size", UITheme.FONT_TITLE_MEDIUM)
 		title.add_theme_color_override("font_color", UITheme.TEXT_PRIMARY)
 
-	# Back button styling
+	# Back button styling with sprite
 	if back_button:
-		back_button.add_theme_stylebox_override("normal", UITheme.create_button_style(UITheme.BG_MEDIUM, UITheme.BG_LIGHT))
-		back_button.add_theme_stylebox_override("hover", UITheme.create_button_style(UITheme.BG_LIGHT))
-		back_button.add_theme_stylebox_override("pressed", UITheme.create_button_style(UITheme.BG_MEDIUM.darkened(0.1)))
+		UISpriteLoader.apply_button_style(back_button, UISpriteLoader.ButtonColor.PURPLE, "ButtonA")
 		back_button.add_theme_font_size_override("font_size", UITheme.FONT_BODY)
-		back_button.add_theme_color_override("font_color", UITheme.TEXT_PRIMARY)
 
 	# Tab button styling
 	_style_tab_buttons()
 
-	# Content panel styling
+	# Content panel styling with sprite
 	if has_node("VBoxContainer/ContentPanel"):
 		var panel = $VBoxContainer/ContentPanel
-		var style = StyleBoxFlat.new()
-		style.bg_color = UITheme.BG_MEDIUM
-		style.corner_radius_top_left = 8
-		style.corner_radius_top_right = 8
-		style.corner_radius_bottom_left = 8
-		style.corner_radius_bottom_right = 8
-		style.content_margin_left = UITheme.SPACING_LG
-		style.content_margin_right = UITheme.SPACING_LG
-		style.content_margin_top = UITheme.SPACING_LG
-		style.content_margin_bottom = UITheme.SPACING_LG
-		panel.add_theme_stylebox_override("panel", style)
+		UISpriteLoader.apply_panel_style(panel, UISpriteLoader.PanelColor.BLUE, "Panel")
 
 	# Content label styling
 	if content_label:
@@ -146,7 +135,6 @@ func _style_tab_buttons():
 	for tab in tabs:
 		if tab:
 			tab.add_theme_font_size_override("font_size", UITheme.FONT_BODY)
-			tab.add_theme_color_override("font_color", UITheme.TEXT_PRIMARY)
 			tab.custom_minimum_size = Vector2(120, 40)
 	_update_tab_styles()
 
@@ -158,15 +146,11 @@ func _update_tab_styles():
 		if not tab:
 			continue
 		if tab_name == current_tab:
-			# Active tab style
-			tab.add_theme_stylebox_override("normal", UITheme.create_button_style(UITheme.PRIMARY))
-			tab.add_theme_stylebox_override("hover", UITheme.create_button_style(UITheme.PRIMARY.lightened(0.1)))
-			tab.add_theme_stylebox_override("pressed", UITheme.create_button_style(UITheme.PRIMARY.darkened(0.1)))
+			# Active tab style - blue sprite button
+			UISpriteLoader.apply_button_style(tab, UISpriteLoader.ButtonColor.BLUE, "ButtonA")
 		else:
-			# Inactive tab style
-			tab.add_theme_stylebox_override("normal", UITheme.create_button_style(UITheme.BG_MEDIUM, UITheme.BG_LIGHT))
-			tab.add_theme_stylebox_override("hover", UITheme.create_button_style(UITheme.BG_LIGHT))
-			tab.add_theme_stylebox_override("pressed", UITheme.create_button_style(UITheme.BG_MEDIUM.darkened(0.1)))
+			# Inactive tab style - white/light sprite button
+			UISpriteLoader.apply_button_style(tab, UISpriteLoader.ButtonColor.WHITE, "ButtonA")
 
 
 func _connect_signals():

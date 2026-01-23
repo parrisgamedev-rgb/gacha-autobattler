@@ -107,6 +107,9 @@ var ability_tooltip: Control = null
 var results_animator: BattleResultsAnimator = null
 
 func _ready():
+	# Load chapter-specific theme (board and cells)
+	_load_chapter_theme()
+
 	_create_grid()
 	_load_units()
 	_create_roster_displays()
@@ -176,6 +179,66 @@ func _ready():
 		await get_tree().create_timer(0.5).timeout
 		TutorialManager.start_tutorial("battle_basics")
 
+
+func _load_chapter_theme():
+	"""Load chapter-specific board and cell textures."""
+	var chapter = 0
+
+	# Determine chapter from current stage
+	if PlayerData.is_campaign_mode() and PlayerData.current_stage:
+		var stage_id = PlayerData.current_stage.stage_id
+		if stage_id.begins_with("1-"):
+			chapter = 1
+		elif stage_id.begins_with("2-"):
+			chapter = 2
+		elif stage_id.begins_with("3-"):
+			chapter = 3
+
+	# Load board texture based on chapter
+	var board_path = ""
+	match chapter:
+		1:
+			board_path = "res://assets/board/boards/chapter_1_board.png"
+		2:
+			board_path = "res://assets/board/boards/chapter_2_board.png"
+		3:
+			board_path = "res://assets/board/boards/chapter_3_board.png"
+		_:
+			board_path = "res://assets/board/dungeon_board.png"  # Default
+
+	# Update the GameBoard texture
+	if has_node("GameBoard") and ResourceLoader.exists(board_path):
+		var board_texture = load(board_path)
+		$GameBoard.texture = board_texture
+		print("Loaded chapter ", chapter, " board: ", board_path)
+
+	# Set chapter on BoardAssetLoader for themed overlays
+	BoardAssetLoader.set_chapter(chapter)
+
+	# Store chapter for grid cell loading
+	set_meta("current_chapter", chapter)
+
+
+func _get_chapter_cell_texture() -> Texture2D:
+	"""Get the grid cell texture for the current chapter."""
+	var chapter = get_meta("current_chapter", 0)
+
+	var cell_path = ""
+	match chapter:
+		1:
+			cell_path = "res://assets/board/cells/chapter_1_cell.png"
+		2:
+			cell_path = "res://assets/board/cells/chapter_2_cell.png"
+		3:
+			cell_path = "res://assets/board/cells/chapter_3_cell.png"
+		_:
+			cell_path = "res://assets/board/grid_cell_tile.png"  # Default
+
+	if ResourceLoader.exists(cell_path):
+		return load(cell_path)
+	return null
+
+
 func _get_perspective_scale(row: int) -> float:
 	# Interpolate scale based on row (0 = top/far, 2 = bottom/near)
 	var t = float(row) / float(GRID_SIZE - 1)
@@ -219,6 +282,9 @@ func _create_grid():
 	grid_enemy_displays = []
 	grid_field_effects = []
 
+	# Get chapter-specific cell texture
+	var cell_texture = _get_chapter_cell_texture()
+
 	for row in range(GRID_SIZE):
 		var cell_row = []
 		var ownership_row = []
@@ -239,7 +305,7 @@ func _create_grid():
 			cell.position = pos
 			cell.scale = Vector2(row_scale, row_scale)
 
-			cell.setup(row, col, int(cell_size_for_row))
+			cell.setup(row, col, int(cell_size_for_row), cell_texture)
 			cell.cell_clicked.connect(_on_cell_clicked)
 
 			cell_row.append(cell)
@@ -1775,16 +1841,24 @@ func _get_cell_at_mouse() -> Dictionary:
 	var mouse_pos = get_global_mouse_position()
 	var grid_pos = grid_container.global_position
 
-	var grid_total_size = (CELL_SIZE * GRID_SIZE) + (CELL_GAP * (GRID_SIZE - 1))
-	var offset = -grid_total_size / 2
-
+	# Use actual cell positions with perspective offsets
 	for row in range(GRID_SIZE):
-		for col in range(GRID_SIZE):
-			var cell_x = grid_pos.x + offset + (col * (CELL_SIZE + CELL_GAP))
-			var cell_y = grid_pos.y + offset + (row * (CELL_SIZE + CELL_GAP))
+		var row_scale = _get_perspective_scale(row)
+		var cell_size_for_row = _get_cell_size_for_row(row)
 
-			if mouse_pos.x >= cell_x and mouse_pos.x < cell_x + CELL_SIZE:
-				if mouse_pos.y >= cell_y and mouse_pos.y < cell_y + CELL_SIZE:
+		for col in range(GRID_SIZE):
+			# Get the actual cell center position (same as _get_cell_position)
+			var cell_center = grid_pos + _get_cell_position(row, col)
+
+			# Calculate cell bounds (accounting for scale)
+			var half_size = (cell_size_for_row * row_scale) / 2
+			var cell_left = cell_center.x - half_size
+			var cell_right = cell_center.x + half_size
+			var cell_top = cell_center.y - half_size
+			var cell_bottom = cell_center.y + half_size
+
+			if mouse_pos.x >= cell_left and mouse_pos.x < cell_right:
+				if mouse_pos.y >= cell_top and mouse_pos.y < cell_bottom:
 					return {"row": row, "col": col}
 
 	return {}
@@ -2376,64 +2450,49 @@ func _apply_battle_theme():
 		enemy_roster_label.add_theme_font_size_override("font_size", UITheme.FONT_BODY)
 		enemy_roster_label.add_theme_color_override("font_color", UITheme.DANGER)
 
-	# Ability panel
+	# Ability panel with sprite styling
 	if ability_panel and ability_panel is Panel:
-		ability_panel.add_theme_stylebox_override("panel", UITheme.create_panel_style(UITheme.BG_MEDIUM))
+		UISpriteLoader.apply_panel_style(ability_panel, UISpriteLoader.PanelColor.BLUE, "Panel")
 
 	var ability_label = get_node_or_null("UI/AbilityPanel/AbilityLabel")
 	if ability_label:
 		ability_label.add_theme_font_size_override("font_size", UITheme.FONT_CAPTION)
 		ability_label.add_theme_color_override("font_color", UITheme.TEXT_SECONDARY)
 
-	# Style ability buttons
+	# Style ability buttons with sprite-based styling
 	for btn in ability_buttons:
 		if btn:
-			btn.add_theme_stylebox_override("normal", UITheme.create_button_style(UITheme.BG_LIGHT))
-			btn.add_theme_stylebox_override("hover", UITheme.create_button_style(UITheme.BG_LIGHT.lightened(0.1)))
-			btn.add_theme_stylebox_override("disabled", UITheme.create_button_style(UITheme.BG_DARK))
+			UISpriteLoader.apply_button_style(btn, UISpriteLoader.ButtonColor.BLUE, "ButtonA")
 			btn.add_theme_font_size_override("font_size", UITheme.FONT_CAPTION)
-			btn.add_theme_color_override("font_color", UITheme.TEXT_PRIMARY)
 			btn.add_theme_color_override("font_disabled_color", UITheme.TEXT_DISABLED)
 
 	if ability_desc:
 		ability_desc.add_theme_font_size_override("font_size", UITheme.FONT_CAPTION)
 		ability_desc.add_theme_color_override("font_color", UITheme.TEXT_SECONDARY)
 
-	# End turn button
+	# End turn button - primary action (blue)
 	if end_turn_button:
-		end_turn_button.add_theme_stylebox_override("normal", UITheme.create_button_style(UITheme.PRIMARY))
-		end_turn_button.add_theme_stylebox_override("hover", UITheme.create_button_style(UITheme.PRIMARY.lightened(0.1)))
-		end_turn_button.add_theme_stylebox_override("pressed", UITheme.create_button_style(UITheme.PRIMARY.darkened(0.1)))
+		UISpriteLoader.apply_button_style(end_turn_button, UISpriteLoader.ButtonColor.BLUE, "ButtonA")
 		end_turn_button.add_theme_font_size_override("font_size", UITheme.FONT_BODY)
-		end_turn_button.add_theme_color_override("font_color", UITheme.TEXT_PRIMARY)
 
-	# Quit button - use danger color
+	# Quit button - danger action (red)
 	if quit_button:
-		quit_button.add_theme_stylebox_override("normal", UITheme.create_button_style(UITheme.DANGER.darkened(0.3)))
-		quit_button.add_theme_stylebox_override("hover", UITheme.create_button_style(UITheme.DANGER))
-		quit_button.add_theme_stylebox_override("pressed", UITheme.create_button_style(UITheme.DANGER.darkened(0.2)))
+		UISpriteLoader.apply_button_style(quit_button, UISpriteLoader.ButtonColor.RED, "ButtonA")
 		quit_button.add_theme_font_size_override("font_size", UITheme.FONT_CAPTION)
-		quit_button.add_theme_color_override("font_color", UITheme.TEXT_PRIMARY)
 
-	# Auto-battle and speed buttons
+	# Auto-battle and speed buttons (purple secondary)
 	if auto_button:
-		auto_button.add_theme_stylebox_override("normal", UITheme.create_button_style(UITheme.BG_LIGHT))
-		auto_button.add_theme_stylebox_override("hover", UITheme.create_button_style(UITheme.BG_LIGHT.lightened(0.1)))
-		auto_button.add_theme_stylebox_override("pressed", UITheme.create_button_style(UITheme.SECONDARY))
+		UISpriteLoader.apply_button_style(auto_button, UISpriteLoader.ButtonColor.PURPLE, "ButtonA")
 		auto_button.add_theme_font_size_override("font_size", UITheme.FONT_CAPTION)
-		auto_button.add_theme_color_override("font_color", UITheme.TEXT_PRIMARY)
 
 	for speed_btn in [speed_1x_btn, speed_2x_btn, speed_3x_btn]:
 		if speed_btn:
-			speed_btn.add_theme_stylebox_override("normal", UITheme.create_button_style(UITheme.BG_LIGHT))
-			speed_btn.add_theme_stylebox_override("hover", UITheme.create_button_style(UITheme.BG_LIGHT.lightened(0.1)))
-			speed_btn.add_theme_stylebox_override("pressed", UITheme.create_button_style(UITheme.SECONDARY))
+			UISpriteLoader.apply_button_style(speed_btn, UISpriteLoader.ButtonColor.PURPLE, "ButtonA")
 			speed_btn.add_theme_font_size_override("font_size", UITheme.FONT_CAPTION)
-			speed_btn.add_theme_color_override("font_color", UITheme.TEXT_PRIMARY)
 
-	# Results panel
+	# Results panel with sprite styling
 	if results_panel and results_panel is Panel:
-		results_panel.add_theme_stylebox_override("panel", UITheme.create_panel_style(UITheme.BG_DARK, UITheme.PRIMARY, UITheme.MODAL_RADIUS))
+		UISpriteLoader.apply_panel_style(results_panel, UISpriteLoader.PanelColor.BLUE, "Panel")
 
 	var results_bg = get_node_or_null("UI/ResultsPanel/ResultsBackground")
 	if results_bg and results_bg is ColorRect:
@@ -2446,18 +2505,14 @@ func _apply_battle_theme():
 		result_subtitle.add_theme_font_size_override("font_size", UITheme.FONT_BODY)
 		result_subtitle.add_theme_color_override("font_color", UITheme.TEXT_SECONDARY)
 
-	# Style results buttons
+	# Style results buttons with sprites
 	if play_again_button:
-		play_again_button.add_theme_stylebox_override("normal", UITheme.create_button_style(UITheme.PRIMARY))
-		play_again_button.add_theme_stylebox_override("hover", UITheme.create_button_style(UITheme.PRIMARY.lightened(0.1)))
+		UISpriteLoader.apply_button_style(play_again_button, UISpriteLoader.ButtonColor.BLUE, "ButtonA")
 		play_again_button.add_theme_font_size_override("font_size", UITheme.FONT_BODY)
-		play_again_button.add_theme_color_override("font_color", UITheme.TEXT_PRIMARY)
 
 	if main_menu_button:
-		main_menu_button.add_theme_stylebox_override("normal", UITheme.create_button_style(UITheme.BG_LIGHT))
-		main_menu_button.add_theme_stylebox_override("hover", UITheme.create_button_style(UITheme.BG_LIGHT.lightened(0.1)))
+		UISpriteLoader.apply_button_style(main_menu_button, UISpriteLoader.ButtonColor.PURPLE, "ButtonA")
 		main_menu_button.add_theme_font_size_override("font_size", UITheme.FONT_BODY)
-		main_menu_button.add_theme_color_override("font_color", UITheme.TEXT_PRIMARY)
 
 	# Combat announcement
 	if combat_announcement:

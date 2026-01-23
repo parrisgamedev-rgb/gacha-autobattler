@@ -1,53 +1,46 @@
-[gd_scene load_steps=3 format=3 uid="uid://b5yq8k2m4n1wx"]
+[gd_scene load_steps=6 format=3 uid="uid://b5yq8k2m4n1wx"]
 
 [ext_resource type="Script" path="res://scripts/battle/grid_cell.gd" id="1_cell"]
+[ext_resource type="Texture2D" path="res://assets/board/grid_cell_tile.png" id="2_tile"]
+[ext_resource type="Texture2D" path="res://assets/board/cell_highlight_hover.png" id="3_hover"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_default"]
 size = Vector2(150, 150)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_border"]
+bg_color = Color(0, 0, 0, 0)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(0.4, 0.35, 0.25, 0.8)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
 
 [node name="GridCell" type="Area2D"]
 input_pickable = true
 script = ExtResource("1_cell")
 
-[node name="Background" type="ColorRect" parent="."]
+[node name="Background" type="TextureRect" parent="."]
+mouse_filter = 2
+texture_filter = 1
+offset_left = -75.0
+offset_top = -75.0
+offset_right = 75.0
+offset_bottom = 75.0
+texture = ExtResource("2_tile")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Border" type="Panel" parent="."]
 mouse_filter = 2
 offset_left = -75.0
 offset_top = -75.0
 offset_right = 75.0
 offset_bottom = 75.0
-color = Color(0.2, 0.2, 0.25, 1)
-
-[node name="Border" type="ColorRect" parent="."]
-mouse_filter = 2
-offset_left = -75.0
-offset_top = -75.0
-offset_right = 75.0
-offset_bottom = -70.0
-color = Color(0.4, 0.4, 0.5, 1)
-
-[node name="Border2" type="ColorRect" parent="."]
-mouse_filter = 2
-offset_left = -75.0
-offset_top = 70.0
-offset_right = 75.0
-offset_bottom = 75.0
-color = Color(0.4, 0.4, 0.5, 1)
-
-[node name="Border3" type="ColorRect" parent="."]
-mouse_filter = 2
-offset_left = -75.0
-offset_top = -75.0
-offset_right = -70.0
-offset_bottom = 75.0
-color = Color(0.4, 0.4, 0.5, 1)
-
-[node name="Border4" type="ColorRect" parent="."]
-mouse_filter = 2
-offset_left = 70.0
-offset_top = -75.0
-offset_right = 75.0
-offset_bottom = 75.0
-color = Color(0.4, 0.4, 0.5, 1)
+theme_override_styles/panel = SubResource("StyleBoxFlat_border")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
 shape = SubResource("RectangleShape2D_default")
@@ -55,17 +48,20 @@ shape = SubResource("RectangleShape2D_default")
 [node name="OwnerIndicator" type="ColorRect" parent="."]
 mouse_filter = 2
 visible = false
-offset_left = -60.0
-offset_top = -60.0
-offset_right = 60.0
-offset_bottom = 60.0
-color = Color(0.3, 0.5, 1, 0.5)
+offset_left = -72.0
+offset_top = -72.0
+offset_right = 72.0
+offset_bottom = 72.0
+color = Color(0.3, 0.5, 1, 0.4)
 
-[node name="HoverEffect" type="ColorRect" parent="."]
+[node name="HoverEffect" type="TextureRect" parent="."]
 mouse_filter = 2
 visible = false
+texture_filter = 1
 offset_left = -75.0
 offset_top = -75.0
 offset_right = 75.0
 offset_bottom = 75.0
-color = Color(1, 1, 1, 0.1)
+texture = ExtResource("3_hover")
+expand_mode = 1
+stretch_mode = 5

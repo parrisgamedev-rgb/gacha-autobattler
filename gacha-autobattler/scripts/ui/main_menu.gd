@@ -71,9 +71,11 @@ func _ready():
 
 
 func _apply_theme():
-	# Background
+	# Background - use castle theme image
+	UISpriteLoader.apply_background_to_scene(self, UISpriteLoader.BackgroundTheme.CASTLE, UISpriteLoader.BackgroundVariant.BRIGHT, 0.3)
+	# Hide the old solid color background if it exists
 	if has_node("Background"):
-		$Background.color = UITheme.BG_DARK
+		$Background.visible = false
 
 	# Title styling
 	if has_node("CenterContainer/VBoxContainer/TitleLabel"):
@@ -85,7 +87,7 @@ func _apply_theme():
 	# Version label
 	if has_node("CenterContainer/VBoxContainer/VersionLabel"):
 		var version = $CenterContainer/VBoxContainer/VersionLabel
-		version.text = "v0.14"
+		version.text = "v0.15"
 		version.add_theme_font_size_override("font_size", UITheme.FONT_CAPTION)
 		version.add_theme_color_override("font_color", UITheme.TEXT_SECONDARY)
 		version.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -106,11 +108,9 @@ func _style_primary_buttons():
 		var path = "CenterContainer/VBoxContainer/PrimaryButtons/" + btn_name
 		if has_node(path):
 			var btn = get_node(path)
-			btn.add_theme_stylebox_override("normal", UITheme.create_button_style(UITheme.PRIMARY))
-			btn.add_theme_stylebox_override("hover", UITheme.create_button_style(UITheme.PRIMARY.lightened(0.1)))
-			btn.add_theme_stylebox_override("pressed", UITheme.create_button_style(UITheme.PRIMARY.darkened(0.1)))
+			# Use sprite-based button style
+			UISpriteLoader.apply_button_style(btn, UISpriteLoader.ButtonColor.BLUE, "ButtonA")
 			btn.add_theme_font_size_override("font_size", UITheme.FONT_BODY)
-			btn.add_theme_color_override("font_color", UITheme.TEXT_PRIMARY)
 			btn.custom_minimum_size = Vector2(300, 50)
 
 
@@ -120,11 +120,9 @@ func _style_secondary_buttons():
 		var path = "CenterContainer/VBoxContainer/SecondaryButtons/" + btn_name
 		if has_node(path):
 			var btn = get_node(path)
-			btn.add_theme_stylebox_override("normal", UITheme.create_button_style(UITheme.BG_MEDIUM, UITheme.BG_LIGHT))
-			btn.add_theme_stylebox_override("hover", UITheme.create_button_style(UITheme.BG_LIGHT))
-			btn.add_theme_stylebox_override("pressed", UITheme.create_button_style(UITheme.BG_MEDIUM.darkened(0.1)))
+			# Use sprite-based button style (purple for secondary)
+			UISpriteLoader.apply_button_style(btn, UISpriteLoader.ButtonColor.PURPLE, "ButtonA")
 			btn.add_theme_font_size_override("font_size", UITheme.FONT_BODY)
-			btn.add_theme_color_override("font_color", UITheme.TEXT_PRIMARY)
 			btn.custom_minimum_size = Vector2(145, 50)
 
 

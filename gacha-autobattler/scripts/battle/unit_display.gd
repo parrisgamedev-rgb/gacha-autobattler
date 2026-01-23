@@ -28,9 +28,20 @@ var is_enemy: bool = false
 @onready var cooldown_overlay = $CooldownOverlay
 @onready var click_area = $ClickArea
 
+# Sprite-based HP bar components
+var hp_bar_bg: TextureRect = null
+var hp_bar_fill: TextureRect = null
+var hp_bar_fg: TextureRect = null
+var uses_sprite_hp_bar: bool = false
+
+# Sprite-based star rating
+var star_container: HBoxContainer = null
+var uses_sprite_stars: bool = false
+
 func _ready():
 	if click_area:
 		click_area.input_event.connect(_on_input_event)
+	_setup_sprite_hp_bar()
 
 func _on_input_event(_viewport: Node, event: InputEvent, _shape_idx: int):
 	if event is InputEventMouseButton:
@@ -43,6 +54,72 @@ func _on_input_event(_viewport: Node, event: InputEvent, _shape_idx: int):
 				# Can't drag (on cooldown or already placed), just click
 				unit_clicked.emit(unit_instance, self)
 
+
+func _setup_sprite_hp_bar():
+	"""Initialize sprite-based HP bar using UISpriteLoader if available."""
+	# Try to create sprite HP bar components
+	var hp_components = UISpriteLoader.create_hp_bar(UISpriteLoader.BarColor.GREEN, "MinimalBar")
+
+	if hp_components.is_empty():
+		# No sprite HP bar available, use default ColorRect style
+		uses_sprite_hp_bar = false
+		return
+
+	uses_sprite_hp_bar = true
+
+	# Hide the original ColorRect HP bar elements
+	if hp_bar:
+		hp_bar.visible = false
+
+	# Set up HP bar container position (same as original)
+	var bar_pos = Vector2(-45, 68)
+	var bar_size = Vector2(90, 10)
+
+	# Create background
+	if "background" in hp_components:
+		hp_bar_bg = hp_components["background"]
+		hp_bar_bg.position = bar_pos
+		hp_bar_bg.size = bar_size
+		hp_bar_bg.stretch_mode = TextureRect.STRETCH_SCALE
+		hp_bar_bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		add_child(hp_bar_bg)
+
+	# Create fill (this will be masked/scaled based on HP)
+	if "fill" in hp_components:
+		hp_bar_fill = hp_components["fill"]
+		hp_bar_fill.position = bar_pos
+		hp_bar_fill.size = bar_size
+		hp_bar_fill.stretch_mode = TextureRect.STRETCH_SCALE
+		hp_bar_fill.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		add_child(hp_bar_fill)
+
+	# Create foreground (frame)
+	if "foreground" in hp_components:
+		hp_bar_fg = hp_components["foreground"]
+		hp_bar_fg.position = bar_pos
+		hp_bar_fg.size = bar_size
+		hp_bar_fg.stretch_mode = TextureRect.STRETCH_SCALE
+		hp_bar_fg.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		add_child(hp_bar_fg)
+
+	# Re-add the HP label on top
+	if hp_label:
+		# Move HP label to be a sibling, positioned above the sprite bar
+		var label_pos = bar_pos + Vector2(0, -2)
+		var new_label = Label.new()
+		new_label.name = "SpriteHPLabel"
+		new_label.position = label_pos
+		new_label.size = Vector2(bar_size.x, 14)
+		new_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		new_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		new_label.add_theme_font_size_override("font_size", 10)
+		new_label.add_theme_color_override("font_color", Color.WHITE)
+		new_label.add_theme_color_override("font_outline_color", Color.BLACK)
+		new_label.add_theme_constant_override("outline_size", 2)
+		new_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		add_child(new_label)
+		hp_label = new_label
+
 func setup(instance: UnitInstance):
 	unit_instance = instance
 
@@ -52,8 +129,8 @@ func setup(instance: UnitInstance):
 		# Set name
 		name_label.text = data.unit_name
 
-		# Set stars
-		star_label.text = "★".repeat(data.star_rating)
+		# Set stars (try sprite-based first)
+		_setup_star_display(data.star_rating)
 
 		# Set element color on ring
 		var element_color = data.get_element_color()
@@ -74,22 +151,70 @@ func setup(instance: UnitInstance):
 		# Update cooldown
 		update_cooldown_display()
 
+
+func _setup_star_display(rating: int):
+	"""Set up star rating display - sprite-based or text fallback."""
+	# Try to create sprite-based stars
+	var sprite_stars = UISpriteLoader.create_star_display(rating, rating, UISpriteLoader.StarColor.GOLD)
+
+	if sprite_stars:
+		uses_sprite_stars = true
+
+		# Hide text star label
+		if star_label:
+			star_label.visible = false
+
+		# Clean up old star container if exists
+		if star_container:
+			star_container.queue_free()
+
+		# Position the star container where the text label was
+		star_container = sprite_stars
+		star_container.position = Vector2(-50 + (100 - sprite_stars.get_minimum_size().x) / 2, 48)
+		star_container.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		add_child(star_container)
+	else:
+		# Fall back to text stars
+		uses_sprite_stars = false
+		if star_label:
+			star_label.visible = true
+			star_label.text = "★".repeat(rating)
+
 func update_hp_display():
-	if unit_instance and unit_instance.unit_data:
-		var hp_percent = float(unit_instance.current_hp) / float(unit_instance.unit_data.max_hp)
-		hp_fill.offset_right = 90.0 * hp_percent
+	if not unit_instance or not unit_instance.unit_data:
+		return
 
-		# Update HP text
-		if hp_label:
-			hp_label.text = str(unit_instance.current_hp) + "/" + str(unit_instance.unit_data.max_hp)
+	var hp_percent = float(unit_instance.current_hp) / float(unit_instance.unit_data.max_hp)
 
-		# Change color based on HP
-		if hp_percent > 0.5:
-			hp_fill.color = Color(0.2, 0.8, 0.2)  # Green
-		elif hp_percent > 0.25:
-			hp_fill.color = Color(0.8, 0.8, 0.2)  # Yellow
-		else:
-			hp_fill.color = Color(0.8, 0.2, 0.2)  # Red
+	# Update HP text
+	if hp_label:
+		hp_label.text = str(unit_instance.current_hp) + "/" + str(unit_instance.unit_data.max_hp)
+
+	if uses_sprite_hp_bar:
+		# Update sprite-based HP bar
+		if hp_bar_fill:
+			# Scale the fill width based on HP percentage
+			hp_bar_fill.size.x = 90.0 * hp_percent
+
+			# Change fill color/modulate based on HP
+			if hp_percent > 0.5:
+				hp_bar_fill.modulate = Color(1.0, 1.0, 1.0)  # Normal (green)
+			elif hp_percent > 0.25:
+				hp_bar_fill.modulate = Color(1.2, 1.0, 0.4)  # Yellow tint
+			else:
+				hp_bar_fill.modulate = Color(1.2, 0.4, 0.4)  # Red tint
+	else:
+		# Update ColorRect-based HP bar (fallback)
+		if hp_fill:
+			hp_fill.offset_right = 90.0 * hp_percent
+
+			# Change color based on HP
+			if hp_percent > 0.5:
+				hp_fill.color = Color(0.2, 0.8, 0.2)  # Green
+			elif hp_percent > 0.25:
+				hp_fill.color = Color(0.8, 0.8, 0.2)  # Yellow
+			else:
+				hp_fill.color = Color(0.8, 0.2, 0.2)  # Red
 
 func show_damage_number(amount: int, is_heal: bool = false):
 	var label = Label.new()
@@ -217,7 +342,7 @@ func _setup_sprite(data: UnitData):
 			uses_ai_sprite = true
 			body.visible = false
 			ai_sprite.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
-			ai_sprite.scale = Vector2(1, 1)  # AI sprites are already 128px
+			ai_sprite.scale = Vector2(2.0, 2.0)  # Scale up 100px sprites for better visibility
 			add_child(ai_sprite)
 			ai_sprite.play("idle")
 			return

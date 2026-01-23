@@ -261,10 +261,12 @@ func _on_back():
 	SceneTransition.change_scene("res://scenes/ui/main_menu.tscn")
 
 func _apply_theme():
-	# Background
+	# Background - use ruins theme for treasure hunting vibe
+	UISpriteLoader.apply_background_to_scene(self, UISpriteLoader.BackgroundTheme.RUINS, UISpriteLoader.BackgroundVariant.PALE, 0.45)
+	# Hide the old solid color background if it exists
 	var bg = get_node_or_null("Background")
 	if bg:
-		bg.color = UITheme.BG_DARK
+		bg.visible = false
 
 	# Top bar
 	var top_bar = get_node_or_null("TopBar")
@@ -278,13 +280,10 @@ func _apply_theme():
 		title.add_theme_font_size_override("font_size", UITheme.FONT_TITLE_LARGE)
 		title.add_theme_color_override("font_color", UITheme.TEXT_PRIMARY)
 
-	# Back button
+	# Back button with sprite styling
 	if back_btn:
-		back_btn.add_theme_stylebox_override("normal", UITheme.create_button_style(Color.TRANSPARENT))
-		back_btn.add_theme_stylebox_override("hover", UITheme.create_button_style(UITheme.BG_LIGHT))
-		back_btn.add_theme_stylebox_override("pressed", UITheme.create_button_style(UITheme.BG_MEDIUM))
-		back_btn.add_theme_color_override("font_color", UITheme.TEXT_SECONDARY)
-		back_btn.add_theme_color_override("font_hover_color", UITheme.TEXT_PRIMARY)
+		UISpriteLoader.apply_button_style(back_btn, UISpriteLoader.ButtonColor.PURPLE, "ButtonA")
+		back_btn.add_theme_font_size_override("font_size", UITheme.FONT_BODY)
 
 	# Filter label
 	var filter_label = get_node_or_null("FilterBar/FilterLabel")
@@ -296,9 +295,9 @@ func _apply_theme():
 	_style_filter_tabs()
 	_update_filter_tab_styles()
 
-	# Detail panel
+	# Detail panel with gold sprite panel (gear = treasure)
 	if detail_panel and detail_panel is Panel:
-		detail_panel.add_theme_stylebox_override("panel", UITheme.create_panel_style(UITheme.BG_MEDIUM))
+		UISpriteLoader.apply_panel_style(detail_panel, UISpriteLoader.PanelColor.GOLD, "Panel")
 
 	# Style detail panel content
 	_style_detail_panel()
@@ -321,15 +320,11 @@ func _update_filter_tab_styles():
 		var tab = tabs[i]
 		if tab:
 			if current_filter == filter_values[i]:
-				tab.add_theme_stylebox_override("normal", UITheme.create_button_style(UITheme.PRIMARY))
-				tab.add_theme_stylebox_override("hover", UITheme.create_button_style(UITheme.PRIMARY.lightened(0.1)))
-				tab.add_theme_color_override("font_color", UITheme.TEXT_PRIMARY)
-				tab.add_theme_color_override("font_hover_color", UITheme.TEXT_PRIMARY)
+				# Active filter - gold sprite button
+				UISpriteLoader.apply_button_style(tab, UISpriteLoader.ButtonColor.GOLD, "ButtonA")
 			else:
-				tab.add_theme_stylebox_override("normal", UITheme.create_button_style(UITheme.BG_LIGHT))
-				tab.add_theme_stylebox_override("hover", UITheme.create_button_style(UITheme.BG_LIGHT.lightened(0.1)))
-				tab.add_theme_color_override("font_color", UITheme.TEXT_SECONDARY)
-				tab.add_theme_color_override("font_hover_color", UITheme.TEXT_PRIMARY)
+				# Inactive filter - white sprite button
+				UISpriteLoader.apply_button_style(tab, UISpriteLoader.ButtonColor.WHITE, "ButtonA")
 
 func _style_detail_panel():
 	# Gear name label
@@ -361,22 +356,13 @@ func _style_detail_panel():
 		equipped_label.add_theme_font_size_override("font_size", UITheme.FONT_CAPTION)
 		equipped_label.add_theme_color_override("font_color", UITheme.GOLD)
 
-	# Enhance button
+	# Enhance button with sprite styling (blue primary)
 	if enhance_btn:
-		enhance_btn.add_theme_stylebox_override("normal", UITheme.create_button_style(UITheme.PRIMARY))
-		enhance_btn.add_theme_stylebox_override("hover", UITheme.create_button_style(UITheme.PRIMARY.lightened(0.1)))
-		enhance_btn.add_theme_stylebox_override("pressed", UITheme.create_button_style(UITheme.PRIMARY.darkened(0.1)))
-		enhance_btn.add_theme_stylebox_override("disabled", UITheme.create_button_style(UITheme.BG_DARK))
+		UISpriteLoader.apply_button_style(enhance_btn, UISpriteLoader.ButtonColor.BLUE, "ButtonA")
 		enhance_btn.add_theme_font_size_override("font_size", UITheme.FONT_BODY)
-		enhance_btn.add_theme_color_override("font_color", UITheme.TEXT_PRIMARY)
-		enhance_btn.add_theme_color_override("font_hover_color", UITheme.TEXT_PRIMARY)
 		enhance_btn.add_theme_color_override("font_disabled_color", UITheme.TEXT_DISABLED)
 
-	# Close button
+	# Close button with sprite styling (white/light)
 	if close_btn:
-		close_btn.add_theme_stylebox_override("normal", UITheme.create_button_style(UITheme.BG_LIGHT))
-		close_btn.add_theme_stylebox_override("hover", UITheme.create_button_style(UITheme.BG_LIGHT.lightened(0.1)))
-		close_btn.add_theme_stylebox_override("pressed", UITheme.create_button_style(UITheme.BG_MEDIUM))
+		UISpriteLoader.apply_button_style(close_btn, UISpriteLoader.ButtonColor.WHITE, "ButtonA")
 		close_btn.add_theme_font_size_override("font_size", UITheme.FONT_BODY)
-		close_btn.add_theme_color_override("font_color", UITheme.TEXT_PRIMARY)
-		close_btn.add_theme_color_override("font_hover_color", UITheme.TEXT_PRIMARY)

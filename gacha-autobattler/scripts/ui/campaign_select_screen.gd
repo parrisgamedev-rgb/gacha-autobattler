@@ -122,24 +122,30 @@ func _style_info_panel():
 
 func _load_all_stages():
 	# Load all stage resources from chapter folders
-	var chapter_path = "res://resources/stages/chapter_1/"
-	var stage_files = [
-		"stage_1_1.tres",
-		"stage_1_2.tres",
-		"stage_1_3.tres",
-		"stage_1_4.tres",
-		"stage_1_5.tres"
+	var chapter_configs = [
+		{
+			"path": "res://resources/stages/chapter_1/",
+			"files": ["stage_1_1.tres", "stage_1_2.tres", "stage_1_3.tres", "stage_1_4.tres", "stage_1_5.tres"]
+		},
+		{
+			"path": "res://resources/stages/chapter_2/",
+			"files": ["stage_2_1.tres", "stage_2_2.tres", "stage_2_3.tres", "stage_2_4.tres", "stage_2_5.tres"]
+		}
 	]
 
-	for file_name in stage_files:
-		var full_path = chapter_path + file_name
-		if ResourceLoader.exists(full_path):
-			var stage = load(full_path)
-			if stage:
-				var chapter = stage.chapter
-				if not stages_by_chapter.has(chapter):
-					stages_by_chapter[chapter] = []
-				stages_by_chapter[chapter].append(stage)
+	for config in chapter_configs:
+		var chapter_path = config["path"]
+		var stage_files = config["files"]
+
+		for file_name in stage_files:
+			var full_path = chapter_path + file_name
+			if ResourceLoader.exists(full_path):
+				var stage = load(full_path)
+				if stage:
+					var chapter = stage.chapter
+					if not stages_by_chapter.has(chapter):
+						stages_by_chapter[chapter] = []
+					stages_by_chapter[chapter].append(stage)
 
 	# Sort stages within each chapter
 	for chapter in stages_by_chapter:

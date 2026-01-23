@@ -373,10 +373,12 @@ func _set_circle_color(color: Color):
 # === THEME FUNCTIONS ===
 
 func _apply_theme():
-	# Background
+	# Background - use graveyard theme for mysterious summon vibes
+	UISpriteLoader.apply_background_to_scene(self, UISpriteLoader.BackgroundTheme.GRAVEYARD, UISpriteLoader.BackgroundVariant.BRIGHT, 0.4)
+	# Hide the old solid color background if it exists
 	var bg = get_node_or_null("Background")
 	if bg:
-		bg.color = UITheme.BG_DARK
+		bg.visible = false
 
 	# Top bar panel styling
 	var top_bar = get_node_or_null("TopBar")
@@ -425,22 +427,16 @@ func _apply_theme():
 func _style_back_button(btn: Button):
 	if not btn:
 		return
-	btn.add_theme_stylebox_override("normal", UITheme.create_button_style(Color.TRANSPARENT))
-	btn.add_theme_stylebox_override("hover", UITheme.create_button_style(UITheme.BG_LIGHT))
-	btn.add_theme_stylebox_override("pressed", UITheme.create_button_style(UITheme.BG_DARK))
+	# Use sprite-based button (purple secondary)
+	UISpriteLoader.apply_button_style(btn, UISpriteLoader.ButtonColor.PURPLE, "ButtonA")
 	btn.add_theme_font_size_override("font_size", UITheme.FONT_BODY)
-	btn.add_theme_color_override("font_color", UITheme.TEXT_SECONDARY)
-	btn.add_theme_color_override("font_hover_color", UITheme.TEXT_PRIMARY)
 
 func _style_primary_button(btn: Button):
 	if not btn:
 		return
-	btn.add_theme_stylebox_override("normal", UITheme.create_button_style(UITheme.PRIMARY))
-	btn.add_theme_stylebox_override("hover", UITheme.create_button_style(UITheme.PRIMARY.lightened(0.15)))
-	btn.add_theme_stylebox_override("pressed", UITheme.create_button_style(UITheme.PRIMARY.darkened(0.15)))
-	btn.add_theme_stylebox_override("disabled", UITheme.create_button_style(UITheme.BG_DARK))
+	# Use sprite-based button (blue primary)
+	UISpriteLoader.apply_button_style(btn, UISpriteLoader.ButtonColor.BLUE, "ButtonA")
 	btn.add_theme_font_size_override("font_size", UITheme.FONT_TITLE_SMALL)
-	btn.add_theme_color_override("font_color", UITheme.TEXT_PRIMARY)
 	btn.add_theme_color_override("font_disabled_color", UITheme.TEXT_DISABLED)
 
 func _style_banner():
@@ -448,10 +444,23 @@ func _style_banner():
 	if banner:
 		banner.color = UITheme.BG_MEDIUM
 
+		# Add sprite banner decoration behind the title
+		var banner_decoration = UISpriteLoader.create_banner(UISpriteLoader.BannerColor.GOLD, "TitleBanner")
+		if banner_decoration:
+			banner_decoration.name = "BannerDecoration"
+			banner_decoration.set_anchors_preset(Control.PRESET_CENTER_TOP)
+			banner_decoration.custom_minimum_size = Vector2(500, 80)
+			banner_decoration.size = Vector2(500, 80)
+			banner_decoration.position = Vector2(-250, 20)
+			banner.add_child(banner_decoration)
+			banner.move_child(banner_decoration, 0)  # Move to back
+
 	var banner_title = get_node_or_null("BannerImage/BannerTitle")
 	if banner_title:
 		banner_title.add_theme_font_size_override("font_size", UITheme.FONT_TITLE_LARGE + 10)
 		banner_title.add_theme_color_override("font_color", UITheme.GOLD)
+		banner_title.add_theme_color_override("font_outline_color", Color.BLACK)
+		banner_title.add_theme_constant_override("outline_size", 3)
 
 	var banner_subtitle = get_node_or_null("BannerImage/BannerSubtitle")
 	if banner_subtitle:
@@ -464,8 +473,9 @@ func _style_banner():
 		rates_label.add_theme_color_override("font_color", UITheme.TEXT_SECONDARY)
 
 func _style_results_panel():
+	# Use sprite-based gold panel for results
 	if results_panel:
-		results_panel.add_theme_stylebox_override("panel", UITheme.create_panel_style(UITheme.BG_MEDIUM, UITheme.GOLD, UITheme.MODAL_RADIUS))
+		UISpriteLoader.apply_panel_style(results_panel, UISpriteLoader.PanelColor.GOLD, "Panel")
 
 	var results_bg = get_node_or_null("ResultsPanel/ResultsBackground")
 	if results_bg:
@@ -476,13 +486,10 @@ func _style_results_panel():
 		results_title.add_theme_font_size_override("font_size", UITheme.FONT_TITLE_LARGE)
 		results_title.add_theme_color_override("font_color", UITheme.GOLD)
 
-	# Continue button - gold themed for excitement
+	# Continue button - gold themed sprite button
 	if continue_btn:
-		continue_btn.add_theme_stylebox_override("normal", UITheme.create_button_style(UITheme.GOLD))
-		continue_btn.add_theme_stylebox_override("hover", UITheme.create_button_style(UITheme.GOLD.lightened(0.15)))
-		continue_btn.add_theme_stylebox_override("pressed", UITheme.create_button_style(UITheme.GOLD.darkened(0.15)))
+		UISpriteLoader.apply_button_style(continue_btn, UISpriteLoader.ButtonColor.GOLD, "ButtonA")
 		continue_btn.add_theme_font_size_override("font_size", UITheme.FONT_TITLE_MEDIUM)
-		continue_btn.add_theme_color_override("font_color", UITheme.BG_DARK)
 
 func _style_skip_button():
 	if not skip_btn:

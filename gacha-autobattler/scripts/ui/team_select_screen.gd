@@ -35,10 +35,12 @@ func _ready():
 	_update_ui()
 
 func _apply_theme():
-	# Background
+	# Background - use jungle theme image
+	UISpriteLoader.apply_background_to_scene(self, UISpriteLoader.BackgroundTheme.JUNGLE, UISpriteLoader.BackgroundVariant.BRIGHT, 0.35)
+	# Hide the old solid color background if it exists
 	var bg = get_node_or_null("Background")
 	if bg:
-		bg.color = UITheme.BG_DARK
+		bg.visible = false
 
 	# Top bar panel
 	var top_bar_panel = get_node_or_null("TopBarPanel")
@@ -55,16 +57,9 @@ func _apply_theme():
 		stage_info_label.add_theme_font_size_override("font_size", UITheme.FONT_BODY)
 		stage_info_label.add_theme_color_override("font_color", UITheme.TEXT_SECONDARY)
 
-	# Back button - transparent style with muted text
+	# Back button with sprite styling (purple secondary)
 	if back_btn:
-		var back_normal = UITheme.create_button_style(UITheme.BG_LIGHT)
-		var back_hover = UITheme.create_button_style(UITheme.BG_LIGHT.lightened(0.1))
-		var back_pressed = UITheme.create_button_style(UITheme.BG_DARK)
-		back_btn.add_theme_stylebox_override("normal", back_normal)
-		back_btn.add_theme_stylebox_override("hover", back_hover)
-		back_btn.add_theme_stylebox_override("pressed", back_pressed)
-		back_btn.add_theme_color_override("font_color", UITheme.TEXT_SECONDARY)
-		back_btn.add_theme_color_override("font_hover_color", UITheme.TEXT_PRIMARY)
+		UISpriteLoader.apply_button_style(back_btn, UISpriteLoader.ButtonColor.PURPLE, "ButtonA")
 		back_btn.add_theme_font_size_override("font_size", UITheme.FONT_BODY)
 
 	# Team section label
@@ -105,24 +100,17 @@ func _style_primary_button(btn: Button):
 	if not btn:
 		return
 
-	var normal_style = UITheme.create_button_style(UITheme.PRIMARY)
-	var hover_style = UITheme.create_button_style(UITheme.PRIMARY.lightened(0.15))
-	var pressed_style = UITheme.create_button_style(UITheme.PRIMARY.darkened(0.15))
-	var disabled_style = UITheme.create_button_style(UITheme.BG_DARK)
-
-	btn.add_theme_stylebox_override("normal", normal_style)
-	btn.add_theme_stylebox_override("hover", hover_style)
-	btn.add_theme_stylebox_override("pressed", pressed_style)
-	btn.add_theme_stylebox_override("disabled", disabled_style)
+	# Use sprite-based button style (blue primary)
+	UISpriteLoader.apply_button_style(btn, UISpriteLoader.ButtonColor.BLUE, "ButtonA")
 	btn.add_theme_font_size_override("font_size", UITheme.FONT_TITLE_MEDIUM)
-	btn.add_theme_color_override("font_color", UITheme.TEXT_PRIMARY)
 	btn.add_theme_color_override("font_disabled_color", UITheme.TEXT_DISABLED)
 
 func _style_stage_info_panel():
 	if not stage_info_panel:
 		return
 
-	stage_info_panel.add_theme_stylebox_override("panel", UITheme.create_panel_style(UITheme.BG_MEDIUM, UITheme.PRIMARY))
+	# Use sprite-based panel style
+	UISpriteLoader.apply_panel_style(stage_info_panel, UISpriteLoader.PanelColor.BLUE, "Panel")
 
 	var panel_bg = get_node_or_null("StageInfoPanel/PanelBg")
 	if panel_bg:

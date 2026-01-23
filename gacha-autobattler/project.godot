@@ -26,6 +26,7 @@ BoardAssetLoader="*res://scripts/core/board_asset_loader.gd"
 SceneTransition="*res://scripts/core/scene_transition.gd"
 AudioManager="*res://scripts/core/audio_manager.gd"
 TutorialManager="*res://scripts/core/tutorial_manager.gd"
+UISpriteLoader="*res://scripts/core/ui_sprite_loader.gd"
 
 [display]
 

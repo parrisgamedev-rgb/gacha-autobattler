@@ -82,18 +82,18 @@ func _load_unit_pools():
 
 	# Fire units
 	all_units.append(load("res://resources/units/fire_warrior.tres") as UnitData)
-	all_units.append(load("res://resources/units/fire_imp.tres") as UnitData)
+	all_units.append(load("res://resources/units/ember.tres") as UnitData)
 
 	# Water units
 	all_units.append(load("res://resources/units/water_mage.tres") as UnitData)
-	all_units.append(load("res://resources/units/water_sprite.tres") as UnitData)
+	all_units.append(load("res://resources/units/coral.tres") as UnitData)
 
 	# Nature units
 	all_units.append(load("res://resources/units/nature_tank.tres") as UnitData)
 	all_units.append(load("res://resources/units/nature_wisp.tres") as UnitData)
 
 	# Light units
-	all_units.append(load("res://resources/units/light_cleric.tres") as UnitData)
+	all_units.append(load("res://resources/units/spark.tres") as UnitData)
 	all_units.append(load("res://resources/units/radiant_paladin.tres") as UnitData)
 
 	# Dark units
@@ -118,8 +118,8 @@ func _give_starter_units():
 	print("Giving starter units to new player...")
 
 	var starter_paths = [
-		"res://resources/units/fire_imp.tres",
-		"res://resources/units/water_sprite.tres",
+		"res://resources/units/fire_warrior.tres",
+		"res://resources/units/coral.tres",
 		"res://resources/units/nature_wisp.tres"
 	]
 
@@ -128,7 +128,7 @@ func _give_starter_units():
 		if unit_data:
 			_add_unit_to_collection(unit_data)
 
-	print("Starter units granted: Fire Imp, Water Sprite, Nature Wisp")
+	print("Starter units granted: Kael, Coral, Nature Wisp")
 	save_game()
 
 func _ensure_minimum_units():
@@ -140,8 +140,8 @@ func _ensure_minimum_units():
 	print("Warning: Player has ", owned_units.size(), " units (need ", MIN_UNITS_REQUIRED, "). Granting starter units...")
 
 	var starter_paths = [
-		"res://resources/units/fire_imp.tres",
-		"res://resources/units/water_sprite.tres",
+		"res://resources/units/fire_warrior.tres",
+		"res://resources/units/coral.tres",
 		"res://resources/units/nature_wisp.tres"
 	]
 

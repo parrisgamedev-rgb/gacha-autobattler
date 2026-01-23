@@ -35,7 +35,7 @@ func _ready():
 	mouse_exited.connect(_on_mouse_exited)
 	input_event.connect(_on_input_event)
 
-func setup(row: int, col: int, size: int):
+func setup(row: int, col: int, size: int, cell_texture: Texture2D = null):
 	grid_row = row
 	grid_col = col
 	cell_size = size
@@ -47,20 +47,19 @@ func setup(row: int, col: int, size: int):
 
 	var half_size = size / 2.0
 
-	# Hide ALL visual elements - background image provides the grid visuals
-	background.visible = false
-	owner_indicator.visible = false
-	$Border.visible = false
-	$Border2.visible = false
-	$Border3.visible = false
-	$Border4.visible = false
+	# Set custom cell texture if provided
+	if cell_texture and background:
+		background.texture = cell_texture
 
-	# Subtle hover effect - just a slight glow when mousing over
-	hover_effect.offset_left = -half_size
-	hover_effect.offset_top = -half_size
-	hover_effect.offset_right = half_size
-	hover_effect.offset_bottom = half_size
-	hover_effect.color = Color(1.0, 1.0, 1.0, 0.1)
+	# Show tile background, hide owner indicator until needed
+	background.visible = true
+	owner_indicator.visible = false
+
+	# Hide border if it exists (using tile-based visuals now)
+	if has_node("Border"):
+		$Border.visible = true  # Show the stylized border
+
+	# Hover effect uses texture now - just control visibility
 	hover_effect.visible = false
 
 	# Setup AI board asset overlays if available
@@ -85,7 +84,6 @@ func _setup_ai_overlays(size: int):
 	# Create ownership overlay (rendered above field effect)
 	ownership_overlay = Sprite2D.new()
 	ownership_overlay.z_index = 2
-	ownership_overlay.modulate.a = 0.85  # Slight transparency so field effects show through
 	ownership_overlay.visible = false
 	add_child(ownership_overlay)
 
@@ -134,23 +132,40 @@ func set_contested(is_contested: bool):
 
 
 func _fade_in_overlay(overlay: Sprite2D):
-	"""Fade in an overlay sprite."""
+	"""Fade in an overlay sprite with scale animation."""
+	# Store the target scale
+	var target_size = get_meta("overlay_target_size", 180.0)
+	var tex_size = overlay.texture.get_size().x if overlay.texture else 150.0
+	var target_scale = target_size / tex_size
+
 	if not overlay.visible:
 		overlay.modulate.a = 0.0
+		overlay.scale = Vector2(target_scale * 0.5, target_scale * 0.5)  # Start small
 		overlay.visible = true
 
+	# Animate scale and alpha together
 	var tween = create_tween()
-	tween.tween_property(overlay, "modulate:a", 0.85, 0.3)
+	tween.set_ease(Tween.EASE_OUT)
+	tween.set_trans(Tween.TRANS_BACK)
+	tween.set_parallel(true)
+	tween.tween_property(overlay, "modulate:a", 1.0, 0.35)  # Full opacity
+	tween.tween_property(overlay, "scale", Vector2(target_scale, target_scale), 0.35)
 
 
 func _fade_out_overlay(overlay: Sprite2D):
-	"""Fade out an overlay sprite."""
+	"""Fade out an overlay sprite with scale animation."""
 	if not overlay.visible:
 		return
 
+	var current_scale = overlay.scale
+
 	var tween = create_tween()
-	tween.tween_property(overlay, "modulate:a", 0.0, 0.3)
-	tween.tween_callback(func(): overlay.visible = false)
+	tween.set_ease(Tween.EASE_IN)
+	tween.set_trans(Tween.TRANS_QUAD)
+	tween.set_parallel(true)
+	tween.tween_property(overlay, "modulate:a", 0.0, 0.25)
+	tween.tween_property(overlay, "scale", current_scale * 0.7, 0.25)
+	tween.chain().tween_callback(func(): overlay.visible = false)
 
 func _on_mouse_entered():
 	is_hovered = true
@@ -206,20 +221,48 @@ func _field_type_to_board_effect(field_type: FieldEffectData.FieldType) -> Board
 
 
 func _fade_in_field_effect():
-	"""Fade in the field effect overlay."""
-	# Scale based on actual texture size
-	if field_effect_overlay.texture:
-		var target_size = get_meta("overlay_target_size", 180.0)
-		var tex_size = field_effect_overlay.texture.get_size().x
-		var scale_factor = target_size / tex_size
-		field_effect_overlay.scale = Vector2(scale_factor, scale_factor)
+	"""Fade in the field effect overlay with animation."""
+	# Calculate target scale
+	var target_size = get_meta("overlay_target_size", 180.0)
+	var tex_size = field_effect_overlay.texture.get_size().x if field_effect_overlay.texture else 150.0
+	var target_scale = target_size / tex_size
 
 	if not field_effect_overlay.visible:
 		field_effect_overlay.modulate.a = 0.0
+		field_effect_overlay.scale = Vector2(target_scale * 0.3, target_scale * 0.3)  # Start very small
 		field_effect_overlay.visible = true
 
+	# Animate with a "pop in" effect
 	var tween = create_tween()
-	tween.tween_property(field_effect_overlay, "modulate:a", 0.9, 0.4)
+	tween.set_ease(Tween.EASE_OUT)
+	tween.set_trans(Tween.TRANS_ELASTIC)
+	tween.set_parallel(true)
+	tween.tween_property(field_effect_overlay, "modulate:a", 1.0, 0.5)  # Full opacity
+	tween.tween_property(field_effect_overlay, "scale", Vector2(target_scale, target_scale), 0.5)
+
+	# Start a subtle pulse animation after the initial animation
+	tween.chain().tween_callback(_start_field_effect_pulse.bind(target_scale))
+
+
+func _start_field_effect_pulse(base_scale: float):
+	"""Start a subtle pulsing animation for field effects."""
+	if not field_effect_overlay or not field_effect_overlay.visible:
+		return
+
+	# Create a looping pulse tween
+	if field_tween:
+		field_tween.kill()
+
+	field_tween = create_tween()
+	field_tween.set_loops()  # Loop forever
+
+	var pulse_amount = 0.05
+	var pulse_duration = 1.2
+
+	field_tween.tween_property(field_effect_overlay, "scale",
+		Vector2(base_scale * (1 + pulse_amount), base_scale * (1 + pulse_amount)), pulse_duration / 2).set_ease(Tween.EASE_IN_OUT).set_trans(Tween.TRANS_SINE)
+	field_tween.tween_property(field_effect_overlay, "scale",
+		Vector2(base_scale, base_scale), pulse_duration / 2).set_ease(Tween.EASE_IN_OUT).set_trans(Tween.TRANS_SINE)
 
 func _create_effect_for_type(field_type: FieldEffectData.FieldType, color: Color) -> Node2D:
 	var effect_container = Node2D.new()

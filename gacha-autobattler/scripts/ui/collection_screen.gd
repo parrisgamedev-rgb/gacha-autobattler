@@ -741,10 +741,12 @@ func _on_cancel_gear_select():
 # === THEME FUNCTIONS ===
 
 func _apply_theme():
-	# Background
+	# Background - use ruins theme image
+	UISpriteLoader.apply_background_to_scene(self, UISpriteLoader.BackgroundTheme.RUINS, UISpriteLoader.BackgroundVariant.BRIGHT, 0.4)
+	# Hide the old solid color background if it exists
 	var bg = get_node_or_null("Background")
 	if bg:
-		bg.color = UITheme.BG_DARK
+		bg.visible = false
 
 	# Top bar
 	var top_bar = get_node_or_null("TopBar")
@@ -766,14 +768,11 @@ func _apply_theme():
 		title.add_theme_font_size_override("font_size", UITheme.FONT_TITLE_LARGE)
 		title.add_theme_color_override("font_color", UITheme.TEXT_PRIMARY)
 
-	# Back button
+	# Back button with sprite styling
 	var back_btn_node = get_node_or_null("TopBar/BackButton")
 	if back_btn_node:
-		back_btn_node.add_theme_stylebox_override("normal", UITheme.create_button_style(UITheme.BG_LIGHT))
-		back_btn_node.add_theme_stylebox_override("hover", UITheme.create_button_style(UITheme.BG_LIGHT.lightened(0.1)))
-		back_btn_node.add_theme_stylebox_override("pressed", UITheme.create_button_style(UITheme.BG_DARK))
-		back_btn_node.add_theme_color_override("font_color", UITheme.TEXT_SECONDARY)
-		back_btn_node.add_theme_color_override("font_hover_color", UITheme.TEXT_PRIMARY)
+		UISpriteLoader.apply_button_style(back_btn_node, UISpriteLoader.ButtonColor.PURPLE, "ButtonA")
+		back_btn_node.add_theme_font_size_override("font_size", UITheme.FONT_BODY)
 
 	# Unit count label
 	var count_label = get_node_or_null("TopBar/UnitCountLabel")
@@ -781,9 +780,9 @@ func _apply_theme():
 		count_label.add_theme_font_size_override("font_size", UITheme.FONT_BODY)
 		count_label.add_theme_color_override("font_color", UITheme.TEXT_SECONDARY)
 
-	# Style detail panel
+	# Style detail panel with sprite styling
 	if detail_panel and detail_panel is Panel:
-		detail_panel.add_theme_stylebox_override("panel", UITheme.create_panel_style(UITheme.BG_MEDIUM, UITheme.PRIMARY, UITheme.MODAL_RADIUS))
+		UISpriteLoader.apply_panel_style(detail_panel, UISpriteLoader.PanelColor.BLUE, "Panel")
 
 	# Detail panel background
 	var detail_bg = get_node_or_null("DetailPanel/DetailBackground")
@@ -854,46 +853,31 @@ func _style_detail_panel_labels():
 		gear_label.add_theme_color_override("font_color", UITheme.GOLD)
 
 func _style_action_buttons():
-	# Level up button
+	# Level up button (blue primary)
 	if level_up_btn:
-		level_up_btn.add_theme_stylebox_override("normal", UITheme.create_button_style(UITheme.PRIMARY))
-		level_up_btn.add_theme_stylebox_override("hover", UITheme.create_button_style(UITheme.PRIMARY.lightened(0.15)))
-		level_up_btn.add_theme_stylebox_override("pressed", UITheme.create_button_style(UITheme.PRIMARY.darkened(0.15)))
-		level_up_btn.add_theme_stylebox_override("disabled", UITheme.create_button_style(UITheme.BG_DARK))
+		UISpriteLoader.apply_button_style(level_up_btn, UISpriteLoader.ButtonColor.BLUE, "ButtonA")
 		level_up_btn.add_theme_font_size_override("font_size", UITheme.FONT_BODY)
-		level_up_btn.add_theme_color_override("font_color", UITheme.TEXT_PRIMARY)
 		level_up_btn.add_theme_color_override("font_disabled_color", UITheme.TEXT_DISABLED)
 
-	# Imprint button
+	# Imprint button (purple secondary)
 	if imprint_btn:
-		imprint_btn.add_theme_stylebox_override("normal", UITheme.create_button_style(UITheme.SECONDARY))
-		imprint_btn.add_theme_stylebox_override("hover", UITheme.create_button_style(UITheme.SECONDARY.lightened(0.15)))
-		imprint_btn.add_theme_stylebox_override("pressed", UITheme.create_button_style(UITheme.SECONDARY.darkened(0.15)))
-		imprint_btn.add_theme_stylebox_override("disabled", UITheme.create_button_style(UITheme.BG_DARK))
+		UISpriteLoader.apply_button_style(imprint_btn, UISpriteLoader.ButtonColor.PURPLE, "ButtonA")
 		imprint_btn.add_theme_font_size_override("font_size", UITheme.FONT_BODY)
-		imprint_btn.add_theme_color_override("font_color", UITheme.TEXT_PRIMARY)
 		imprint_btn.add_theme_color_override("font_disabled_color", UITheme.TEXT_DISABLED)
 
-	# Close button
+	# Close button (white/light)
 	if close_detail_btn:
-		close_detail_btn.add_theme_stylebox_override("normal", UITheme.create_button_style(UITheme.BG_LIGHT))
-		close_detail_btn.add_theme_stylebox_override("hover", UITheme.create_button_style(UITheme.BG_LIGHT.lightened(0.1)))
-		close_detail_btn.add_theme_stylebox_override("pressed", UITheme.create_button_style(UITheme.BG_DARK))
+		UISpriteLoader.apply_button_style(close_detail_btn, UISpriteLoader.ButtonColor.WHITE, "ButtonA")
 		close_detail_btn.add_theme_font_size_override("font_size", UITheme.FONT_BODY)
-		close_detail_btn.add_theme_color_override("font_color", UITheme.TEXT_SECONDARY)
 
-	# Cheat buttons
+	# Cheat buttons (red danger)
 	if max_level_btn:
-		max_level_btn.add_theme_stylebox_override("normal", UITheme.create_button_style(UITheme.DANGER.darkened(0.5)))
-		max_level_btn.add_theme_stylebox_override("hover", UITheme.create_button_style(UITheme.DANGER.darkened(0.3)))
+		UISpriteLoader.apply_button_style(max_level_btn, UISpriteLoader.ButtonColor.RED, "ButtonA")
 		max_level_btn.add_theme_font_size_override("font_size", UITheme.FONT_CAPTION)
-		max_level_btn.add_theme_color_override("font_color", UITheme.DANGER)
 
 	if reset_level_btn:
-		reset_level_btn.add_theme_stylebox_override("normal", UITheme.create_button_style(UITheme.DANGER.darkened(0.5)))
-		reset_level_btn.add_theme_stylebox_override("hover", UITheme.create_button_style(UITheme.DANGER.darkened(0.3)))
+		UISpriteLoader.apply_button_style(reset_level_btn, UISpriteLoader.ButtonColor.RED, "ButtonA")
 		reset_level_btn.add_theme_font_size_override("font_size", UITheme.FONT_CAPTION)
-		reset_level_btn.add_theme_color_override("font_color", UITheme.DANGER)
 
 	# Cheat label
 	var cheat_label = get_node_or_null("DetailPanel/CheatButtons/CheatLabel")
@@ -905,7 +889,8 @@ func _style_imprint_panel():
 	if not imprint_panel:
 		return
 
-	imprint_panel.add_theme_stylebox_override("panel", UITheme.create_panel_style(UITheme.BG_MEDIUM, UITheme.SECONDARY, UITheme.MODAL_RADIUS))
+	# Use sprite panel (purple for imprint)
+	UISpriteLoader.apply_panel_style(imprint_panel, UISpriteLoader.PanelColor.PURPLE, "Panel")
 
 	var imprint_bg = get_node_or_null("ImprintPanel/ImprintBackground")
 	if imprint_bg:
@@ -922,16 +907,15 @@ func _style_imprint_panel():
 		imprint_info.add_theme_color_override("font_color", UITheme.TEXT_SECONDARY)
 
 	if cancel_imprint_btn:
-		cancel_imprint_btn.add_theme_stylebox_override("normal", UITheme.create_button_style(UITheme.BG_LIGHT))
-		cancel_imprint_btn.add_theme_stylebox_override("hover", UITheme.create_button_style(UITheme.BG_LIGHT.lightened(0.1)))
+		UISpriteLoader.apply_button_style(cancel_imprint_btn, UISpriteLoader.ButtonColor.WHITE, "ButtonA")
 		cancel_imprint_btn.add_theme_font_size_override("font_size", UITheme.FONT_BODY)
-		cancel_imprint_btn.add_theme_color_override("font_color", UITheme.TEXT_SECONDARY)
 
 func _style_confirm_panel():
 	if not confirm_panel:
 		return
 
-	confirm_panel.add_theme_stylebox_override("panel", UITheme.create_panel_style(UITheme.BG_MEDIUM, UITheme.DANGER, UITheme.MODAL_RADIUS))
+	# Use sprite panel (red for danger/confirm)
+	UISpriteLoader.apply_panel_style(confirm_panel, UISpriteLoader.PanelColor.RED, "Panel")
 
 	var confirm_bg = get_node_or_null("ConfirmPanel/ConfirmBackground")
 	if confirm_bg:
@@ -952,22 +936,19 @@ func _style_confirm_panel():
 		warning_label.add_theme_color_override("font_color", UITheme.DANGER)
 
 	if confirm_btn:
-		confirm_btn.add_theme_stylebox_override("normal", UITheme.create_button_style(UITheme.DANGER))
-		confirm_btn.add_theme_stylebox_override("hover", UITheme.create_button_style(UITheme.DANGER.lightened(0.15)))
+		UISpriteLoader.apply_button_style(confirm_btn, UISpriteLoader.ButtonColor.RED, "ButtonA")
 		confirm_btn.add_theme_font_size_override("font_size", UITheme.FONT_BODY)
-		confirm_btn.add_theme_color_override("font_color", UITheme.TEXT_PRIMARY)
 
 	if cancel_confirm_btn:
-		cancel_confirm_btn.add_theme_stylebox_override("normal", UITheme.create_button_style(UITheme.BG_LIGHT))
-		cancel_confirm_btn.add_theme_stylebox_override("hover", UITheme.create_button_style(UITheme.BG_LIGHT.lightened(0.1)))
+		UISpriteLoader.apply_button_style(cancel_confirm_btn, UISpriteLoader.ButtonColor.WHITE, "ButtonA")
 		cancel_confirm_btn.add_theme_font_size_override("font_size", UITheme.FONT_BODY)
-		cancel_confirm_btn.add_theme_color_override("font_color", UITheme.TEXT_SECONDARY)
 
 func _style_gear_select_panel():
 	if not gear_select_panel:
 		return
 
-	gear_select_panel.add_theme_stylebox_override("panel", UITheme.create_panel_style(UITheme.BG_MEDIUM, UITheme.GOLD, UITheme.MODAL_RADIUS))
+	# Use sprite panel (gold for gear)
+	UISpriteLoader.apply_panel_style(gear_select_panel, UISpriteLoader.PanelColor.GOLD, "Panel")
 
 	var gear_bg = get_node_or_null("GearSelectPanel/GearSelectBackground")
 	if gear_bg:
@@ -979,7 +960,5 @@ func _style_gear_select_panel():
 		gear_title.add_theme_color_override("font_color", UITheme.TEXT_PRIMARY)
 
 	if cancel_gear_btn:
-		cancel_gear_btn.add_theme_stylebox_override("normal", UITheme.create_button_style(UITheme.BG_LIGHT))
-		cancel_gear_btn.add_theme_stylebox_override("hover", UITheme.create_button_style(UITheme.BG_LIGHT.lightened(0.1)))
+		UISpriteLoader.apply_button_style(cancel_gear_btn, UISpriteLoader.ButtonColor.WHITE, "ButtonA")
 		cancel_gear_btn.add_theme_font_size_override("font_size", UITheme.FONT_BODY)
-		cancel_gear_btn.add_theme_color_override("font_color", UITheme.TEXT_SECONDARY)

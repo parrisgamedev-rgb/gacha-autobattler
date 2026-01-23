@@ -2,6 +2,95 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.15] - Content Expansion & UI Visual Overhaul
+
+### Added
+- **Complete UI Sprite Integration**
+  - New UISpriteLoader autoload for centralized UI asset management
+  - Sprite-based buttons in 7 colors (Black, Blue, Gold, Orange, Purple, Red, White)
+  - Sprite-based panels in 9 styles (Black, Blue, Gold, Paper, Photo, Purple, Red, White, Wood)
+  - Sprite-based HP bars with background, fill, and foreground layers
+  - Sprite-based star ratings for unit rarity display
+  - Banner decorations for titles and headers
+  - Tooltip/speech bubble support (8 colors)
+  - Form elements support (sliders, toggles, checkboxes)
+  - Heart-based health displays
+  - Selector/highlight sprites
+
+- **Themed Screen Backgrounds**
+  - 4 pixel art battleground backgrounds (Ruins, Castle, Jungle, Graveyard)
+  - Each with Bright and Pale variants
+  - Layered parallax components for potential animation
+  - Dynamic darkening for UI readability
+  - Main Menu: Dragon Castle theme
+  - Collection: Ancient Ruins theme
+  - Team Select: Enchanted Jungle theme
+  - Gacha/Summon: Graveyard/Crypt theme
+  - How To Play: Castle (Pale) theme
+  - Gear Inventory: Ruins (Pale) theme
+  - Settings: Castle (Pale) theme
+
+- **New Sprite System**
+  - Integrated "Tiny RPG Character Asset Pack" with 20 animated characters
+  - 100x100 pixel sprites with idle, attack, hurt, death, walk animations
+  - 10 playable hero sprites, 10 monster sprites
+  - Scaled 2x for better visibility
+
+- **New Playable Units**
+  - Ember (Fire 4★ DPS) - Blaze Strike, Infernal Rage abilities
+  - Coral (Water 3★ Support) - Tidal Blessing, Ocean Ward abilities
+  - Spark (Light 3★ Healer) - Flash Heal, Radiant Shield abilities
+
+- **Chapter 2: Arena Gauntlet**
+  - 5 new stages (2-1 through 2-5)
+  - Arena tournament theme with monster enemies
+  - Stage 2-5 boss: Arena Champion
+  - First-clear reward: Ember (4★ Fire DPS)
+
+- **10 New Monster Types** (enemy-only)
+  - Goblin, Wolf, Harpy, Minotaur, Chimera
+  - Gladiator, Gladiator Beast, Slime, Skeleton Warrior, Arena Champion
+
+- **Settings: Delete Save Data**
+  - Red danger button with confirmation dialog
+  - Allows full save reset for fresh start
+
+- **Tile-Based Battle Board**
+  - New dungeon-themed battle board background using tileset
+  - Grid cells now use pixel art tile textures
+  - Stone floor with gold brick borders
+  - Hover highlight effect on grid cells
+
+### Changed
+- **All UI Screens Updated**
+  - Main Menu: Sprite buttons, castle background
+  - Collection: Sprite panels/buttons, ruins background, rarity-colored UI
+  - Team Select: Sprite panels/buttons, jungle background
+  - Gacha: Sprite panels/buttons, graveyard background, gold banner decoration
+  - Settings: Sprite panels/buttons, castle background
+  - How To Play: Sprite tabs/panels, castle background
+  - Gear Inventory: Sprite panels/buttons with gold theme, ruins background
+  - Battle: Sprite buttons for abilities, auto-battle, speed controls
+- Replaced Fire Imp, Water Sprite, Light Cleric with new units
+- Updated starter units to: Kael, Coral, Nature Wisp
+- All existing units now use new sprite system
+
+### Technical
+- New files:
+  - `scripts/core/ui_sprite_loader.gd` - Centralized UI asset loader
+  - `assets/board/Sprites/` - Complete UI sprite pack
+  - `assets/board/PNG/` - 4 battleground backgrounds with variants
+- New sprite organization in `assets/sprites/` folders
+- Updated `ai_sprite_loader.gd` for 100x100 frame size
+- Monster units stored in `resources/units/monsters/`
+- Campaign screen loads multiple chapters dynamically
+- `tools/create_battle_board.py` generates board assets from tilesets
+- Battle board and grid cell textures in `assets/board/`
+- UISpriteLoader supports texture caching for performance
+- Graceful fallback when sprite assets unavailable
+
+---
+
 ## [0.14] - Tutorial & Onboarding Update
 
 ### Added
