@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="AbilityData" load_steps=2 format=3 uid="uid://frenzy_001"]
+
+[ext_resource type="Script" path="res://scripts/data/ability_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+ability_name = "Frenzy"
+ability_id = "frenzy"
+description = "Go into a frenzy, dealing massive damage but lowering defense."
+ability_type = 0
+damage_multiplier = 1.8
+defense_multiplier = 0.5
+heal_amount = 0
+bonus_damage = 15
+ignores_element = false
+guaranteed_survive = false
+counter_attack = false
+piercing = false
+cooldown = 3
+icon_color = Color(0.8, 0.2, 0.2, 1)

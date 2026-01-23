@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="UnitData" load_steps=5 format=3 uid="uid://ember_001"]
+
+[ext_resource type="Script" path="res://scripts/data/unit_data.gd" id="1_script"]
+[ext_resource type="Resource" uid="uid://basic_attack_001" path="res://resources/abilities/basic_attack.tres" id="2_ability"]
+[ext_resource type="Resource" uid="uid://blaze_strike_001" path="res://resources/abilities/blaze_strike.tres" id="3_ability"]
+[ext_resource type="Resource" uid="uid://infernal_rage_001" path="res://resources/abilities/infernal_rage.tres" id="4_ability"]
+
+[resource]
+script = ExtResource("1_script")
+unit_name = "Ember"
+unit_id = "ember_001"
+star_rating = 4
+element = "fire"
+max_hp = 90
+attack = 32
+defense = 8
+speed = 15
+abilities = Array[Resource]([ExtResource("2_ability"), ExtResource("3_ability"), ExtResource("4_ability")])
+portrait_color = Color(1, 0.4, 0.1, 1)

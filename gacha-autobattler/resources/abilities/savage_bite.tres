@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="AbilityData" load_steps=2 format=3 uid="uid://savage_bite_001"]
+
+[ext_resource type="Script" path="res://scripts/data/ability_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+ability_name = "Savage Bite"
+ability_id = "savage_bite"
+description = "A vicious bite attack."
+ability_type = 0
+damage_multiplier = 1.2
+defense_multiplier = 1.0
+heal_amount = 0
+bonus_damage = 5
+ignores_element = false
+guaranteed_survive = false
+counter_attack = false
+piercing = false
+cooldown = 1
+icon_color = Color(0.6, 0.4, 0.2, 1)

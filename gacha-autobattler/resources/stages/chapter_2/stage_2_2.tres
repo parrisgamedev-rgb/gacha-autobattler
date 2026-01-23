@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="StageData" load_steps=5 format=3 uid="uid://stage_2_2"]
+
+[ext_resource type="Script" path="res://scripts/data/stage_data.gd" id="1_script"]
+[ext_resource type="Resource" uid="uid://monster_wolf_001" path="res://resources/units/monsters/wolf.tres" id="2_unit"]
+[ext_resource type="Resource" uid="uid://monster_harpy_001" path="res://resources/units/monsters/harpy.tres" id="3_unit"]
+
+[resource]
+script = ExtResource("1_script")
+stage_id = "2-2"
+stage_name = "Beast Pit"
+chapter = 2
+stage_number = 2
+story_intro = "The arena gates open to reveal wolves and a harpy! These beasts are faster and fiercer."
+story_outro = "The beasts are defeated! Your reputation in the arena grows."
+enemy_units = Array[Resource]([ExtResource("2_unit"), ExtResource("2_unit"), ExtResource("3_unit")])
+enemy_level = 7
+difficulty = 3
+gem_reward = 100
+gold_reward = 300
+material_reward = 12
+xp_reward = 60

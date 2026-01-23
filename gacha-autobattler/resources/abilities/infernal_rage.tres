@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="AbilityData" load_steps=2 format=3 uid="uid://infernal_rage_001"]
+
+[ext_resource type="Script" path="res://scripts/data/ability_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+ability_name = "Infernal Rage"
+ability_id = "infernal_rage"
+description = "Unleash fury with a devastating piercing attack."
+ability_type = 0
+damage_multiplier = 1.5
+defense_multiplier = 0.8
+heal_amount = 0
+bonus_damage = 20
+ignores_element = false
+guaranteed_survive = false
+counter_attack = false
+piercing = true
+cooldown = 3
+icon_color = Color(1, 0.2, 0, 1)

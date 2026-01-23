@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="AbilityData" load_steps=2 format=3 uid="uid://ocean_ward_001"]
+
+[ext_resource type="Script" path="res://scripts/data/ability_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+ability_name = "Ocean Ward"
+ability_id = "ocean_ward"
+description = "Surround yourself with protective waters."
+ability_type = 0
+damage_multiplier = 0.8
+defense_multiplier = 2.0
+heal_amount = 15
+bonus_damage = 0
+ignores_element = false
+guaranteed_survive = true
+counter_attack = false
+piercing = false
+cooldown = 3
+icon_color = Color(0.1, 0.5, 0.9, 1)

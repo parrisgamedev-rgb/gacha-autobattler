@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="StageData" load_steps=4 format=3 uid="uid://stage_2_1"]
+
+[ext_resource type="Script" path="res://scripts/data/stage_data.gd" id="1_script"]
+[ext_resource type="Resource" uid="uid://monster_goblin_001" path="res://resources/units/monsters/goblin.tres" id="2_unit"]
+
+[resource]
+script = ExtResource("1_script")
+stage_id = "2-1"
+stage_name = "Opening Round"
+chapter = 2
+stage_number = 1
+story_intro = "Welcome to the Arena Gauntlet! Your first opponents are a pack of goblins. Show them what you're made of!"
+story_outro = "The crowd cheers as the goblins fall! You've passed the opening round."
+enemy_units = Array[Resource]([ExtResource("2_unit"), ExtResource("2_unit"), ExtResource("2_unit")])
+enemy_level = 6
+difficulty = 2
+gem_reward = 75
+gold_reward = 250
+material_reward = 10
+xp_reward = 50

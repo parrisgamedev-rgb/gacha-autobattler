@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="AbilityData" load_steps=2 format=3 uid="uid://radiant_shield_001"]
+
+[ext_resource type="Script" path="res://scripts/data/ability_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+ability_name = "Radiant Shield"
+ability_id = "radiant_shield"
+description = "Create a shield of light that guarantees survival."
+ability_type = 0
+damage_multiplier = 0.4
+defense_multiplier = 2.5
+heal_amount = 20
+bonus_damage = 0
+ignores_element = false
+guaranteed_survive = true
+counter_attack = false
+piercing = false
+cooldown = 3
+icon_color = Color(1, 0.95, 0.7, 1)

@@ -1,0 +1,23 @@
+[gd_resource type="Resource" script_class="StageData" load_steps=6 format=3 uid="uid://stage_2_5"]
+
+[ext_resource type="Script" path="res://scripts/data/stage_data.gd" id="1_script"]
+[ext_resource type="Resource" uid="uid://monster_arena_champion_001" path="res://resources/units/monsters/arena_champion.tres" id="2_unit"]
+[ext_resource type="Resource" uid="uid://monster_harpy_001" path="res://resources/units/monsters/harpy.tres" id="3_unit"]
+[ext_resource type="Resource" uid="uid://ember_001" path="res://resources/units/ember.tres" id="4_reward"]
+
+[resource]
+script = ExtResource("1_script")
+stage_id = "2-5"
+stage_name = "Arena Champion"
+chapter = 2
+stage_number = 5
+story_intro = "The legendary Arena Champion emerges with their harpy guardians! This is the ultimate test of your strength!"
+story_outro = "VICTORY! You have conquered the Arena Gauntlet and claimed the title of champion! Ember joins your cause!"
+enemy_units = Array[Resource]([ExtResource("2_unit"), ExtResource("3_unit"), ExtResource("3_unit")])
+enemy_level = 10
+difficulty = 5
+gem_reward = 250
+gold_reward = 500
+material_reward = 25
+xp_reward = 100
+first_clear_unit = ExtResource("4_reward")

@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="AbilityData" load_steps=2 format=3 uid="uid://blaze_strike_001"]
+
+[ext_resource type="Script" path="res://scripts/data/ability_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+ability_name = "Blaze Strike"
+ability_id = "blaze_strike"
+description = "A powerful fire attack that deals bonus damage."
+ability_type = 0
+damage_multiplier = 1.3
+defense_multiplier = 1.0
+heal_amount = 0
+bonus_damage = 15
+ignores_element = false
+guaranteed_survive = false
+counter_attack = false
+piercing = false
+cooldown = 2
+icon_color = Color(1, 0.4, 0.1, 1)

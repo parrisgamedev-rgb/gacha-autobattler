@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="AbilityData" load_steps=2 format=3 uid="uid://flash_heal_001"]
+
+[ext_resource type="Script" path="res://scripts/data/ability_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+ability_name = "Flash Heal"
+ability_id = "flash_heal"
+description = "A quick burst of healing light."
+ability_type = 0
+damage_multiplier = 0.6
+defense_multiplier = 1.2
+heal_amount = 30
+bonus_damage = 0
+ignores_element = false
+guaranteed_survive = false
+counter_attack = false
+piercing = false
+cooldown = 2
+icon_color = Color(1, 1, 0.6, 1)

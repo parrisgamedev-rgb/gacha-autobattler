@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="UnitData" load_steps=4 format=3 uid="uid://monster_skeleton_warrior_001"]
+
+[ext_resource type="Script" path="res://scripts/data/unit_data.gd" id="1_script"]
+[ext_resource type="Resource" uid="uid://basic_attack_001" path="res://resources/abilities/basic_attack.tres" id="2_ability"]
+[ext_resource type="Resource" uid="uid://power_strike_001" path="res://resources/abilities/power_strike.tres" id="3_ability"]
+
+[resource]
+script = ExtResource("1_script")
+unit_name = "Skeleton Warrior"
+unit_id = "monster_skeleton_warrior_001"
+star_rating = 2
+element = "dark"
+max_hp = 75
+attack = 22
+defense = 10
+speed = 11
+abilities = Array[Resource]([ExtResource("2_ability"), ExtResource("3_ability"), ExtResource("2_ability")])
+portrait_color = Color(0.6, 0.6, 0.5, 1)
