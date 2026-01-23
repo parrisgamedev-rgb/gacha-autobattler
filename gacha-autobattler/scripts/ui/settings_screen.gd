@@ -11,6 +11,7 @@ extends Control
 @onready var back_button = $CenterContainer/VBoxContainer/BackButton
 @onready var reset_tutorial_button = $CenterContainer/VBoxContainer/TutorialSection/ResetTutorialButton
 @onready var delete_save_button = $CenterContainer/VBoxContainer/DataSection/DeleteSaveButton
+@onready var credits_button = $CenterContainer/VBoxContainer/CreditsSection/CreditsButton
 
 # Confirmation dialog
 var delete_confirm_dialog: ConfirmationDialog = null
@@ -86,6 +87,17 @@ func _apply_theme():
 		UISpriteLoader.apply_button_style(delete_save_button, UISpriteLoader.ButtonColor.RED, "ButtonA")
 		delete_save_button.add_theme_font_size_override("font_size", UITheme.FONT_BODY)
 
+	# Credits section label
+	var credits_label = get_node_or_null("CenterContainer/VBoxContainer/CreditsSection/CreditsLabel")
+	if credits_label:
+		credits_label.add_theme_font_size_override("font_size", UITheme.FONT_BODY)
+		credits_label.add_theme_color_override("font_color", UITheme.TEXT_SECONDARY)
+
+	# Credits button
+	if credits_button:
+		UISpriteLoader.apply_button_style(credits_button, UISpriteLoader.ButtonColor.GOLD, "ButtonA")
+		credits_button.add_theme_font_size_override("font_size", UITheme.FONT_BODY)
+
 	# Back button
 	if back_button:
 		UISpriteLoader.apply_button_style(back_button, UISpriteLoader.ButtonColor.BLUE, "ButtonA")
@@ -135,6 +147,10 @@ func _connect_signals():
 
 	if delete_save_button:
 		delete_save_button.pressed.connect(_on_delete_save_pressed)
+
+	if credits_button:
+		credits_button.pressed.connect(_on_credits_pressed)
+
 	_create_delete_confirm_dialog()
 
 
@@ -210,6 +226,11 @@ func _on_delete_save_confirmed():
 
 	# Restart the game to apply fresh state
 	get_tree().quit()
+
+
+func _on_credits_pressed():
+	AudioManager.play_ui_click()
+	SceneTransition.change_scene("res://scenes/ui/credits_screen.tscn")
 
 
 func _on_back_pressed():

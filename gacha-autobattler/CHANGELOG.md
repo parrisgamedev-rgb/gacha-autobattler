@@ -2,6 +2,28 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.18] - Pre-Release Polish
+
+### Added
+- **Credits Screen**
+  - Accessible from Settings via gold "Credits" button
+  - Full credits with BBCode formatting
+  - Lists creator (dsParri), AI assistance, asset attributions
+  - Godot Engine 4.5 acknowledgment
+  - Scrollable panel for easy reading
+
+### Fixed
+- **UI Audio Consistency**
+  - Added missing AudioManager.play_ui_click() to battle buttons
+  - End Turn, Play Again, Main Menu buttons now have audio feedback
+  - Auto-battle toggle and speed controls now have click sounds
+  - Ability selection now plays click sound
+
+### Changed
+- Version bumped to v0.18 on main menu
+
+---
+
 ## [0.17] - Content Expansion II
 
 ### Added

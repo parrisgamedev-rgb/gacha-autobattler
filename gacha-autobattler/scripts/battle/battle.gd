@@ -692,6 +692,7 @@ func _show_placement_preview(unit: UnitInstance, row: int, col: int):
 	grid_player_displays[row][col] = display
 
 func _on_end_turn_pressed():
+	AudioManager.play_ui_click()
 	if current_phase != GamePhase.PLAYER_TURN:
 		return
 
@@ -1652,6 +1653,7 @@ func _handle_drag_release():
 	_clear_drag_state()
 
 func _on_ability_selected(index: int):
+	AudioManager.play_ui_click()
 	var active_unit = _get_active_unit_for_ability()
 	if active_unit and active_unit.unit_data.abilities.size() > index:
 		# Check if ability is available (not on cooldown)
@@ -2097,9 +2099,11 @@ func _give_dungeon_rewards() -> Dictionary:
 	return result
 
 func _on_play_again_pressed():
+	AudioManager.play_ui_click()
 	get_tree().reload_current_scene()
 
 func _on_main_menu_pressed():
+	AudioManager.play_ui_click()
 	if PlayerData.is_campaign_mode():
 		PlayerData.end_campaign_stage()
 		SceneTransition.change_scene("res://scenes/ui/campaign_select_screen.tscn")
@@ -2284,6 +2288,7 @@ func _on_quit_confirmed():
 # === AUTO-BATTLE SYSTEM ===
 
 func _on_auto_toggle():
+	AudioManager.play_ui_click()
 	auto_battle_enabled = not auto_battle_enabled
 	_update_auto_button()
 	if auto_battle_enabled and current_phase == GamePhase.PLAYER_TURN:
@@ -2298,6 +2303,7 @@ func _update_auto_button():
 		auto_button.text = "AUTO: OFF"
 
 func _set_battle_speed(speed: float):
+	AudioManager.play_ui_click()
 	battle_speed = speed
 	_update_speed_buttons()
 	if results_animator:

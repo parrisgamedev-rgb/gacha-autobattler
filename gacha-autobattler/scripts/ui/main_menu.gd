@@ -91,7 +91,7 @@ func _apply_theme():
 	# Version label
 	if has_node("CenterContainer/VBoxContainer/VersionLabel"):
 		var version = $CenterContainer/VBoxContainer/VersionLabel
-		version.text = "v0.17"
+		version.text = "v0.18"
 		version.add_theme_font_size_override("font_size", UITheme.FONT_CAPTION)
 		version.add_theme_color_override("font_color", UITheme.TEXT_SECONDARY)
 		version.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
