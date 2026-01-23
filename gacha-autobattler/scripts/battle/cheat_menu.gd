@@ -17,6 +17,8 @@ signal instant_lose_requested
 @onready var instant_lose_button = $Panel/VBox/InstantLoseButton
 @onready var add_gems_button = $Panel/VBox/AddGemsButton
 @onready var add_gold_button = $Panel/VBox/AddGoldButton
+@onready var add_stones_button = $Panel/VBox/AddStonesButton
+@onready var add_gear_button = $Panel/VBox/AddGearButton
 
 var battle_ref: Node = null
 
@@ -32,6 +34,8 @@ func _ready():
 	instant_lose_button.pressed.connect(_on_instant_lose_pressed)
 	add_gems_button.pressed.connect(_on_add_gems_pressed)
 	add_gold_button.pressed.connect(_on_add_gold_pressed)
+	add_stones_button.pressed.connect(_on_add_stones_pressed)
+	add_gear_button.pressed.connect(_on_add_gear_pressed)
 
 func setup(battle: Node):
 	battle_ref = battle
@@ -95,3 +99,27 @@ func _on_add_gems_pressed():
 func _on_add_gold_pressed():
 	PlayerData.add_gold(10000)
 	print("[CHEAT] Added 10000 gold")
+
+func _on_add_stones_pressed():
+	PlayerData.enhancement_stones += 100
+	PlayerData.save_game()
+	print("[CHEAT] Added 100 enhancement stones")
+
+func _on_add_gear_pressed():
+	# Add 4 random pieces of gear from different rarities
+	var gear_dir = "res://resources/gear/"
+	var gear_files = [
+		"atk_common_sword.tres",
+		"def_rare_armor.tres",
+		"hp_epic_amulet.tres",
+		"spd_legendary_ring.tres"
+	]
+
+	for file_name in gear_files:
+		var gear_data = load(gear_dir + file_name) as GearData
+		if gear_data:
+			PlayerData.add_gear_to_inventory(gear_data)
+			print("[CHEAT] Added gear: ", gear_data.gear_name)
+
+	PlayerData.save_game()
+	print("[CHEAT] Added 4 random gear pieces")

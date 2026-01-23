@@ -10,18 +10,18 @@ script = ExtResource("1_script")
 offset_left = 1520.0
 offset_top = 20.0
 offset_right = 1900.0
-offset_bottom = 400.0
+offset_bottom = 500.0
 
 [node name="Background" type="ColorRect" parent="Panel"]
 offset_right = 380.0
-offset_bottom = 380.0
+offset_bottom = 480.0
 color = Color(0.08, 0.08, 0.12, 0.95)
 
 [node name="VBox" type="VBoxContainer" parent="Panel"]
 offset_left = 10.0
 offset_top = 10.0
 offset_right = 370.0
-offset_bottom = 370.0
+offset_bottom = 470.0
 theme_override_constants/separation = 10
 
 [node name="Header" type="HBoxContainer" parent="Panel/VBox"]
@@ -111,6 +111,16 @@ text = "+10000 GEMS"
 custom_minimum_size = Vector2(0, 40)
 layout_mode = 2
 text = "+10000 GOLD"
+
+[node name="AddStonesButton" type="Button" parent="Panel/VBox"]
+custom_minimum_size = Vector2(0, 40)
+layout_mode = 2
+text = "+100 STONES"
+
+[node name="AddGearButton" type="Button" parent="Panel/VBox"]
+custom_minimum_size = Vector2(0, 40)
+layout_mode = 2
+text = "+4 RANDOM GEAR"
 
 [node name="Separator4" type="HSeparator" parent="Panel/VBox"]
 layout_mode = 2
