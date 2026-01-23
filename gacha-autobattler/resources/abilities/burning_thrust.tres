@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="AbilityData" load_steps=2 format=3 uid="uid://burning_thrust_001"]
+
+[ext_resource type="Script" path="res://scripts/data/ability_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+ability_name = "Burning Thrust"
+ability_id = "burning_thrust"
+description = "A fiery lance strike that pierces through armor."
+ability_type = 0
+damage_multiplier = 1.1
+defense_multiplier = 1.0
+heal_amount = 0
+bonus_damage = 0
+ignores_element = false
+guaranteed_survive = false
+counter_attack = false
+piercing = true
+cooldown = 2
+icon_color = Color(0.9, 0.4, 0.1, 1)

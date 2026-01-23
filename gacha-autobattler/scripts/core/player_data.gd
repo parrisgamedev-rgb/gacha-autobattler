@@ -93,6 +93,7 @@ func _load_unit_pools():
 	# Fire units
 	all_units.append(load("res://resources/units/fire_warrior.tres") as UnitData)
 	all_units.append(load("res://resources/units/ember.tres") as UnitData)
+	all_units.append(load("res://resources/units/vance.tres") as UnitData)  # v0.17
 
 	# Water units
 	all_units.append(load("res://resources/units/water_mage.tres") as UnitData)
@@ -101,6 +102,8 @@ func _load_unit_pools():
 	# Nature units
 	all_units.append(load("res://resources/units/nature_tank.tres") as UnitData)
 	all_units.append(load("res://resources/units/nature_wisp.tres") as UnitData)
+	all_units.append(load("res://resources/units/ursok.tres") as UnitData)  # v0.17
+	all_units.append(load("res://resources/units/fenris.tres") as UnitData)  # v0.17
 
 	# Light units
 	all_units.append(load("res://resources/units/spark.tres") as UnitData)
@@ -109,6 +112,8 @@ func _load_unit_pools():
 	# Dark units
 	all_units.append(load("res://resources/units/shadow_scout.tres") as UnitData)
 	all_units.append(load("res://resources/units/dark_knight.tres") as UnitData)
+	all_units.append(load("res://resources/units/gravebane.tres") as UnitData)  # v0.17
+	all_units.append(load("res://resources/units/shade.tres") as UnitData)  # v0.17
 
 	# Sort into pools by star rating
 	for unit in all_units:
@@ -176,7 +181,17 @@ func _build_unit_paths():
 		"res://resources/units/light_cleric.tres",
 		"res://resources/units/radiant_paladin.tres",
 		"res://resources/units/shadow_scout.tres",
-		"res://resources/units/dark_knight.tres"
+		"res://resources/units/dark_knight.tres",
+		# v0.15 units
+		"res://resources/units/ember.tres",
+		"res://resources/units/coral.tres",
+		"res://resources/units/spark.tres",
+		# v0.17 units
+		"res://resources/units/gravebane.tres",
+		"res://resources/units/ursok.tres",
+		"res://resources/units/shade.tres",
+		"res://resources/units/fenris.tres",
+		"res://resources/units/vance.tres"
 	]
 
 	for path in unit_files:

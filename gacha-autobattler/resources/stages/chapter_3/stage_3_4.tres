@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="StageData" load_steps=5 format=3 uid="uid://stage_3_4"]
+
+[ext_resource type="Script" path="res://scripts/data/stage_data.gd" id="1_script"]
+[ext_resource type="Resource" uid="uid://monster_werewolf_001" path="res://resources/units/monsters/werewolf.tres" id="2_unit"]
+[ext_resource type="Resource" uid="uid://monster_werebear_001" path="res://resources/units/monsters/werebear.tres" id="3_unit"]
+[ext_resource type="Resource" uid="uid://monster_greatsword_skeleton_001" path="res://resources/units/monsters/greatsword_skeleton.tres" id="4_unit"]
+
+[resource]
+script = ExtResource("1_script")
+stage_id = "3-4"
+stage_name = "The Dark Grove"
+chapter = 3
+stage_number = 4
+story_intro = "The heart of corruption. Beasts and undead fight together under a dark power."
+story_outro = "Only the Alpha remains. Its den lies just ahead."
+enemy_units = Array[Resource]([ExtResource("2_unit"), ExtResource("3_unit"), ExtResource("4_unit")])
+enemy_level = 18
+difficulty = 9
+gem_reward = 225
+gold_reward = 450
+material_reward = 22
+xp_reward = 90

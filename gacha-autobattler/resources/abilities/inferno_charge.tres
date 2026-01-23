@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="AbilityData" load_steps=2 format=3 uid="uid://inferno_charge_001"]
+
+[ext_resource type="Script" path="res://scripts/data/ability_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+ability_name = "Inferno Charge"
+ability_id = "inferno_charge"
+description = "Charges forward with blazing fury, dealing devastating damage."
+ability_type = 0
+damage_multiplier = 1.4
+defense_multiplier = 1.0
+heal_amount = 0
+bonus_damage = 5
+ignores_element = false
+guaranteed_survive = false
+counter_attack = false
+piercing = false
+cooldown = 3
+icon_color = Color(1.0, 0.3, 0.0, 1)

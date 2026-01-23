@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="StatusEffectData" load_steps=2 format=3 uid="uid://defense_down_001"]
+
+[ext_resource type="Script" path="res://scripts/data/status_effect_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+effect_id = "defense_down"
+effect_name = "Weakened"
+effect_type = 1
+description = "Defense reduced by 20%"
+base_duration = 2
+damage_per_turn = 0
+attack_modifier = 1.0
+defense_modifier = 0.8
+prevents_abilities = false
+shield_amount = 0
+attack_boost = 1.0
+defense_boost = 1.0
+icon_color = Color(0.5, 0.3, 0.1, 1)
+icon_symbol = "↓"
+refresh_on_reapply = true

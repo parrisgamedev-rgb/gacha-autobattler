@@ -14,6 +14,12 @@ const SPRITE_MAPPINGS = {
 	"spark_001": "spark",
 	"shadow_scout_001": "shadow_scout",
 	"dark_knight_001": "dark_knight",
+	# v0.17 playable units
+	"gravebane": "gravebane",
+	"ursok": "ursok",
+	"shade": "shade",
+	"fenris": "fenris",
+	"vance": "vance",
 
 	# MONSTERS (enemy-only)
 	"monster_goblin_001": "monster_goblin",
@@ -26,6 +32,11 @@ const SPRITE_MAPPINGS = {
 	"monster_harpy_001": "monster_harpy",
 	"monster_chimera_001": "monster_chimera",
 	"monster_gladiator_001": "monster_gladiator",
+	# v0.17 monsters
+	"monster_werewolf": "monster_werewolf",
+	"monster_werebear": "monster_werebear",
+	"monster_greatsword_skeleton": "monster_greatsword_skeleton",
+	"monster_alpha_werewolf": "monster_werewolf",  # Uses same sprite as werewolf
 }
 
 # Cache loaded textures

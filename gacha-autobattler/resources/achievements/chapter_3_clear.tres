@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="AchievementData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/achievement_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+id = "chapter_3_clear"
+achievement_name = "Chapter 3 Clear"
+description = "Complete stage 3-5"
+category = 2
+gem_reward = 400
+requirement_type = 2
+requirement_value = 1
+requirement_param = "3-5"

@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="UnitData" load_steps=5 format=3 uid="uid://fenris_001"]
+
+[ext_resource type="Script" path="res://scripts/data/unit_data.gd" id="1_script"]
+[ext_resource type="Resource" uid="uid://basic_attack_001" path="res://resources/abilities/basic_attack.tres" id="2_ability"]
+[ext_resource type="Resource" uid="uid://pack_tactics_001" path="res://resources/abilities/pack_tactics.tres" id="3_ability"]
+[ext_resource type="Resource" uid="uid://wolf_bite_001" path="res://resources/abilities/wolf_bite.tres" id="4_ability"]
+
+[resource]
+script = ExtResource("1_script")
+unit_name = "Fenris"
+unit_id = "fenris"
+star_rating = 3
+element = "nature"
+max_hp = 90
+attack = 24
+defense = 10
+speed = 16
+abilities = Array[Resource]([ExtResource("2_ability"), ExtResource("3_ability"), ExtResource("4_ability")])
+sprite_folder = "fenris"
+portrait_color = Color(0.5, 0.6, 0.3, 1)
+lore = "A werewolf who fights alongside heroes, not against them."

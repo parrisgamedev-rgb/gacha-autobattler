@@ -1,6 +1,6 @@
 # Grid Battler - Development Roadmap
 
-**Current Version:** 0.16
+**Current Version:** 0.17
 **Target Release:** 1.0
 **Last Updated:** January 2026
 
@@ -35,34 +35,11 @@ This roadmap outlines the path from v0.11 to v1.0 release. Each version focuses 
 | **0.14** | **Tutorial** | **Interactive battle tutorial, onboarding** |
 | **0.15** | **Content & Sprites** | **New sprite system, Chapter 2 Arena, 3 new units, 10 monsters** |
 | **0.16** | **Achievements** | **8 achievements, popup notifications, gallery screen** |
+| **0.17** | **Content II** | **Chapter 3 Dark Forest, 5 new units (20 total), 14 abilities** |
 
 ---
 
 ## Upcoming Versions
-
-### v0.17 - Content Expansion II
-**Goal:** More content depth for engaged players.
-
-#### Features
-- [ ] **Chapter 3 Campaign**
-  - 5 new stages (3-1 through 3-5)
-  - Boss encounter at 3-5
-  - Higher difficulty
-  - Premium rewards
-
-- [ ] **5 More Units (20 Total)**
-  - Include at least one new 5★
-  - Fill gaps in team compositions
-  - More ability variety
-
-#### Unit Distribution Goal (20 units)
-| Stars | Current | Target |
-|-------|---------|--------|
-| 3★ | 6 | 10 |
-| 4★ | 2 | 6 |
-| 5★ | 2 | 4 |
-
----
 
 ### v0.18 - Pre-Release Polish
 **Goal:** Final preparation for v1.0 release.

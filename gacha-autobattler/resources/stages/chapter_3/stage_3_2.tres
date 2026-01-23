@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="StageData" load_steps=4 format=3 uid="uid://stage_3_2"]
+
+[ext_resource type="Script" path="res://scripts/data/stage_data.gd" id="1_script"]
+[ext_resource type="Resource" uid="uid://monster_werewolf_001" path="res://resources/units/monsters/werewolf.tres" id="2_unit"]
+[ext_resource type="Resource" uid="uid://monster_skeleton_warrior_001" path="res://resources/units/monsters/skeleton_warrior.tres" id="3_unit"]
+
+[resource]
+script = ExtResource("1_script")
+stage_id = "3-2"
+stage_name = "Howling Woods"
+chapter = 3
+stage_number = 2
+story_intro = "The pack has found you. Werewolves emerge from the shadows, hungry for blood."
+story_outro = "The howling fades, but bones crunch underfoot. Something worse lurks ahead."
+enemy_units = Array[Resource]([ExtResource("2_unit"), ExtResource("2_unit"), ExtResource("3_unit")])
+enemy_level = 14
+difficulty = 7
+gem_reward = 175
+gold_reward = 350
+material_reward = 18
+xp_reward = 70

@@ -1,0 +1,23 @@
+[gd_resource type="Resource" script_class="AbilityData" load_steps=3 format=3 uid="uid://alpha_howl_001"]
+
+[ext_resource type="Script" path="res://scripts/data/ability_data.gd" id="1_script"]
+[ext_resource type="Resource" uid="uid://overclocked_001" path="res://resources/status_effects/overclocked.tres" id="2_status"]
+
+[resource]
+script = ExtResource("1_script")
+ability_name = "Alpha Howl"
+ability_id = "alpha_howl"
+description = "A commanding howl that empowers the pack."
+ability_type = 0
+damage_multiplier = 0.5
+defense_multiplier = 1.0
+heal_amount = 0
+bonus_damage = 0
+ignores_element = false
+guaranteed_survive = false
+counter_attack = false
+piercing = false
+cooldown = 3
+applies_status_effect = ExtResource("2_status")
+applies_to_self = true
+icon_color = Color(0.6, 0.5, 0.4, 1)

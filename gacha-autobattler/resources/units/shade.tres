@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="UnitData" load_steps=5 format=3 uid="uid://shade_001"]
+
+[ext_resource type="Script" path="res://scripts/data/unit_data.gd" id="1_script"]
+[ext_resource type="Resource" uid="uid://basic_attack_001" path="res://resources/abilities/basic_attack.tres" id="2_ability"]
+[ext_resource type="Resource" uid="uid://cursed_arrow_001" path="res://resources/abilities/cursed_arrow.tres" id="3_ability"]
+[ext_resource type="Resource" uid="uid://shadow_shot_001" path="res://resources/abilities/shadow_shot.tres" id="4_ability"]
+
+[resource]
+script = ExtResource("1_script")
+unit_name = "Shade"
+unit_id = "shade"
+star_rating = 3
+element = "dark"
+max_hp = 80
+attack = 22
+defense = 8
+speed = 14
+abilities = Array[Resource]([ExtResource("2_ability"), ExtResource("3_ability"), ExtResource("4_ability")])
+sprite_folder = "shade"
+portrait_color = Color(0.4, 0.2, 0.5, 1)
+lore = "An undead archer whose arrows carry ancient curses."

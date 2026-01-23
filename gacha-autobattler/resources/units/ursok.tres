@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="UnitData" load_steps=5 format=3 uid="uid://ursok_001"]
+
+[ext_resource type="Script" path="res://scripts/data/unit_data.gd" id="1_script"]
+[ext_resource type="Resource" uid="uid://basic_attack_001" path="res://resources/abilities/basic_attack.tres" id="2_ability"]
+[ext_resource type="Resource" uid="uid://maul_001" path="res://resources/abilities/maul.tres" id="3_ability"]
+[ext_resource type="Resource" uid="uid://roar_001" path="res://resources/abilities/roar.tres" id="4_ability"]
+
+[resource]
+script = ExtResource("1_script")
+unit_name = "Ursok"
+unit_id = "ursok"
+star_rating = 4
+element = "nature"
+max_hp = 150
+attack = 24
+defense = 16
+speed = 7
+abilities = Array[Resource]([ExtResource("2_ability"), ExtResource("3_ability"), ExtResource("4_ability")])
+sprite_folder = "ursok"
+portrait_color = Color(0.5, 0.7, 0.3, 1)
+lore = "A guardian of the wild who embraces his beast form."

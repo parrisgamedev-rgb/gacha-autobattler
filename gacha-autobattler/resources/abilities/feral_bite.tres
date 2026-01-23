@@ -1,0 +1,23 @@
+[gd_resource type="Resource" script_class="AbilityData" load_steps=3 format=3 uid="uid://feral_bite_001"]
+
+[ext_resource type="Script" path="res://scripts/data/ability_data.gd" id="1_script"]
+[ext_resource type="Resource" uid="uid://bleed_001" path="res://resources/status_effects/bleed.tres" id="2_status"]
+
+[resource]
+script = ExtResource("1_script")
+ability_name = "Feral Bite"
+ability_id = "feral_bite"
+description = "A savage bite that causes bleeding."
+ability_type = 0
+damage_multiplier = 1.0
+defense_multiplier = 1.0
+heal_amount = 0
+bonus_damage = 0
+ignores_element = false
+guaranteed_survive = false
+counter_attack = false
+piercing = false
+cooldown = 2
+applies_status_effect = ExtResource("2_status")
+applies_to_self = false
+icon_color = Color(0.7, 0.2, 0.2, 1)

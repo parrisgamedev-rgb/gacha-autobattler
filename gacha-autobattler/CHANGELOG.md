@@ -2,6 +2,87 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.17] - Content Expansion II
+
+### Added
+- **Chapter 3: Dark Forest Campaign**
+  - 5 new stages (3-1 through 3-5) with Dark Forest theme
+  - Corrupted woodland with werewolves and undead enemies
+  - Stage 3-5 Boss: Alpha Werewolf
+  - First-clear reward: Gravebane (5★ Dark)
+  - Progressive difficulty: Levels 12-20
+
+- **5 New Playable Units (15 → 20 Total)**
+  - Gravebane (Dark 5★) - Heavy damage dealer with lifesteal
+    - Soul Cleave: High damage + heal 30% of damage dealt
+    - Death's Embrace: AoE dark damage to all enemies
+  - Ursok (Nature 4★) - Bruiser/Off-tank
+    - Maul: Damage + reduce target DEF 20%
+    - Roar: Self ATK buff + defense boost
+  - Shade (Dark 3★) - Debuffer/Ranged
+    - Cursed Arrow: Damage + corrupted debuff
+    - Shadow Shot: Piercing damage ignores defense
+  - Fenris (Nature 3★) - Fast attacker
+    - Pack Tactics: Damage + self speed buff
+    - Wolf Bite: High single-target damage
+  - Vance (Fire 4★) - Mixed damage/Pierce
+    - Burning Thrust: Fire damage + armor piercing
+    - Inferno Charge: High damage dash attack
+
+- **4 New Monster Types**
+  - Werewolf: Fast attacker with Feral Bite (bleed)
+  - Werebear: Tanky bruiser with Crushing Swipe
+  - Greatsword Skeleton: High damage with Cleave (AoE)
+  - Alpha Werewolf (Boss): Pack leader with Alpha Howl buff
+
+- **14 New Abilities**
+  - Soul Cleave, Death's Embrace (Gravebane)
+  - Maul, Roar (Ursok)
+  - Cursed Arrow, Shadow Shot (Shade)
+  - Pack Tactics, Wolf Bite (Fenris)
+  - Burning Thrust, Inferno Charge (Vance)
+  - Feral Bite, Crushing Swipe, Cleave, Alpha Howl (monsters)
+
+- **2 New Status Effects**
+  - Bleeding: 5 damage per turn (from Feral Bite)
+  - Weakened: Defense reduced by 20% (from Maul)
+
+### Changed
+- All new units added to summon pool
+- Campaign screen now displays 3 chapters
+
+### Technical
+- New sprite folders for all new units extracted from Tiny RPG pack
+- New ability .tres files in resources/abilities/
+- New unit .tres files in resources/units/
+- New monster .tres files in resources/units/monsters/
+- New stage .tres files in resources/stages/chapter_3/
+- Updated PlayerData with new unit pools and paths
+- Updated campaign_select_screen.gd for Chapter 3
+
+---
+
+## [0.16] - Achievements System
+
+### Added
+- **Achievement System**
+  - 8 achievements across 3 categories (Battle, Collection, Progression)
+  - Auto-unlock when conditions met
+  - Gold-themed popup notifications
+  - Achievement Gallery screen accessible from main menu
+
+- **Achievement Categories**
+  - Battle: First Blood, Warrior, Veteran, Speed Demon
+  - Collection: Collector, Gear Up
+  - Progression: Chapter 1 Clear, Chapter 2 Clear
+
+### Technical
+- New AchievementManager autoload
+- New AchievementData resource class
+- Achievement popup and gallery UI
+
+---
+
 ## [0.15] - Content Expansion & UI Visual Overhaul
 
 ### Added

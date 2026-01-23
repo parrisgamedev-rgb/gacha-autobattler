@@ -1,0 +1,23 @@
+[gd_resource type="Resource" script_class="StageData" load_steps=5 format=3 uid="uid://stage_3_5"]
+
+[ext_resource type="Script" path="res://scripts/data/stage_data.gd" id="1_script"]
+[ext_resource type="Resource" uid="uid://monster_alpha_werewolf_001" path="res://resources/units/monsters/alpha_werewolf.tres" id="2_unit"]
+[ext_resource type="Resource" uid="uid://monster_werewolf_001" path="res://resources/units/monsters/werewolf.tres" id="3_unit"]
+[ext_resource type="Resource" uid="uid://gravebane_001" path="res://resources/units/gravebane.tres" id="4_reward"]
+
+[resource]
+script = ExtResource("1_script")
+stage_id = "3-5"
+stage_name = "Alpha's Den"
+chapter = 3
+stage_number = 5
+story_intro = "The Alpha Werewolf towers before you, flanked by its pack. This is the ultimate test!"
+story_outro = "The Alpha falls! The dark curse lifts from the forest. Gravebane, freed from corruption, joins your cause!"
+enemy_units = Array[Resource]([ExtResource("2_unit"), ExtResource("3_unit"), ExtResource("3_unit")])
+enemy_level = 20
+difficulty = 10
+gem_reward = 300
+gold_reward = 600
+material_reward = 30
+xp_reward = 120
+first_clear_unit = ExtResource("4_reward")

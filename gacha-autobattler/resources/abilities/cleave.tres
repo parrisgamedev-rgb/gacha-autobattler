@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="AbilityData" load_steps=2 format=3 uid="uid://cleave_001"]
+
+[ext_resource type="Script" path="res://scripts/data/ability_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+ability_name = "Cleave"
+ability_id = "cleave"
+description = "A wide sweeping attack that strikes multiple foes."
+ability_type = 0
+damage_multiplier = 1.3
+defense_multiplier = 1.0
+heal_amount = 0
+bonus_damage = 0
+ignores_element = false
+guaranteed_survive = false
+counter_attack = false
+piercing = false
+cooldown = 3
+icon_color = Color(0.4, 0.4, 0.5, 1)

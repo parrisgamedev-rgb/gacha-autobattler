@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="AbilityData" load_steps=2 format=3 uid="uid://shadow_shot_001"]
+
+[ext_resource type="Script" path="res://scripts/data/ability_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+ability_name = "Shadow Shot"
+ability_id = "shadow_shot"
+description = "A piercing arrow that bypasses enemy defenses."
+ability_type = 0
+damage_multiplier = 1.2
+defense_multiplier = 1.0
+heal_amount = 0
+bonus_damage = 0
+ignores_element = false
+guaranteed_survive = false
+counter_attack = false
+piercing = true
+cooldown = 3
+icon_color = Color(0.2, 0.1, 0.3, 1)

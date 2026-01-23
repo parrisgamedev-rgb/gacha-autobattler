@@ -130,6 +130,10 @@ func _load_all_stages():
 		{
 			"path": "res://resources/stages/chapter_2/",
 			"files": ["stage_2_1.tres", "stage_2_2.tres", "stage_2_3.tres", "stage_2_4.tres", "stage_2_5.tres"]
+		},
+		{
+			"path": "res://resources/stages/chapter_3/",
+			"files": ["stage_3_1.tres", "stage_3_2.tres", "stage_3_3.tres", "stage_3_4.tres", "stage_3_5.tres"]
 		}
 	]
 
