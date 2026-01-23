@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="AchievementData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/achievement_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+id = "veteran"
+achievement_name = "Veteran"
+description = "Win 50 battles"
+category = 0
+gem_reward = 250
+requirement_type = 0
+requirement_value = 50
+requirement_param = ""

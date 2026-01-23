@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="AchievementData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/achievement_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+id = "gear_up"
+achievement_name = "Gear Up"
+description = "Enhance a piece of gear to +6"
+category = 1
+gem_reward = 50
+requirement_type = 3
+requirement_value = 6
+requirement_param = ""

@@ -44,6 +44,16 @@ var next_instance_id: int = 1
 # Selected team for battle (array of instance_ids)
 var selected_team: Array = []
 
+# Achievement tracking
+var achievement_stats: Dictionary = {
+	"battles_won": 0,
+	"units_owned": 0,
+	"max_gear_level": 0,
+	"fastest_win_turns": 999,
+	"cleared_stages": []  # Array of stage IDs
+}
+var unlocked_achievements: Array = []  # Array of achievement IDs
+
 # Cost per pull
 const SINGLE_PULL_COST: int = 100
 const MULTI_PULL_COST: int = 900  # 10 pulls for price of 9
@@ -314,6 +324,11 @@ func _add_unit_to_collection(unit_data: UnitData) -> Dictionary:
 	owned_units.append(unit_entry)
 
 	print("New unit: ", unit_data.unit_name, " (", unit_data.star_rating, "★) - ID: ", unit_entry.instance_id)
+
+	# Notify achievement system
+	if AchievementManager:
+		AchievementManager.on_unit_added()
+
 	return unit_entry
 
 func get_owned_unit_list() -> Array:
@@ -386,6 +401,10 @@ func clear_stage(stage_id: String, stars: int = 3):
 
 	print("Stage ", stage_id, " cleared with ", stars, " stars!")
 	save_game()
+
+	# Notify achievement system
+	if AchievementManager:
+		AchievementManager.on_stage_cleared(stage_id)
 
 func get_stage_stars(stage_id: String) -> int:
 	if campaign_progress.has(stage_id):
@@ -766,6 +785,11 @@ func enhance_gear(gear_instance_id: String) -> bool:
 
 			print("Enhanced ", gear_data.gear_name, " to +", owned_gear[i].level)
 			save_game()
+
+			# Notify achievement system
+			if AchievementManager:
+				AchievementManager.on_gear_enhanced(owned_gear[i].level)
+
 			return true
 
 	return false
@@ -928,7 +952,7 @@ func _deserialize_gear(gear_data_array: Array) -> Array:
 
 func save_game():
 	var save_data = {
-		"version": 4,  # Updated for gear system
+		"version": 5,  # Updated for achievements system
 		"gems": gems,
 		"gold": gold,
 		"level_materials": level_materials,
@@ -938,7 +962,9 @@ func save_game():
 		"next_gear_instance_id": next_gear_instance_id,
 		"campaign_progress": campaign_progress,
 		"owned_units": _serialize_units(),
-		"owned_gear": _serialize_gear()
+		"owned_gear": _serialize_gear(),
+		"achievement_stats": achievement_stats,
+		"unlocked_achievements": unlocked_achievements
 	}
 
 	var file = FileAccess.open(SAVE_FILE_PATH, FileAccess.WRITE)
@@ -989,6 +1015,14 @@ func load_game() -> bool:
 	# Load owned gear
 	var gear_data_array = save_data.get("owned_gear", [])
 	owned_gear = _deserialize_gear(gear_data_array)
+
+	# Load achievement data
+	var loaded_stats = save_data.get("achievement_stats", {})
+	# Merge with defaults to handle new stats added in updates
+	for key in achievement_stats.keys():
+		if loaded_stats.has(key):
+			achievement_stats[key] = loaded_stats[key]
+	unlocked_achievements = save_data.get("unlocked_achievements", [])
 
 	print("Game loaded successfully! Gems: ", gems, ", Units: ", owned_units.size(), ", Gear: ", owned_gear.size())
 	return true

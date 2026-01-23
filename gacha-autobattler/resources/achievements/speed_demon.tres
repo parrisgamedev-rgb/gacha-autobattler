@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="AchievementData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/achievement_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+id = "speed_demon"
+achievement_name = "Speed Demon"
+description = "Win a battle in under 10 turns"
+category = 0
+gem_reward = 75
+requirement_type = 4
+requirement_value = 10
+requirement_param = ""

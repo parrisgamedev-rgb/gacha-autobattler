@@ -13,6 +13,7 @@ extends Control
 @onready var pvp_button = $CenterContainer/VBoxContainer/SecondaryButtons/PvPButton
 @onready var how_to_play_button = $CenterContainer/VBoxContainer/SecondaryButtons/HowToPlayButton
 @onready var settings_button = $CenterContainer/VBoxContainer/SecondaryButtons/SettingsButton
+@onready var achievements_button = $CenterContainer/VBoxContainer/SecondaryButtons/AchievementsButton
 
 # Currency labels
 @onready var gold_label = $CurrencyBar/GoldLabel
@@ -59,6 +60,9 @@ func _ready():
 	if settings_button:
 		settings_button.pressed.connect(_on_settings_pressed)
 
+	if achievements_button:
+		achievements_button.pressed.connect(_on_achievements_pressed)
+
 	# Update currency display
 	_update_currency_display()
 
@@ -87,7 +91,7 @@ func _apply_theme():
 	# Version label
 	if has_node("CenterContainer/VBoxContainer/VersionLabel"):
 		var version = $CenterContainer/VBoxContainer/VersionLabel
-		version.text = "v0.15"
+		version.text = "v0.16"
 		version.add_theme_font_size_override("font_size", UITheme.FONT_CAPTION)
 		version.add_theme_color_override("font_color", UITheme.TEXT_SECONDARY)
 		version.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -115,7 +119,7 @@ func _style_primary_buttons():
 
 
 func _style_secondary_buttons():
-	var secondary_names = ["SummonButton", "CollectionButton", "GearButton", "PvPButton", "HowToPlayButton", "SettingsButton"]
+	var secondary_names = ["SummonButton", "CollectionButton", "GearButton", "PvPButton", "HowToPlayButton", "SettingsButton", "AchievementsButton"]
 	for btn_name in secondary_names:
 		var path = "CenterContainer/VBoxContainer/SecondaryButtons/" + btn_name
 		if has_node(path):
@@ -212,3 +216,8 @@ func _on_how_to_play_pressed():
 func _on_settings_pressed():
 	AudioManager.play_ui_click()
 	SceneTransition.change_scene("res://scenes/ui/settings_screen.tscn")
+
+
+func _on_achievements_pressed():
+	AudioManager.play_ui_click()
+	SceneTransition.change_scene("res://scenes/ui/achievement_gallery.tscn")

@@ -1986,6 +1986,10 @@ func _show_results(winner: int):
 		AudioManager.play_victory()
 		AudioManager.play_music("victory", 0.5, false)
 
+		# Notify achievement system
+		if AchievementManager:
+			AchievementManager.on_battle_won(current_turn)
+
 		# Play victory animation
 		if results_animator:
 			results_animator.play_victory(title_text, subtitle_text)

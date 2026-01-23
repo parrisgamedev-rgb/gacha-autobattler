@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="AchievementData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/achievement_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+id = "collector"
+achievement_name = "Collector"
+description = "Own 10 different units"
+category = 1
+gem_reward = 100
+requirement_type = 1
+requirement_value = 10
+requirement_param = ""

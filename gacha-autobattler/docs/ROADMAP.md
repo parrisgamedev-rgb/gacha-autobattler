@@ -39,16 +39,10 @@ This roadmap outlines the path from v0.11 to v1.0 release. Each version focuses 
 
 ## Upcoming Versions
 
-### v0.16 - Retention Systems
-**Goal:** Give players reasons to return daily.
+### v0.16 - Achievements System
+**Goal:** Give players goals to work toward and rewards for milestones.
 
 #### Features
-- [ ] **Daily Login Rewards**
-  - 7-day calendar system
-  - Escalating rewards (Gems, Gold, Materials, Stones)
-  - Monthly reset
-  - Catch-up mechanic (miss a day, still progress)
-
 - [ ] **Achievements System**
   - Categories: Battle, Collection, Progression
   - Gem rewards for completion
@@ -132,7 +126,6 @@ This roadmap outlines the path from v0.11 to v1.0 release. Each version focuses 
 - [ ] 15+ campaign stages
 - [ ] 20 units
 - [ ] Achievements working
-- [ ] Daily rewards working
 - [ ] Settings menu complete
 - [ ] Credits screen
 - [ ] Windows build tested
@@ -144,6 +137,7 @@ This roadmap outlines the path from v0.11 to v1.0 release. Each version focuses 
 
 Features that could come after release:
 
+- **Daily Login Rewards:** 7-day calendar, escalating rewards, catch-up mechanics
 - **Events System:** Limited-time challenges with special rewards
 - **Guild System:** Player groups with shared goals
 - **Additional Chapters:** Continuing the story
