@@ -40,6 +40,7 @@ func _ready():
 	_build_gear_grid()
 
 func _set_filter(filter_type: int):
+	AudioManager.play_ui_click()
 	current_filter = filter_type
 	_build_gear_grid()
 	_update_filter_tab_styles()
@@ -175,6 +176,7 @@ func _create_gear_card(gear_entry: Dictionary) -> Control:
 	return card
 
 func _on_gear_selected(instance_id: String):
+	AudioManager.play_ui_click()
 	selected_gear_instance_id = instance_id
 	_update_detail_panel()
 
@@ -234,6 +236,7 @@ func _update_detail_panel():
 		equipped_label.visible = false
 
 func _on_enhance():
+	AudioManager.play_ui_click()
 	if selected_gear_instance_id == "":
 		return
 
@@ -244,6 +247,7 @@ func _on_enhance():
 		_build_gear_grid()
 
 func _on_close_detail():
+	AudioManager.play_ui_click()
 	detail_panel.visible = false
 	selected_gear_instance_id = ""
 
@@ -253,6 +257,7 @@ func _update_currency_display():
 	currency_label.add_theme_color_override("font_color", UITheme.GOLD)
 
 func _on_back():
+	AudioManager.play_ui_click()
 	SceneTransition.change_scene("res://scenes/ui/main_menu.tscn")
 
 func _apply_theme():

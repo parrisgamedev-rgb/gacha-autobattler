@@ -35,6 +35,7 @@ func _ready():
 	_update_ui_state()
 
 func _on_host_pressed():
+	AudioManager.play_ui_click()
 	var error = NetworkManager.host_game()
 	if error != OK:
 		status_label.text = "Failed to start server!"
@@ -44,6 +45,7 @@ func _on_host_pressed():
 	_update_ui_state()
 
 func _on_copy_pressed():
+	AudioManager.play_ui_click()
 	DisplayServer.clipboard_set(NetworkManager.get_room_code())
 	copy_button.text = "COPIED!"
 	# Reset button text after a short delay
@@ -51,6 +53,7 @@ func _on_copy_pressed():
 	copy_button.text = "COPY CODE"
 
 func _on_join_pressed():
+	AudioManager.play_ui_click()
 	var code = room_code_input.text.strip_edges()
 	if code.is_empty():
 		status_label.text = "Please enter a room code"
@@ -79,6 +82,7 @@ func _on_room_code_text_changed(new_text: String):
 		room_code_input.caret_column = formatted.length()
 
 func _on_start_battle_pressed():
+	AudioManager.play_ui_click()
 	if NetworkManager.is_host() and NetworkManager.has_opponent():
 		# Host starts the battle - notify client via RPC
 		_start_pvp_battle.rpc()
@@ -91,10 +95,12 @@ func _start_pvp_battle():
 	SceneTransition.change_scene("res://scenes/ui/team_select_screen.tscn")
 
 func _on_back_pressed():
+	AudioManager.play_ui_click()
 	NetworkManager.disconnect_from_game()
 	SceneTransition.change_scene("res://scenes/ui/main_menu.tscn")
 
 func _on_disconnect_pressed():
+	AudioManager.play_ui_click()
 	NetworkManager.disconnect_from_game()
 	_update_ui_state()
 

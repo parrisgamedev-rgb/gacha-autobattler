@@ -63,6 +63,8 @@ var unit_pool_5_star: Array[UnitData] = []
 # Unit paths for save/load (maps unit_id to resource path)
 var unit_paths: Dictionary = {}
 
+const MIN_UNITS_REQUIRED: int = 3  # Minimum units needed for battle
+
 func _ready():
 	_load_unit_pools()
 	_build_unit_paths()
@@ -70,6 +72,9 @@ func _ready():
 	if not load_game():
 		# No save file - give starter units to new players
 		_give_starter_units()
+	else:
+		# Ensure player has minimum units (safety net for corruption/edge cases)
+		_ensure_minimum_units()
 
 func _load_unit_pools():
 	# Load all available units and sort by rarity
@@ -124,6 +129,29 @@ func _give_starter_units():
 			_add_unit_to_collection(unit_data)
 
 	print("Starter units granted: Fire Imp, Water Sprite, Nature Wisp")
+	save_game()
+
+func _ensure_minimum_units():
+	# Safety net: ensure player always has at least MIN_UNITS_REQUIRED units
+	# This handles edge cases like save corruption or future bugs
+	if owned_units.size() >= MIN_UNITS_REQUIRED:
+		return
+
+	print("Warning: Player has ", owned_units.size(), " units (need ", MIN_UNITS_REQUIRED, "). Granting starter units...")
+
+	var starter_paths = [
+		"res://resources/units/fire_imp.tres",
+		"res://resources/units/water_sprite.tres",
+		"res://resources/units/nature_wisp.tres"
+	]
+
+	# Only add units until we reach minimum
+	var units_needed = MIN_UNITS_REQUIRED - owned_units.size()
+	for i in range(min(units_needed, starter_paths.size())):
+		var unit_data = load(starter_paths[i]) as UnitData
+		if unit_data:
+			_add_unit_to_collection(unit_data)
+
 	save_game()
 
 func _build_unit_paths():

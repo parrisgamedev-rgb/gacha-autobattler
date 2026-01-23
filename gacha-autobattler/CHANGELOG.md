@@ -2,6 +2,120 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.14] - Tutorial & Onboarding Update
+
+### Added
+- **Interactive Battle Tutorial**
+  - Step-by-step guide for new players (4 streamlined steps)
+  - Triggered automatically on first battle (any mode: Quick Battle, Campaign, or Dungeon)
+  - Covers: placing units on the grid, ending turns
+  - Non-blocking design - players can interact with the game during action steps
+  - Skip button to bypass tutorial
+  - Progress saved between sessions
+
+- **Tutorial Overlay System**
+  - Centered message panel with clear instructions
+  - Continue button for informational steps
+  - Skip button for experienced players
+  - Transparent overlay during action steps (placing units, ending turns)
+
+- **Quit Battle Feature**
+  - Red "QUIT" button in battle bottom bar
+  - Confirmation dialog prevents accidental quits
+  - Smart navigation returns to appropriate screen (Campaign, Dungeon, or Main Menu)
+
+- **Settings Integration**
+  - "Reset Tutorials" button in Settings screen
+  - Allows replaying tutorials for reference
+  - Visual feedback when tutorials are reset
+
+- **New Player Safety Net**
+  - Minimum unit guarantee system
+  - If player has fewer than 3 units (minimum for battle), starter units are automatically granted
+  - Ensures tutorial can always be completed regardless of edge cases
+
+### Technical
+- New files:
+  - `scripts/core/tutorial_manager.gd` - Global tutorial manager autoload
+- Modified:
+  - `project.godot` - Registered TutorialManager autoload
+  - `scripts/battle/battle.gd` - Added tutorial triggers, quit button with confirmation dialog
+  - `scenes/battle/battle.tscn` - Added QuitButton to BottomBar
+  - `scripts/ui/settings_screen.gd` - Added reset tutorial button
+  - `scenes/ui/settings_screen.tscn` - Added tutorial section
+  - `scripts/core/player_data.gd` - Added _ensure_minimum_units() safety check
+
+---
+
+## [0.13] - Combat Polish Update
+
+### Added
+- **Attack Lunge Animation**
+  - Units now lunge toward their target when attacking
+  - Quick forward movement with elastic easing
+  - Returns smoothly to original position
+  - Respects battle speed setting (1x/2x/3x)
+
+- **Hit Impact Effects**
+  - Impact particle burst on hit (12 particles, 20 for crits)
+  - Orange/red particles with gravity fade
+  - Screen shake on significant damage (>30% max HP)
+  - Camera punch effect on knockouts
+
+- **Ability Cast Effects**
+  - Element-colored aura glow when using abilities
+  - Rising particle effect matching unit's element
+  - Visual distinction for ability activation
+  - All effects scale with battle speed
+
+### Technical
+- Modified:
+  - `scripts/battle/unit_display.gd` - Added play_attack_lunge(), spawn_hit_particles(), spawn_ability_cast_effect()
+  - `scripts/battle/battle.gd` - Added do_screen_shake(), do_camera_punch(), updated combat resolution
+
+---
+
+## [0.12] - Audio Foundation Update
+
+### Added
+- **Sound Effects**
+  - UI click sounds on all buttons
+  - Attack hit and heal sounds
+  - Unit placement and death sounds
+  - Victory fanfare and defeat sounds
+  - Gacha summon buildup and reveal sounds (tiered by rarity)
+
+- **Background Music**
+  - Menu theme (calm, looping)
+  - Battle theme (energetic, looping)
+  - Victory theme (triumphant)
+  - Defeat theme (somber)
+  - Smooth crossfade between tracks
+
+- **Settings Menu**
+  - New Settings screen accessible from main menu
+  - Master volume slider
+  - Music volume slider
+  - SFX volume slider
+  - Settings persist between sessions
+
+### Technical
+- New files:
+  - `scripts/core/audio_manager.gd` - Global audio manager autoload
+  - `scripts/ui/settings_screen.gd` - Settings screen controller
+  - `scenes/ui/settings_screen.tscn` - Settings screen scene
+  - `assets/audio/sfx/` - Sound effects folder
+  - `assets/audio/music/` - Music folder
+- Modified:
+  - `project.godot` - Registered AudioManager autoload
+  - All UI screens - Added AudioManager.play_ui_click() to buttons
+  - `scripts/battle/battle.gd` - Added battle music and victory/defeat sounds
+  - `scripts/battle/unit_display.gd` - Added attack, heal, death sounds
+  - `scripts/ui/gacha_screen.gd` - Added summon sounds
+  - `scenes/ui/main_menu.tscn` - Added Settings button
+
+---
+
 ## [0.11] - Polish & Transitions Update
 
 ### Added

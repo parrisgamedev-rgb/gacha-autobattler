@@ -200,16 +200,20 @@ func _show_tab(tab_name: String):
 
 
 func _on_back_pressed():
+	AudioManager.play_ui_click()
 	SceneTransition.change_scene("res://scenes/ui/main_menu.tscn")
 
 
 func _on_combat_tab_pressed():
+	AudioManager.play_ui_click()
 	_show_tab("combat")
 
 
 func _on_progression_tab_pressed():
+	AudioManager.play_ui_click()
 	_show_tab("progression")
 
 
 func _on_elements_tab_pressed():
+	AudioManager.play_ui_click()
 	_show_tab("elements")

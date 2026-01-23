@@ -324,6 +324,7 @@ func _create_stage_card(stage) -> Control:
 	return card
 
 func _on_stage_selected(stage):
+	AudioManager.play_ui_click()
 	selected_stage = stage
 	_update_stage_info_panel()
 
@@ -359,6 +360,7 @@ func _update_stage_info_panel():
 		start_stage_btn.text = "REPLAY STAGE"
 
 func _on_start_stage():
+	AudioManager.play_ui_click()
 	if selected_stage == null:
 		return
 
@@ -369,4 +371,5 @@ func _on_start_stage():
 	SceneTransition.change_scene("res://scenes/ui/team_select_screen.tscn")
 
 func _on_back():
+	AudioManager.play_ui_click()
 	SceneTransition.change_scene("res://scenes/ui/main_menu.tscn")

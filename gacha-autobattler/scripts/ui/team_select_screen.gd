@@ -203,6 +203,7 @@ func _style_filter_dropdown():
 	filter_dropdown.add_theme_font_size_override("font_size", UITheme.FONT_BODY)
 
 func _on_filter_changed(index: int):
+	AudioManager.play_ui_click()
 	current_filter = index
 	_populate_units()
 
@@ -408,6 +409,7 @@ func _reset_slot_to_empty(slot: Panel, index: int):
 	slot.set_meta("instance_id", "")
 
 func _on_slot_remove_clicked(instance_id: String):
+	AudioManager.play_ui_click()
 	if instance_id in selected_instance_ids:
 		selected_instance_ids.erase(instance_id)
 		# Update the card border back to rarity color and hide checkmark
@@ -588,6 +590,7 @@ func _create_unit_card(unit_entry: Dictionary) -> Control:
 	return card
 
 func _on_unit_clicked(instance_id: String, card: Panel):
+	AudioManager.play_ui_click()
 	var style = card.get_meta("style") as StyleBoxFlat
 	var unit_data = card.get_meta("unit_data") as UnitData
 	var check_mark = card.get_node_or_null("CheckMark")
@@ -643,6 +646,7 @@ func _update_team_preview():
 			_reset_slot_to_empty(slot, i)
 
 func _on_start():
+	AudioManager.play_ui_click()
 	if selected_instance_ids.size() < MIN_TEAM_SIZE:
 		return
 
@@ -656,6 +660,7 @@ func _on_start():
 		SceneTransition.change_scene("res://scenes/battle/battle.tscn")
 
 func _on_back():
+	AudioManager.play_ui_click()
 	if PlayerData.is_campaign_mode():
 		PlayerData.end_campaign_stage()
 		SceneTransition.change_scene("res://scenes/ui/campaign_select_screen.tscn")

@@ -24,6 +24,8 @@ UITheme="*res://scripts/core/ui_theme.gd"
 AISpriteLoader="*res://scripts/core/ai_sprite_loader.gd"
 BoardAssetLoader="*res://scripts/core/board_asset_loader.gd"
 SceneTransition="*res://scripts/core/scene_transition.gd"
+AudioManager="*res://scripts/core/audio_manager.gd"
+TutorialManager="*res://scripts/core/tutorial_manager.gd"
 
 [display]
 

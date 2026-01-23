@@ -96,6 +96,12 @@ func show_damage_number(amount: int, is_heal: bool = false):
 	label.text = str(amount) if is_heal else "-" + str(amount)
 	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 
+	# Play appropriate sound
+	if is_heal:
+		AudioManager.play_heal_sound()
+	else:
+		AudioManager.play_attack_hit()
+
 	# Style the label
 	label.add_theme_font_size_override("font_size", 20)
 	label.add_theme_color_override("font_outline_color", Color(0, 0, 0, 1))
@@ -125,6 +131,9 @@ func flash_color(color: Color, duration: float = 0.2):
 	tween.tween_property(self, "modulate", original_modulate, duration)
 
 func play_entry_animation(from_direction: String = "bottom"):
+	# Play place sound
+	AudioManager.play_unit_place()
+
 	# Store final position and scale
 	var final_position = position
 	var final_scale = scale
@@ -228,6 +237,147 @@ func play_attack_animation():
 			ai_sprite.animation_finished.connect(_on_animation_finished, CONNECT_ONE_SHOT)
 
 
+func play_attack_lunge(battle_speed: float = 1.0) -> void:
+	"""Play attack lunge animation - unit moves toward target and back."""
+	var original_pos = position
+	var lunge_distance = 40.0  # How far to lunge
+
+	# Direction: player units lunge right (+x), enemy units lunge left (-x)
+	var lunge_direction = Vector2(-1, 0) if is_enemy else Vector2(1, 0)
+	var target_pos = original_pos + (lunge_direction * lunge_distance)
+
+	# Calculate times based on battle speed
+	var lunge_time = 0.15 / battle_speed
+	var hold_time = 0.05 / battle_speed
+	var return_time = 0.12 / battle_speed
+
+	# Play attack sprite animation
+	play_attack_animation()
+
+	# Lunge forward
+	var tween = create_tween()
+	tween.set_ease(Tween.EASE_OUT)
+	tween.set_trans(Tween.TRANS_BACK)
+	tween.tween_property(self, "position", target_pos, lunge_time)
+	await tween.finished
+
+	# Brief hold at lunge position
+	await get_tree().create_timer(hold_time).timeout
+
+	# Return to original position
+	var return_tween = create_tween()
+	return_tween.set_ease(Tween.EASE_OUT)
+	return_tween.set_trans(Tween.TRANS_QUAD)
+	return_tween.tween_property(self, "position", original_pos, return_time)
+	await return_tween.finished
+
+
+func spawn_hit_particles(damage_amount: int = 0, is_crit: bool = false) -> void:
+	"""Spawn impact particles at hit location."""
+	var particles = CPUParticles2D.new()
+	particles.emitting = true
+	particles.amount = 12 if not is_crit else 20
+	particles.lifetime = 0.4
+	particles.one_shot = true
+	particles.explosiveness = 0.95
+	particles.position = Vector2.ZERO
+
+	# Emission shape - small burst
+	particles.emission_shape = CPUParticles2D.EMISSION_SHAPE_SPHERE
+	particles.emission_sphere_radius = 8.0
+
+	# Movement - burst outward from hit
+	particles.direction = Vector2(0, -1)
+	particles.spread = 180.0
+	particles.gravity = Vector2(0, 200)
+	particles.initial_velocity_min = 60
+	particles.initial_velocity_max = 120
+
+	# Appearance
+	particles.scale_amount_min = 2.0
+	particles.scale_amount_max = 4.0
+
+	# Color - red/orange for damage, yellow for crit
+	var hit_color = Color(1.0, 0.8, 0.2) if is_crit else Color(1.0, 0.4, 0.2)
+	var color_ramp = Gradient.new()
+	color_ramp.set_color(0, hit_color)
+	color_ramp.set_color(1, Color(hit_color.r, hit_color.g, hit_color.b, 0))
+	particles.color_ramp = color_ramp
+
+	add_child(particles)
+
+	# Auto-cleanup
+	get_tree().create_timer(1.0).timeout.connect(func():
+		if is_instance_valid(particles):
+			particles.queue_free()
+	)
+
+
+func spawn_ability_cast_effect(element: String, battle_speed: float = 1.0) -> void:
+	"""Spawn element-colored aura/glow when using abilities."""
+	# Get element color
+	var element_color = Color(0.8, 0.8, 0.8)
+	if unit_instance and unit_instance.unit_data:
+		element_color = unit_instance.unit_data.get_element_color()
+	else:
+		# Fallback element colors
+		match element.to_lower():
+			"fire": element_color = Color(1.0, 0.4, 0.2)
+			"water": element_color = Color(0.3, 0.6, 1.0)
+			"nature": element_color = Color(0.3, 0.9, 0.4)
+			"light": element_color = Color(1.0, 1.0, 0.6)
+			"dark": element_color = Color(0.6, 0.3, 0.8)
+
+	# Create aura glow effect
+	var aura = ColorRect.new()
+	aura.size = Vector2(100, 100)
+	aura.position = Vector2(-50, -50)
+	aura.color = Color(element_color.r, element_color.g, element_color.b, 0.0)
+	aura.z_index = -1
+	add_child(aura)
+
+	# Animate aura pulse
+	var duration = 0.3 / battle_speed
+	var tween = create_tween()
+	tween.tween_property(aura, "color:a", 0.4, duration * 0.3)
+	tween.tween_property(aura, "color:a", 0.0, duration * 0.7)
+	tween.tween_callback(aura.queue_free)
+
+	# Also spawn rising particles
+	var particles = CPUParticles2D.new()
+	particles.emitting = true
+	particles.amount = 15
+	particles.lifetime = 0.5 / battle_speed
+	particles.one_shot = true
+	particles.explosiveness = 0.8
+	particles.position = Vector2.ZERO
+
+	# Rising particle effect
+	particles.emission_shape = CPUParticles2D.EMISSION_SHAPE_SPHERE
+	particles.emission_sphere_radius = 25.0
+	particles.direction = Vector2(0, -1)
+	particles.spread = 45.0
+	particles.gravity = Vector2(0, -50)
+	particles.initial_velocity_min = 30
+	particles.initial_velocity_max = 60
+	particles.scale_amount_min = 1.5
+	particles.scale_amount_max = 3.0
+
+	# Element color gradient
+	var color_ramp = Gradient.new()
+	color_ramp.set_color(0, element_color)
+	color_ramp.set_color(1, Color(element_color.r, element_color.g, element_color.b, 0))
+	particles.color_ramp = color_ramp
+
+	add_child(particles)
+
+	# Auto-cleanup
+	get_tree().create_timer(1.0).timeout.connect(func():
+		if is_instance_valid(particles):
+			particles.queue_free()
+	)
+
+
 func play_hurt_animation():
 	"""Play hurt animation if using AI sprites."""
 	if uses_ai_sprite and ai_sprite and ai_sprite.sprite_frames.has_animation("hurt"):
@@ -244,6 +394,9 @@ func _on_animation_finished():
 
 func play_knockout_animation(battle_speed: float = 1.0, callback: Callable = Callable()):
 	"""Play dramatic knockout animation: red flash, shake, element particles, fade out."""
+	# Play death sound
+	AudioManager.play_unit_death()
+
 	var original_pos = position
 
 	# Get element color for particles

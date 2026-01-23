@@ -107,6 +107,11 @@ custom_minimum_size = Vector2(145, 50)
 layout_mode = 2
 text = "HOW TO PLAY"
 
+[node name="SettingsButton" type="Button" parent="CenterContainer/VBoxContainer/SecondaryButtons"]
+custom_minimum_size = Vector2(145, 50)
+layout_mode = 2
+text = "SETTINGS"
+
 [node name="CurrencyBar" type="HBoxContainer" parent="."]
 layout_mode = 1
 anchors_preset = 12

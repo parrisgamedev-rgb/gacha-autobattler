@@ -63,12 +63,14 @@ func _update_ui():
 	multi_pull_btn.text = "10x Pull\n" + str(PlayerData.MULTI_PULL_COST) + " Gems"
 
 func _on_single_pull():
+	AudioManager.play_ui_click()
 	var unit_entry = PlayerData.do_single_pull()
 	if not unit_entry.is_empty():
 		_play_summon_animation([unit_entry])
 	_update_ui()
 
 func _on_multi_pull():
+	AudioManager.play_ui_click()
 	var unit_entries = PlayerData.do_multi_pull()
 	if unit_entries.size() > 0:
 		_play_summon_animation(unit_entries)
@@ -116,12 +118,14 @@ func _show_results(unit_entries: Array):
 		display.modulate = rarity_color.lightened(0.3)
 
 func _on_continue():
+	AudioManager.play_ui_click()
 	results_panel.visible = false
 	single_pull_btn.visible = true
 	multi_pull_btn.visible = true
 	_update_ui()
 
 func _on_back():
+	AudioManager.play_ui_click()
 	SceneTransition.change_scene("res://scenes/ui/main_menu.tscn")
 
 # === SUMMON ANIMATION SYSTEM ===
@@ -196,6 +200,9 @@ func _reveal_unit(unit_entry: Dictionary, index: int, total_count: int):
 	await _animate_unit_reveal(unit_entry, index, total_count)
 
 func _animate_circle_buildup(rarity: int):
+	# Play buildup sound
+	AudioManager.play_summon_buildup()
+
 	# Set circle color based on rarity
 	var rarity_color = _get_rarity_circle_color(rarity)
 	_set_circle_color(rarity_color)
@@ -271,6 +278,9 @@ func _animate_unit_reveal(unit_entry: Dictionary, index: int, total_count: int):
 
 	# Track this display
 	revealed_displays.append(display)
+
+	# Play reveal sound based on rarity
+	AudioManager.play_summon_reveal(unit_data.star_rating)
 
 	# Animate: scale up at center
 	var tween = create_tween()

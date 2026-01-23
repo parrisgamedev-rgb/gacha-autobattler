@@ -1,6 +1,6 @@
 # Grid Battler - Development Roadmap
 
-**Current Version:** 0.11
+**Current Version:** 0.14
 **Target Release:** 1.0
 **Last Updated:** January 2026
 
@@ -30,94 +30,13 @@ This roadmap outlines the path from v0.11 to v1.0 release. Each version focuses 
 | 0.8.3 | Help System | How to Play screen, Content Editor tool |
 | 0.9 | Victory/Defeat | Animated results screens |
 | **0.11** | **Polish** | **Knockout animations, scene transitions** |
+| **0.12** | **Audio** | **Sound effects, music, settings menu** |
+| **0.13** | **Combat Polish** | **Attack lunges, screen shake, particles** |
+| **0.14** | **Tutorial** | **Interactive battle tutorial, onboarding** |
 
 ---
 
 ## Upcoming Versions
-
-### v0.12 - Audio Foundation
-**Goal:** Add sound and music to make the game feel complete.
-
-#### Features
-- [ ] **Sound Effects**
-  - Attack/hit sounds
-  - Ability activation sounds
-  - UI click/hover sounds
-  - Victory fanfare
-  - Defeat sound
-  - Summon reveal sounds (with rarity tiers)
-
-- [ ] **Background Music**
-  - Main menu theme (calm, inviting)
-  - Battle theme (energetic, tactical)
-  - Victory theme (triumphant, short)
-  - Defeat theme (somber, short)
-
-- [ ] **Settings Menu**
-  - Master volume slider
-  - Music volume slider
-  - SFX volume slider
-  - Save preferences
-
-#### Technical Notes
-- Use Godot's AudioStreamPlayer and AudioBus system
-- Implement audio manager autoload
-- Consider royalty-free music sources or AI generation
-
----
-
-### v0.13 - Combat Polish
-**Goal:** Make combat feel impactful and satisfying.
-
-#### Features
-- [ ] **Attack Animations**
-  - Unit lunges toward target (quick forward movement)
-  - Returns to position after attack
-  - Respects battle speed setting
-
-- [ ] **Hit Impact Effects**
-  - Brief screen shake on significant hits
-  - Impact particles at hit location
-  - Camera punch effect for crits/kills
-
-- [ ] **Ability Cast Effects**
-  - Element-colored aura/glow when using abilities
-  - Particle effects for special abilities
-  - Visual distinction between ability types
-
-#### Technical Notes
-- Extend unit_display.gd with new animation methods
-- Create reusable particle effect scenes
-- Ensure all effects scale with battle speed
-
----
-
-### v0.14 - Tutorial & Onboarding
-**Goal:** Help new players understand the game quickly.
-
-#### Features
-- [ ] **Interactive Tutorial**
-  - Triggered on first launch (or from menu)
-  - Step-by-step guided first battle
-  - Highlights UI elements with prompts
-  - Covers: placing units, combat basics, winning
-
-- [ ] **Extended Onboarding**
-  - Gacha explanation (after first battle)
-  - Team building tips
-  - Gear basics introduction
-  - Campaign introduction
-
-- [ ] **Tutorial Skip**
-  - Option to skip for returning players
-  - "Show tutorial again" in settings
-
-#### Technical Notes
-- Create tutorial_manager.gd autoload
-- Use overlay system for highlighting UI
-- Store tutorial completion in save file
-
----
 
 ### v0.15 - Content Expansion I
 **Goal:** More content for players to engage with.

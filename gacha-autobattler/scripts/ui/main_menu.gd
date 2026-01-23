@@ -12,6 +12,7 @@ extends Control
 @onready var gear_button = $CenterContainer/VBoxContainer/SecondaryButtons/GearButton
 @onready var pvp_button = $CenterContainer/VBoxContainer/SecondaryButtons/PvPButton
 @onready var how_to_play_button = $CenterContainer/VBoxContainer/SecondaryButtons/HowToPlayButton
+@onready var settings_button = $CenterContainer/VBoxContainer/SecondaryButtons/SettingsButton
 
 # Currency labels
 @onready var gold_label = $CurrencyBar/GoldLabel
@@ -55,12 +56,18 @@ func _ready():
 	if how_to_play_button:
 		how_to_play_button.pressed.connect(_on_how_to_play_pressed)
 
+	if settings_button:
+		settings_button.pressed.connect(_on_settings_pressed)
+
 	# Update currency display
 	_update_currency_display()
 
 	# Connect to PlayerData currency changes if available
 	if PlayerData.has_signal("currency_changed"):
 		PlayerData.currency_changed.connect(_update_currency_display)
+
+	# Start menu music
+	AudioManager.play_music("menu")
 
 
 func _apply_theme():
@@ -78,7 +85,7 @@ func _apply_theme():
 	# Version label
 	if has_node("CenterContainer/VBoxContainer/VersionLabel"):
 		var version = $CenterContainer/VBoxContainer/VersionLabel
-		version.text = "v0.11"
+		version.text = "v0.14"
 		version.add_theme_font_size_override("font_size", UITheme.FONT_CAPTION)
 		version.add_theme_color_override("font_color", UITheme.TEXT_SECONDARY)
 		version.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -108,7 +115,7 @@ func _style_primary_buttons():
 
 
 func _style_secondary_buttons():
-	var secondary_names = ["SummonButton", "CollectionButton", "GearButton", "PvPButton", "HowToPlayButton"]
+	var secondary_names = ["SummonButton", "CollectionButton", "GearButton", "PvPButton", "HowToPlayButton", "SettingsButton"]
 	for btn_name in secondary_names:
 		var path = "CenterContainer/VBoxContainer/SecondaryButtons/" + btn_name
 		if has_node(path):
@@ -165,32 +172,45 @@ func _update_currency_display():
 
 
 func _on_campaign_pressed():
+	AudioManager.play_ui_click()
 	SceneTransition.change_scene("res://scenes/ui/campaign_select_screen.tscn")
 
 
 func _on_dungeons_pressed():
+	AudioManager.play_ui_click()
 	SceneTransition.change_scene("res://scenes/ui/dungeon_select_screen.tscn")
 
 
 func _on_quick_battle_pressed():
+	AudioManager.play_ui_click()
 	SceneTransition.change_scene("res://scenes/ui/team_select_screen.tscn")
 
 
 func _on_pvp_pressed():
+	AudioManager.play_ui_click()
 	SceneTransition.change_scene("res://scenes/ui/pvp_lobby.tscn")
 
 
 func _on_summon_pressed():
+	AudioManager.play_ui_click()
 	SceneTransition.change_scene("res://scenes/ui/gacha_screen.tscn")
 
 
 func _on_gear_pressed():
+	AudioManager.play_ui_click()
 	SceneTransition.change_scene("res://scenes/ui/gear_inventory_screen.tscn")
 
 
 func _on_collection_pressed():
+	AudioManager.play_ui_click()
 	SceneTransition.change_scene("res://scenes/ui/collection_screen.tscn")
 
 
 func _on_how_to_play_pressed():
+	AudioManager.play_ui_click()
 	SceneTransition.change_scene("res://scenes/ui/how_to_play_screen.tscn")
+
+
+func _on_settings_pressed():
+	AudioManager.play_ui_click()
+	SceneTransition.change_scene("res://scenes/ui/settings_screen.tscn")

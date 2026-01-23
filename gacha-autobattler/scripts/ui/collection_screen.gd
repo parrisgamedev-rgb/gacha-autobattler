@@ -234,6 +234,7 @@ func _create_unit_card(unit_entry: Dictionary) -> Control:
 	return card
 
 func _on_unit_clicked(unit_entry: Dictionary):
+	AudioManager.play_ui_click()
 	current_unit_entry = unit_entry
 	var unit_data = unit_entry.unit_data as UnitData
 	var imprint_level = unit_entry.get("imprint_level", 0) as int
@@ -297,11 +298,13 @@ func _on_unit_clicked(unit_entry: Dictionary):
 	_update_gear_slots()
 
 func _on_close_detail():
+	AudioManager.play_ui_click()
 	detail_panel.visible = false
 	current_unit_entry = {}
 	_stop_idle_animation()
 
 func _on_back():
+	AudioManager.play_ui_click()
 	SceneTransition.change_scene("res://scenes/ui/main_menu.tscn")
 
 func _update_detail_sprite(unit_data: UnitData):
@@ -370,6 +373,7 @@ func _has_fodder_available(unit_entry: Dictionary) -> bool:
 	return false
 
 func _on_imprint_pressed():
+	AudioManager.play_ui_click()
 	if current_unit_entry.is_empty():
 		return
 
@@ -379,6 +383,7 @@ func _on_imprint_pressed():
 	detail_panel.visible = false
 
 func _on_cancel_imprint():
+	AudioManager.play_ui_click()
 	imprint_panel.visible = false
 	detail_panel.visible = true
 
@@ -468,6 +473,7 @@ func _create_fodder_card(unit_entry: Dictionary) -> Control:
 	return card
 
 func _on_fodder_selected(fodder_instance_id: String):
+	AudioManager.play_ui_click()
 	# Store the fodder ID and show confirmation dialog
 	pending_fodder_id = fodder_instance_id
 
@@ -489,6 +495,7 @@ func _on_fodder_selected(fodder_instance_id: String):
 	confirm_panel.visible = true
 
 func _on_confirm_imprint():
+	AudioManager.play_ui_click()
 	var target_instance_id = current_unit_entry.instance_id as String
 
 	# Perform the imprint
@@ -514,11 +521,13 @@ func _on_confirm_imprint():
 		detail_panel.visible = true
 
 func _on_cancel_confirm():
+	AudioManager.play_ui_click()
 	confirm_panel.visible = false
 	pending_fodder_id = ""
 	imprint_panel.visible = true
 
 func _on_level_up_pressed():
+	AudioManager.play_ui_click()
 	if current_unit_entry.is_empty():
 		return
 
@@ -546,6 +555,7 @@ func _update_currency_display():
 # --- Cheat Functions ---
 
 func _on_max_level_pressed():
+	AudioManager.play_ui_click()
 	if current_unit_entry.is_empty():
 		return
 
@@ -570,6 +580,7 @@ func _on_max_level_pressed():
 		_on_unit_clicked(current_unit_entry)
 
 func _on_reset_level_pressed():
+	AudioManager.play_ui_click()
 	if current_unit_entry.is_empty():
 		return
 
@@ -636,6 +647,7 @@ func _update_gear_slots():
 		gear_slots_container.add_child(slot_btn)
 
 func _on_gear_slot_clicked(slot_index: int):
+	AudioManager.play_ui_click()
 	current_gear_slot = slot_index
 	_populate_gear_select_grid()
 	if gear_select_panel:
@@ -694,6 +706,7 @@ func _create_gear_select_button(gear_entry: Dictionary) -> Button:
 	return btn
 
 func _on_gear_selected(gear_instance_id: String):
+	AudioManager.play_ui_click()
 	if current_unit_entry.is_empty():
 		return
 
@@ -719,6 +732,7 @@ func _on_gear_selected(gear_instance_id: String):
 		_on_unit_clicked(current_unit_entry)
 
 func _on_cancel_gear_select():
+	AudioManager.play_ui_click()
 	if gear_select_panel:
 		gear_select_panel.visible = false
 	detail_panel.visible = true

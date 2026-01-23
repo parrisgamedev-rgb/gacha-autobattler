@@ -286,6 +286,7 @@ func _create_dungeon_card(dungeon) -> Control:
 	return card
 
 func _on_dungeon_selected(dungeon):
+	AudioManager.play_ui_click()
 	selected_dungeon = dungeon
 	selected_tier = 0  # Reset to easy
 	_update_dungeon_info_panel()
@@ -330,11 +331,13 @@ func _update_difficulty_button_labels():
 		hard_btn.text = selected_dungeon.tier_names[2]
 
 func _on_difficulty_selected(tier: int):
+	AudioManager.play_ui_click()
 	selected_tier = tier
 	_style_difficulty_buttons()
 	_update_dungeon_info_panel()
 
 func _on_start_dungeon():
+	AudioManager.play_ui_click()
 	if selected_dungeon == null:
 		return
 
@@ -349,4 +352,5 @@ func _update_stones_display():
 		stones_label.text = str(PlayerData.enhancement_stones) + " Stones"
 
 func _on_back():
+	AudioManager.play_ui_click()
 	SceneTransition.change_scene("res://scenes/ui/main_menu.tscn")

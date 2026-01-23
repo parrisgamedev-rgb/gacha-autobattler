@@ -39,10 +39,14 @@ var ai_difficulty: AIDifficulty = AIDifficulty.MEDIUM
 @onready var main_menu_button = $UI/ResultsPanel/ButtonContainer/MainMenuButton
 @onready var combat_announcement = $UI/CombatAnnouncement
 @onready var cheat_menu = $CheatMenu
+@onready var quit_button = $UI/BottomBar/QuitButton
 @onready var auto_button = $UI/BottomBar/AutoButton
 @onready var speed_1x_btn = $UI/BottomBar/Speed1xButton
 @onready var speed_2x_btn = $UI/BottomBar/Speed2xButton
 @onready var speed_3x_btn = $UI/BottomBar/Speed3xButton
+
+# Quit confirmation dialog
+var quit_dialog: ConfirmationDialog = null
 
 # Game state
 enum GamePhase { PLAYER_TURN, ENEMY_TURN, RESOLVING, GAME_OVER }
@@ -143,6 +147,11 @@ func _ready():
 	if cheat_menu:
 		cheat_menu.setup(self)
 
+	# Connect quit button
+	if quit_button:
+		quit_button.pressed.connect(_on_quit_pressed)
+	_create_quit_dialog()
+
 	# Connect auto-battle controls
 	if auto_button:
 		auto_button.pressed.connect(_on_auto_toggle)
@@ -155,8 +164,17 @@ func _ready():
 	_update_speed_buttons()
 	_update_auto_button()
 
+	# Start battle music
+	AudioManager.play_music("battle")
+
 	# Apply theme styling
 	_apply_battle_theme()
+
+	# Start tutorial for first-time players (any battle mode)
+	if TutorialManager.should_show_tutorial("battle_basics"):
+		# Delay slightly to let UI settle
+		await get_tree().create_timer(0.5).timeout
+		TutorialManager.start_tutorial("battle_basics")
 
 func _get_perspective_scale(row: int) -> float:
 	# Interpolate scale based on row (0 = top/far, 2 = bottom/near)
@@ -496,6 +514,10 @@ func _queue_placement(unit: UnitInstance, row: int, col: int):
 	# Show preview on grid
 	_show_placement_preview(unit, row, col)
 
+	# Tutorial: unit placed
+	if TutorialManager.is_active():
+		TutorialManager.complete_step("unit_placed")
+
 	# Select this unit for ability editing
 	selected_unit = null
 	pending_edit_unit = unit
@@ -606,6 +628,10 @@ func _show_placement_preview(unit: UnitInstance, row: int, col: int):
 func _on_end_turn_pressed():
 	if current_phase != GamePhase.PLAYER_TURN:
 		return
+
+	# Tutorial: turn ended
+	if TutorialManager.is_active():
+		TutorialManager.complete_step("turn_ended")
 
 	# Clear any editing state
 	pending_edit_unit = null
@@ -1080,15 +1106,21 @@ func _resolve_duel(row: int, col: int, p_unit: UnitInstance, e_unit: UnitInstanc
 		# Player attacks first
 		print("  Player attacks first (faster)")
 		if p_display:
-			p_display.play_attack_animation()
-		await get_tree().create_timer(get_scaled_time(0.4)).timeout
+			# Show ability cast effect if using ability
+			if p_ability:
+				p_display.spawn_ability_cast_effect(p_unit.unit_data.element, battle_speed)
+			await p_display.play_attack_lunge(battle_speed)
 		e_unit.take_damage(e_damage_taken)
 		if e_display:
 			e_display.play_hurt_animation()
+			e_display.spawn_hit_particles(e_damage_taken)
 			e_display.show_damage_number(e_damage_taken, false)
 			e_display.flash_color(Color(1, 0.5, 0.5), 0.3)
 			e_display.update_hp_display()
-		await get_tree().create_timer(get_scaled_time(0.3)).timeout
+			# Screen shake on significant damage
+			if e_damage_taken > e_unit.unit_data.max_hp * 0.3:
+				do_screen_shake(6.0, 0.15)
+		await get_tree().create_timer(get_scaled_time(0.2)).timeout
 
 		# Apply guaranteed survive for enemy
 		if e_guaranteed_survive and e_unit.current_hp <= 0:
@@ -1098,15 +1130,19 @@ func _resolve_duel(row: int, col: int, p_unit: UnitInstance, e_unit: UnitInstanc
 		# Enemy retaliates only if still alive
 		if e_unit.is_alive():
 			if e_display:
-				e_display.play_attack_animation()
-			await get_tree().create_timer(get_scaled_time(0.4)).timeout
+				if e_ability:
+					e_display.spawn_ability_cast_effect(e_unit.unit_data.element, battle_speed)
+				await e_display.play_attack_lunge(battle_speed)
 			p_unit.take_damage(p_damage_taken)
 			if p_display:
 				p_display.play_hurt_animation()
+				p_display.spawn_hit_particles(p_damage_taken)
 				p_display.show_damage_number(p_damage_taken, false)
 				p_display.flash_color(Color(1, 0.5, 0.5), 0.3)
 				p_display.update_hp_display()
-			await get_tree().create_timer(get_scaled_time(0.3)).timeout
+				if p_damage_taken > p_unit.unit_data.max_hp * 0.3:
+					do_screen_shake(6.0, 0.15)
+			await get_tree().create_timer(get_scaled_time(0.2)).timeout
 
 			# Apply guaranteed survive for player
 			if p_guaranteed_survive and p_unit.current_hp <= 0:
@@ -1114,6 +1150,7 @@ func _resolve_duel(row: int, col: int, p_unit: UnitInstance, e_unit: UnitInstanc
 				print("  Player survives with Nature's Resilience!")
 		else:
 			print("  Enemy defeated before retaliating!")
+			do_camera_punch(Vector2.RIGHT, 12.0)
 
 		print("  Player dealt ", e_damage_taken, ", took ", p_damage_taken if e_unit.is_alive() or not e_unit.is_alive() and p_unit.current_hp < p_unit.unit_data.max_hp else 0)
 
@@ -1121,15 +1158,19 @@ func _resolve_duel(row: int, col: int, p_unit: UnitInstance, e_unit: UnitInstanc
 		# Enemy attacks first
 		print("  Enemy attacks first (faster)")
 		if e_display:
-			e_display.play_attack_animation()
-		await get_tree().create_timer(get_scaled_time(0.4)).timeout
+			if e_ability:
+				e_display.spawn_ability_cast_effect(e_unit.unit_data.element, battle_speed)
+			await e_display.play_attack_lunge(battle_speed)
 		p_unit.take_damage(p_damage_taken)
 		if p_display:
 			p_display.play_hurt_animation()
+			p_display.spawn_hit_particles(p_damage_taken)
 			p_display.show_damage_number(p_damage_taken, false)
 			p_display.flash_color(Color(1, 0.5, 0.5), 0.3)
 			p_display.update_hp_display()
-		await get_tree().create_timer(get_scaled_time(0.3)).timeout
+			if p_damage_taken > p_unit.unit_data.max_hp * 0.3:
+				do_screen_shake(6.0, 0.15)
+		await get_tree().create_timer(get_scaled_time(0.2)).timeout
 
 		# Apply guaranteed survive for player
 		if p_guaranteed_survive and p_unit.current_hp <= 0:
@@ -1139,15 +1180,19 @@ func _resolve_duel(row: int, col: int, p_unit: UnitInstance, e_unit: UnitInstanc
 		# Player retaliates only if still alive
 		if p_unit.is_alive():
 			if p_display:
-				p_display.play_attack_animation()
-			await get_tree().create_timer(get_scaled_time(0.4)).timeout
+				if p_ability:
+					p_display.spawn_ability_cast_effect(p_unit.unit_data.element, battle_speed)
+				await p_display.play_attack_lunge(battle_speed)
 			e_unit.take_damage(e_damage_taken)
 			if e_display:
 				e_display.play_hurt_animation()
+				e_display.spawn_hit_particles(e_damage_taken)
 				e_display.show_damage_number(e_damage_taken, false)
 				e_display.flash_color(Color(1, 0.5, 0.5), 0.3)
 				e_display.update_hp_display()
-			await get_tree().create_timer(get_scaled_time(0.3)).timeout
+				if e_damage_taken > e_unit.unit_data.max_hp * 0.3:
+					do_screen_shake(6.0, 0.15)
+			await get_tree().create_timer(get_scaled_time(0.2)).timeout
 
 			# Apply guaranteed survive for enemy
 			if e_guaranteed_survive and e_unit.current_hp <= 0:
@@ -1155,31 +1200,45 @@ func _resolve_duel(row: int, col: int, p_unit: UnitInstance, e_unit: UnitInstanc
 				print("  Enemy survives with ability!")
 		else:
 			print("  Player defeated before retaliating!")
+			do_camera_punch(Vector2.LEFT, 12.0)
 
 		print("  Player dealt ", e_damage_taken if p_unit.is_alive() else 0, ", took ", p_damage_taken)
 
 	else:
 		# Speed tie - simultaneous damage
 		print("  Speed tie - simultaneous attacks!")
+		# Both units lunge simultaneously
 		if p_display:
-			p_display.play_attack_animation()
+			if p_ability:
+				p_display.spawn_ability_cast_effect(p_unit.unit_data.element, battle_speed)
+			p_display.play_attack_lunge(battle_speed)  # Don't await - run in parallel
 		if e_display:
-			e_display.play_attack_animation()
-		await get_tree().create_timer(get_scaled_time(0.4)).timeout
+			if e_ability:
+				e_display.spawn_ability_cast_effect(e_unit.unit_data.element, battle_speed)
+			e_display.play_attack_lunge(battle_speed)  # Don't await - run in parallel
+		await get_tree().create_timer(get_scaled_time(0.35)).timeout
+
 		e_unit.take_damage(e_damage_taken)
 		p_unit.take_damage(p_damage_taken)
 
 		if p_display:
 			p_display.play_hurt_animation()
+			p_display.spawn_hit_particles(p_damage_taken)
 			p_display.show_damage_number(p_damage_taken, false)
 			p_display.flash_color(Color(1, 0.5, 0.5), 0.3)
 			p_display.update_hp_display()
 		if e_display:
 			e_display.play_hurt_animation()
+			e_display.spawn_hit_particles(e_damage_taken)
 			e_display.show_damage_number(e_damage_taken, false)
 			e_display.flash_color(Color(1, 0.5, 0.5), 0.3)
 			e_display.update_hp_display()
-		await get_tree().create_timer(get_scaled_time(0.3)).timeout
+
+		# Screen shake for simultaneous hits
+		var total_damage = p_damage_taken + e_damage_taken
+		if total_damage > (p_unit.unit_data.max_hp + e_unit.unit_data.max_hp) * 0.2:
+			do_screen_shake(8.0, 0.2)
+		await get_tree().create_timer(get_scaled_time(0.2)).timeout
 
 		# Apply guaranteed survive
 		if p_guaranteed_survive and p_unit.current_hp <= 0:
@@ -1227,11 +1286,13 @@ func _resolve_duel(row: int, col: int, p_unit: UnitInstance, e_unit: UnitInstanc
 	if not p_unit.is_alive():
 		enemy_knockouts += 1
 		print("  Player unit knocked out! (Enemy has ", enemy_knockouts, "/", player_units.size(), " knockouts)")
+		do_camera_punch(Vector2.LEFT, 15.0)  # Camera punch toward enemy side
 		_remove_unit_from_grid(p_unit, row, col)
 
 	if not e_unit.is_alive():
 		player_knockouts += 1
 		print("  Enemy unit knocked out! (Player has ", player_knockouts, "/", enemy_units.size(), " knockouts)")
+		do_camera_punch(Vector2.RIGHT, 15.0)  # Camera punch toward player side
 		_remove_unit_from_grid(e_unit, row, col)
 
 	# Both units survive - they remain on the contested square
@@ -1847,6 +1908,10 @@ func _show_results(winner: int):
 			if battle_rewards.level_ups.size() > 0:
 				subtitle_text += "\nLevel Up: " + ", ".join(battle_rewards.level_ups)
 
+		# Play victory sound and music
+		AudioManager.play_victory()
+		AudioManager.play_music("victory", 0.5, false)
+
 		# Play victory animation
 		if results_animator:
 			results_animator.play_victory(title_text, subtitle_text)
@@ -1874,6 +1939,10 @@ func _show_results(winner: int):
 			subtitle_text = "Turn limit reached. Enemy had more HP!"
 		else:
 			subtitle_text = "Better luck next time!"
+
+		# Play defeat sound and music
+		AudioManager.play_defeat()
+		AudioManager.play_music("defeat", 0.5, false)
 
 		# Play defeat animation
 		if results_animator:
@@ -2106,6 +2175,34 @@ func _process_all_field_durations():
 					# Show the most recent field effect
 					grid_cells[row][col].show_field_effect(cell_effects[-1].field_data)
 
+# === QUIT BATTLE SYSTEM ===
+
+func _create_quit_dialog():
+	quit_dialog = ConfirmationDialog.new()
+	quit_dialog.title = "Quit Battle?"
+	quit_dialog.dialog_text = "Are you sure you want to quit?\nThis battle will count as a loss."
+	quit_dialog.ok_button_text = "Quit"
+	quit_dialog.cancel_button_text = "Cancel"
+	quit_dialog.confirmed.connect(_on_quit_confirmed)
+	add_child(quit_dialog)
+
+func _on_quit_pressed():
+	AudioManager.play_ui_click()
+	if quit_dialog:
+		quit_dialog.popup_centered()
+
+func _on_quit_confirmed():
+	AudioManager.play_ui_click()
+	# Return to appropriate screen based on mode
+	if PlayerData.is_campaign_mode():
+		PlayerData.end_campaign_stage()
+		SceneTransition.change_scene("res://scenes/ui/campaign_select_screen.tscn")
+	elif PlayerData.is_dungeon_mode():
+		PlayerData.end_dungeon()
+		SceneTransition.change_scene("res://scenes/ui/dungeon_select_screen.tscn")
+	else:
+		SceneTransition.change_scene("res://scenes/ui/main_menu.tscn")
+
 # === AUTO-BATTLE SYSTEM ===
 
 func _on_auto_toggle():
@@ -2310,6 +2407,14 @@ func _apply_battle_theme():
 		end_turn_button.add_theme_font_size_override("font_size", UITheme.FONT_BODY)
 		end_turn_button.add_theme_color_override("font_color", UITheme.TEXT_PRIMARY)
 
+	# Quit button - use danger color
+	if quit_button:
+		quit_button.add_theme_stylebox_override("normal", UITheme.create_button_style(UITheme.DANGER.darkened(0.3)))
+		quit_button.add_theme_stylebox_override("hover", UITheme.create_button_style(UITheme.DANGER))
+		quit_button.add_theme_stylebox_override("pressed", UITheme.create_button_style(UITheme.DANGER.darkened(0.2)))
+		quit_button.add_theme_font_size_override("font_size", UITheme.FONT_CAPTION)
+		quit_button.add_theme_color_override("font_color", UITheme.TEXT_PRIMARY)
+
 	# Auto-battle and speed buttons
 	if auto_button:
 		auto_button.add_theme_stylebox_override("normal", UITheme.create_button_style(UITheme.BG_LIGHT))
@@ -2364,3 +2469,36 @@ func _apply_battle_theme():
 	if instructions:
 		instructions.add_theme_font_size_override("font_size", UITheme.FONT_CAPTION)
 		instructions.add_theme_color_override("font_color", UITheme.TEXT_DISABLED)
+
+
+# === COMBAT EFFECTS ===
+
+func do_screen_shake(intensity: float = 8.0, duration: float = 0.2) -> void:
+	"""Apply screen shake effect for impactful hits."""
+	var original_pos = position
+	var shake_time = duration / battle_speed
+	var shake_count = int(shake_time / 0.03)  # ~30fps shake
+
+	for i in range(shake_count):
+		var progress = float(i) / float(shake_count)
+		var current_intensity = intensity * (1.0 - progress)  # Decay over time
+		var offset = Vector2(
+			randf_range(-current_intensity, current_intensity),
+			randf_range(-current_intensity * 0.5, current_intensity * 0.5)
+		)
+		position = original_pos + offset
+		await get_tree().create_timer(0.03).timeout
+
+	position = original_pos
+
+
+func do_camera_punch(direction: Vector2 = Vector2.RIGHT, intensity: float = 15.0) -> void:
+	"""Quick camera punch effect for crits/kills."""
+	var original_pos = position
+	var punch_time = 0.08 / battle_speed
+	var return_time = 0.12 / battle_speed
+
+	# Punch in direction
+	var tween = create_tween()
+	tween.tween_property(self, "position", original_pos + direction * intensity, punch_time)
+	tween.tween_property(self, "position", original_pos, return_time).set_ease(Tween.EASE_OUT)

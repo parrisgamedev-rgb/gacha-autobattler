@@ -91,12 +91,18 @@ offset_bottom = 180.0
 text = "END TURN"
 
 [node name="BottomBar" type="HBoxContainer" parent="UI"]
-offset_left = 760.0
+offset_left = 660.0
 offset_top = 980.0
-offset_right = 1160.0
+offset_right = 1260.0
 offset_bottom = 1030.0
 theme_override_constants/separation = 10
 alignment = 1
+
+[node name="QuitButton" type="Button" parent="UI/BottomBar"]
+custom_minimum_size = Vector2(80, 40)
+text = "QUIT"
+
+[node name="QuitSeparator" type="VSeparator" parent="UI/BottomBar"]
 
 [node name="AutoButton" type="Button" parent="UI/BottomBar"]
 custom_minimum_size = Vector2(100, 40)
