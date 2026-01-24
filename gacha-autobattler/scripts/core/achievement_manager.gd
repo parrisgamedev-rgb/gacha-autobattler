@@ -23,18 +23,23 @@ func _ready():
 
 
 func _load_achievements():
-	"""Load all achievement resources from the achievements directory."""
-	var dir = DirAccess.open("res://resources/achievements/")
-	if dir:
-		dir.list_dir_begin()
-		var file_name = dir.get_next()
-		while file_name != "":
-			if file_name.ends_with(".tres"):
-				var achievement = load("res://resources/achievements/" + file_name) as AchievementData
-				if achievement:
-					all_achievements.append(achievement)
-			file_name = dir.get_next()
-		dir.list_dir_end()
+	"""Load all achievement resources explicitly (directory scanning fails in exports)."""
+	var achievement_files := [
+		"first_blood.tres",
+		"warrior.tres",
+		"veteran.tres",
+		"speed_demon.tres",
+		"collector.tres",
+		"gear_up.tres",
+		"chapter_1_clear.tres",
+		"chapter_2_clear.tres",
+		"chapter_3_clear.tres",
+	]
+
+	for file_name in achievement_files:
+		var achievement = load("res://resources/achievements/" + file_name) as AchievementData
+		if achievement:
+			all_achievements.append(achievement)
 
 	print("[AchievementManager] Loaded ", all_achievements.size(), " achievements")
 
