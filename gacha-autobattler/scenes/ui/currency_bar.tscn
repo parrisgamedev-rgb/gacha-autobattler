@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://currency_bar_001"]
+
+[ext_resource type="Script" path="res://scripts/ui/currency_bar.gd" id="1_script"]
+
+[node name="CurrencyBar" type="HBoxContainer"]
+script = ExtResource("1_script")
