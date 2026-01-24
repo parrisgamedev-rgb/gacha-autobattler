@@ -567,6 +567,17 @@ func _create_unit_card(unit_entry: Dictionary) -> Control:
 	element_label.add_theme_color_override("font_color", unit_data.get_element_color())
 	card.add_child(element_label)
 
+	# Combat Power
+	var cp = PlayerData.calculate_unit_cp(unit_entry)
+	var cp_label = Label.new()
+	cp_label.text = "CP: " + str(cp)
+	cp_label.position = Vector2(0, 175)
+	cp_label.size = Vector2(card_width, 20)
+	cp_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	cp_label.add_theme_font_size_override("font_size", UITheme.FONT_CAPTION)
+	cp_label.add_theme_color_override("font_color", UITheme.GOLD)
+	card.add_child(cp_label)
+
 	# Selection indicator (checkmark)
 	var is_selected = instance_id in selected_instance_ids
 	var check_label = Label.new()

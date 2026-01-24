@@ -187,6 +187,17 @@ func _create_unit_card(unit_entry: Dictionary) -> Control:
 	stars_label.add_theme_font_size_override("font_size", UITheme.FONT_BODY)
 	card.add_child(stars_label)
 
+	# Combat Power
+	var cp = PlayerData.calculate_unit_cp(unit_entry)
+	var cp_label = Label.new()
+	cp_label.text = "CP: " + str(cp)
+	cp_label.position = Vector2(0, 152)
+	cp_label.size = Vector2(card_width, 20)
+	cp_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	cp_label.add_theme_font_size_override("font_size", UITheme.FONT_CAPTION)
+	cp_label.add_theme_color_override("font_color", UITheme.GOLD)
+	card.add_child(cp_label)
+
 	# XP bar
 	var max_level = PlayerData.get_max_level(unit_data.star_rating)
 	if unit_level < max_level:
@@ -195,20 +206,20 @@ func _create_unit_card(unit_entry: Dictionary) -> Control:
 		var xp_ratio = float(xp) / float(xp_needed) if xp_needed > 0 else 0.0
 
 		var xp_bg = ColorRect.new()
-		xp_bg.position = Vector2(10, 160)
+		xp_bg.position = Vector2(10, 175)
 		xp_bg.size = Vector2(card_width - 20, 8)
 		xp_bg.color = UITheme.BG_DARK
 		card.add_child(xp_bg)
 
 		var xp_fill = ColorRect.new()
-		xp_fill.position = Vector2(10, 160)
+		xp_fill.position = Vector2(10, 175)
 		xp_fill.size = Vector2((card_width - 20) * xp_ratio, 8)
 		xp_fill.color = UITheme.PRIMARY
 		card.add_child(xp_fill)
 
 		var xp_label = Label.new()
 		xp_label.text = str(xp) + "/" + str(xp_needed)
-		xp_label.position = Vector2(0, 170)
+		xp_label.position = Vector2(0, 185)
 		xp_label.size = Vector2(card_width, 20)
 		xp_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		xp_label.add_theme_font_size_override("font_size", UITheme.FONT_SMALL)
@@ -217,7 +228,7 @@ func _create_unit_card(unit_entry: Dictionary) -> Control:
 	else:
 		var max_label = Label.new()
 		max_label.text = "MAX LEVEL"
-		max_label.position = Vector2(0, 160)
+		max_label.position = Vector2(0, 175)
 		max_label.size = Vector2(card_width, 25)
 		max_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		max_label.add_theme_font_size_override("font_size", UITheme.FONT_SMALL)
