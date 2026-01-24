@@ -1,6 +1,6 @@
 # Grid Battler - Game Design Document
 
-**Version:** 0.11
+**Version:** 1.0
 **Last Updated:** January 2026
 **Genre:** Gacha Auto-Battler
 **Platform:** Windows (PC)
@@ -420,43 +420,43 @@ New players receive:
 
 ## Roadmap
 
-### Current Version: 0.11
+### Current Version: 1.0
 
 ### v0.12 - Audio Foundation
-- [ ] Sound effects (attacks, abilities, UI clicks, victory/defeat)
-- [ ] Background music (menu theme, battle theme)
-- [ ] Settings menu with volume sliders
+- [x] Sound effects (attacks, abilities, UI clicks, victory/defeat)
+- [x] Background music (menu theme, battle theme)
+- [x] Settings menu with volume sliders
 
 ### v0.13 - Combat Polish
-- [ ] Attack animations (unit lunges toward target)
-- [ ] Hit impact effects (screen shake, particles)
-- [ ] Ability cast effects (element-colored auras)
+- [x] Attack animations (unit lunges toward target)
+- [x] Hit impact effects (screen shake, particles)
+- [x] Ability cast effects (element-colored auras)
 
 ### v0.14 - Tutorial & Onboarding
-- [ ] Interactive tutorial for first-time players
-- [ ] Guided first battle with prompts
-- [ ] Explains gacha, team building, gear basics
+- [x] Interactive tutorial for first-time players
+- [x] Guided first battle with prompts
+- [x] Explains gacha, team building, gear basics
 
 ### v0.15 - Content Expansion I
-- [ ] Chapter 2 campaign (5 new stages)
-- [ ] 5 new units (15 total)
+- [x] Chapter 2 campaign (5 new stages)
+- [x] 5 new units (15 total)
 
 ### v0.16 - Retention Systems
-- [ ] Daily login rewards calendar
-- [ ] Achievements system with gem rewards
+- [x] Daily login rewards calendar
+- [x] Achievements system with gem rewards
 
 ### v0.17 - Content Expansion II
-- [ ] Chapter 3 campaign (5 new stages, 15 total)
-- [ ] 5 new units (20 total)
+- [x] Chapter 3 campaign (5 new stages, 15 total)
+- [x] 5 new units (20 total)
 
 ### v0.18 - Pre-Release Polish
-- [ ] Bug fixes and balance pass
-- [ ] Credits screen
-- [ ] Final UI polish
+- [x] Bug fixes and balance pass
+- [x] Board overhaul with Kenney tiles
+- [x] Final UI polish
 
 ### v1.0 - Release
-- [ ] Final testing
-- [ ] Release builds for distribution
+- [x] Final testing
+- [x] Release builds for distribution (Windows)
 
 ---
 
