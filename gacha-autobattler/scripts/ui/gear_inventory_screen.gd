@@ -193,13 +193,13 @@ func _create_gear_card(gear_entry: Dictionary) -> Control:
 func _get_panel_color_for_rarity(rarity: int) -> int:
 	"""Get the panel color based on gear rarity."""
 	match rarity:
-		0:  # Common
+		GearData.GearRarity.COMMON:
 			return UISpriteLoader.PanelColor.WHITE
-		1:  # Uncommon
+		GearData.GearRarity.RARE:
 			return UISpriteLoader.PanelColor.BLUE
-		2:  # Rare
+		GearData.GearRarity.EPIC:
 			return UISpriteLoader.PanelColor.PURPLE
-		3:  # Epic
+		GearData.GearRarity.LEGENDARY:
 			return UISpriteLoader.PanelColor.GOLD
 		_:
 			return UISpriteLoader.PanelColor.WHITE
@@ -208,14 +208,14 @@ func _get_panel_color_for_rarity(rarity: int) -> int:
 func _get_gear_type_icon(gear_type: int) -> String:
 	"""Get an icon character for gear type."""
 	match gear_type:
-		0:  # Weapon
-			return "[W]"
-		1:  # Armor
-			return "[A]"
-		2:  # Accessory
-			return "[R]"
+		GearData.GearType.WEAPON:
+			return "⚔"  # Sword
+		GearData.GearType.ARMOR:
+			return "🛡"  # Shield
+		GearData.GearType.ACCESSORY:
+			return "💍"  # Ring
 		_:
-			return "[?]"
+			return "?"
 
 func _on_gear_selected(instance_id: String):
 	AudioManager.play_ui_click()
