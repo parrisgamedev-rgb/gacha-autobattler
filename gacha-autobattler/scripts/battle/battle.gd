@@ -248,6 +248,16 @@ func _get_dungeon_chapter() -> int:
 			return 1
 
 
+func _get_perspective_scale(_row: int) -> float:
+	# No perspective - all rows same scale
+	return 1.0
+
+
+func _get_cell_size_for_row(_row: int) -> float:
+	# No perspective - all rows same size
+	return CELL_SIZE
+
+
 func _get_cell_position(row: int, col: int) -> Vector2:
 	"""Calculate cell position in a simple flat grid."""
 	# Grid is centered on GridContainer (0,0 local)
