@@ -60,6 +60,28 @@ func _init_themes():
 		"border_color": Color(0.1, 0.2, 0.1),  # Very dark green
 	}
 
+func _clear_board():
+	for child in board_root.get_children():
+		child.queue_free()
+	await get_tree().process_frame
+
+
+func _fill_base_terrain(theme: Dictionary):
+	# Create colored background as base
+	var bg = ColorRect.new()
+	bg.color = theme["base_color"]
+	bg.size = Vector2(BOARD_WIDTH, BOARD_HEIGHT)
+	board_root.add_child(bg)
+
+	# Add subtle darker region at top for depth
+	var top_shade = ColorRect.new()
+	top_shade.color = theme["border_color"]
+	top_shade.color.a = 0.3
+	top_shade.size = Vector2(BOARD_WIDTH, 200)
+	top_shade.position = Vector2(0, 0)
+	board_root.add_child(top_shade)
+
+
 func generate_all_boards():
 	pass  # Will implement in Task 7
 
