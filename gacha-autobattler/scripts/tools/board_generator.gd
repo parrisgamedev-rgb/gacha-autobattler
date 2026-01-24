@@ -82,6 +82,56 @@ func _fill_base_terrain(theme: Dictionary):
 	board_root.add_child(top_shade)
 
 
+func _add_borders(theme: Dictionary):
+	# Top border (thicker, represents tree line / wall)
+	var top_border = ColorRect.new()
+	top_border.color = theme["border_color"]
+	top_border.size = Vector2(BOARD_WIDTH, 180)
+	top_border.position = Vector2(0, 0)
+	board_root.add_child(top_border)
+
+	# Left border
+	var left_border = ColorRect.new()
+	left_border.color = theme["border_color"]
+	left_border.size = Vector2(120, BOARD_HEIGHT)
+	left_border.position = Vector2(0, 0)
+	board_root.add_child(left_border)
+
+	# Right border
+	var right_border = ColorRect.new()
+	right_border.color = theme["border_color"]
+	right_border.size = Vector2(120, BOARD_HEIGHT)
+	right_border.position = Vector2(BOARD_WIDTH - 120, 0)
+	board_root.add_child(right_border)
+
+
+func _add_border_gradient(theme: Dictionary):
+	# Create softer transition from border to play area
+	var gradient_color = theme["border_color"]
+	gradient_color.a = 0.4
+
+	# Top gradient (below top border)
+	var top_grad = ColorRect.new()
+	top_grad.color = gradient_color
+	top_grad.size = Vector2(BOARD_WIDTH, 80)
+	top_grad.position = Vector2(0, 180)
+	board_root.add_child(top_grad)
+
+	# Left gradient
+	var left_grad = ColorRect.new()
+	left_grad.color = gradient_color
+	left_grad.size = Vector2(60, BOARD_HEIGHT)
+	left_grad.position = Vector2(120, 0)
+	board_root.add_child(left_grad)
+
+	# Right gradient
+	var right_grad = ColorRect.new()
+	right_grad.color = gradient_color
+	right_grad.size = Vector2(60, BOARD_HEIGHT)
+	right_grad.position = Vector2(BOARD_WIDTH - 180, 0)
+	board_root.add_child(right_grad)
+
+
 func generate_all_boards():
 	pass  # Will implement in Task 7
 
