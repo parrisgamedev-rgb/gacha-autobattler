@@ -6,7 +6,7 @@ A 3v3 grid-based gacha autobattler built in Godot 4.5. Players collect units thr
 ## Tech Stack
 - **Engine:** Godot 4.5 (GL Compatibility renderer)
 - **Language:** GDScript
-- **Resolution:** 1920x1080, viewport stretch mode
+- **Resolution:** 1024x768 (4:3), viewport stretch mode
 - **Entry Point:** `res://scenes/ui/main_menu.tscn`
 
 ## Project Structure
