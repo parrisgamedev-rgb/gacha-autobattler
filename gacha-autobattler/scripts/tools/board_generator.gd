@@ -132,6 +132,58 @@ func _add_border_gradient(theme: Dictionary):
 	board_root.add_child(right_grad)
 
 
+func _load_decorations(paths: Array) -> Array[Texture2D]:
+	var textures: Array[Texture2D] = []
+	for path in paths:
+		if ResourceLoader.exists(path):
+			var tex = load(path) as Texture2D
+			if tex:
+				textures.append(tex)
+	return textures
+
+
+func _scatter_decorations(theme: Dictionary, rng: RandomNumberGenerator):
+	var decorations = _load_decorations(theme["decorations"])
+	if decorations.is_empty():
+		return
+
+	var placed_positions: Array[Vector2] = []
+	var count = theme["decoration_density"]
+	var attempts = count * 3  # Allow extra attempts for failed placements
+
+	for i in attempts:
+		if placed_positions.size() >= count:
+			break
+
+		var pos = Vector2(
+			rng.randf_range(100, BOARD_WIDTH - 100),
+			rng.randf_range(200, BOARD_HEIGHT - 50)
+		)
+
+		# Reduce chance of placement in center safe zone (80% skip)
+		if CENTER_SAFE_ZONE.has_point(pos):
+			if rng.randf() > 0.2:
+				continue
+
+		# Check minimum distance from other decorations
+		var too_close = false
+		for placed in placed_positions:
+			if pos.distance_to(placed) < 50:
+				too_close = true
+				break
+
+		if too_close:
+			continue
+
+		# Place decoration
+		var sprite = Sprite2D.new()
+		sprite.texture = decorations[rng.randi() % decorations.size()]
+		sprite.position = pos
+		sprite.scale = Vector2(3.0, 3.0)  # Scale up pixel art
+		board_root.add_child(sprite)
+		placed_positions.append(pos)
+
+
 func generate_all_boards():
 	pass  # Will implement in Task 7
 
