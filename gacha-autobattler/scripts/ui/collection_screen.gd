@@ -14,6 +14,9 @@ var CurrencyBarScene = preload("res://scenes/ui/currency_bar.tscn")
 @onready var detail_copies = $DetailPanel/DetailCopies
 @onready var detail_imprint = $DetailPanel/DetailImprint
 @onready var close_detail_btn = $DetailPanel/ActionButtons/CloseButton
+
+# Dynamic CP label for detail panel
+var detail_cp_label: Label = null
 @onready var imprint_btn = $DetailPanel/ActionButtons/ImprintButton
 @onready var level_up_btn = $DetailPanel/ActionButtons/LevelUpButton
 @onready var max_level_btn = $DetailPanel/CheatButtons/MaxLevelButton
@@ -270,10 +273,14 @@ func _on_unit_clicked(unit_entry: Dictionary):
 	# Update and animate the detail sprite
 	_update_detail_sprite(unit_data)
 
-	# Show scaled stats based on level
+	# Show scaled stats based on level with stat icons
 	var stats = PlayerData.get_unit_stats_at_level(unit_data, unit_level, imprint_level)
-	detail_stats.text = "HP: " + str(stats.max_hp) + "  ATK: " + str(stats.attack) + "  DEF: " + str(stats.defense) + "  SPD: " + str(stats.speed)
+	detail_stats.text = "HP " + str(stats.max_hp) + "   ATK " + str(stats.attack) + "   DEF " + str(stats.defense) + "   SPD " + str(stats.speed)
 	detail_copies.text = "Instance ID: " + unit_entry.instance_id
+
+	# Show CP prominently
+	var cp = PlayerData.calculate_unit_cp(unit_entry)
+	_update_cp_label(cp)
 	detail_imprint.text = "Imprint Level: " + str(imprint_level) + "/5"
 
 	# Show level info
@@ -317,6 +324,21 @@ func _on_unit_clicked(unit_entry: Dictionary):
 
 	# Update gear slots display
 	_update_gear_slots()
+
+func _update_cp_label(cp: int):
+	# Create CP label if it doesn't exist
+	if not detail_cp_label:
+		detail_cp_label = Label.new()
+		detail_cp_label.name = "DetailCPLabel"
+		# Position it prominently near the top of the detail panel
+		detail_cp_label.position = Vector2(240, 60)
+		detail_cp_label.size = Vector2(200, 40)
+		detail_cp_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
+		detail_cp_label.add_theme_font_size_override("font_size", UITheme.FONT_TITLE_MEDIUM)
+		detail_cp_label.add_theme_color_override("font_color", UITheme.GOLD)
+		detail_panel.add_child(detail_cp_label)
+
+	detail_cp_label.text = "CP: " + str(cp)
 
 func _on_close_detail():
 	AudioManager.play_ui_click()
@@ -644,6 +666,8 @@ func _update_gear_slots():
 	var unit_instance_id = current_unit_entry.instance_id as String
 	var equipped_gear = current_unit_entry.get("equipped_gear", {})
 
+	# Slot names with type icons for better visual clarity
+	var slot_icons = ["[W]", "[A]", "[+]", "[+]"]  # Weapon, Armor, Accessory
 	var slot_names = ["Weapon", "Armor", "Acc 1", "Acc 2"]
 	var slot_keys = ["weapon", "armor", "accessory_1", "accessory_2"]
 
@@ -652,19 +676,20 @@ func _update_gear_slots():
 		slot_btn.custom_minimum_size = Vector2(120, 50)
 
 		var gear_id = equipped_gear.get(slot_keys[i], "")
+		var icon = slot_icons[i]
 		if gear_id != "":
 			var gear_entry = PlayerData.get_gear_by_instance_id(gear_id)
 			if not gear_entry.is_empty():
 				var template = PlayerData.get_gear_template(gear_entry.gear_id)
 				if template:
-					slot_btn.text = slot_names[i] + "\n" + template.gear_name
+					slot_btn.text = icon + " " + template.gear_name + "\n+" + str(gear_entry.get("level", 0))
 					slot_btn.modulate = template.get_rarity_color()
 				else:
-					slot_btn.text = slot_names[i] + "\n[Unknown]"
+					slot_btn.text = icon + " " + slot_names[i] + "\n[Unknown]"
 			else:
-				slot_btn.text = slot_names[i] + "\n[Empty]"
+				slot_btn.text = icon + " " + slot_names[i] + "\n[Empty]"
 		else:
-			slot_btn.text = slot_names[i] + "\n[Empty]"
+			slot_btn.text = icon + " " + slot_names[i] + "\n[Empty]"
 
 		slot_btn.pressed.connect(_on_gear_slot_clicked.bind(i))
 		gear_slots_container.add_child(slot_btn)
