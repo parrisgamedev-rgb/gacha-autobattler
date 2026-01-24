@@ -234,19 +234,9 @@ func _create_empty_slot(index: int) -> Panel:
 	var slot = Panel.new()
 	slot.custom_minimum_size = TEAM_SLOT_SIZE
 
-	# Style as empty slot
-	var style = StyleBoxFlat.new()
-	style.bg_color = UITheme.BG_LIGHT
-	style.border_color = UITheme.TEXT_DISABLED
-	style.border_width_left = 2
-	style.border_width_right = 2
-	style.border_width_top = 2
-	style.border_width_bottom = 2
-	style.corner_radius_top_left = UITheme.CARD_RADIUS
-	style.corner_radius_top_right = UITheme.CARD_RADIUS
-	style.corner_radius_bottom_left = UITheme.CARD_RADIUS
-	style.corner_radius_bottom_right = UITheme.CARD_RADIUS
-	slot.add_theme_stylebox_override("panel", style)
+	# Style as empty slot using sprite-based panel
+	UISpriteLoader.apply_panel_style(slot, UISpriteLoader.PanelColor.WHITE, "Panel")
+	slot.modulate = Color(0.7, 0.7, 0.75, 1.0)  # Slightly dimmed for empty state
 
 	# Plus sign for empty slot
 	var plus_label = Label.new()
@@ -283,19 +273,14 @@ func _update_team_slot(slot: Panel, unit_entry: Dictionary):
 	var imprint_level = unit_entry.get("imprint_level", 0) as int
 	var unit_level = unit_entry.get("level", 1) as int
 
-	# Update style with rarity border
-	var style = StyleBoxFlat.new()
-	style.bg_color = UITheme.BG_MEDIUM
-	style.border_color = UITheme.get_rarity_color(unit_data.star_rating)
-	style.border_width_left = 3
-	style.border_width_right = 3
-	style.border_width_top = 3
-	style.border_width_bottom = 3
-	style.corner_radius_top_left = UITheme.CARD_RADIUS
-	style.corner_radius_top_right = UITheme.CARD_RADIUS
-	style.corner_radius_bottom_left = UITheme.CARD_RADIUS
-	style.corner_radius_bottom_right = UITheme.CARD_RADIUS
-	slot.add_theme_stylebox_override("panel", style)
+	# Use sprite-based panel style based on rarity
+	var panel_color = UISpriteLoader.PanelColor.BLUE
+	match unit_data.star_rating:
+		3: panel_color = UISpriteLoader.PanelColor.BLUE
+		4: panel_color = UISpriteLoader.PanelColor.PURPLE
+		5: panel_color = UISpriteLoader.PanelColor.GOLD
+	UISpriteLoader.apply_panel_style(slot, panel_color, "Panel")
+	slot.modulate = Color(1.0, 1.0, 1.0, 1.0)  # Full brightness for filled slots
 
 	# Unit display
 	var display_container = Control.new()
@@ -382,19 +367,9 @@ func _reset_slot_to_empty(slot: Panel, index: int):
 	for child in slot.get_children():
 		child.queue_free()
 
-	# Reset style to empty
-	var style = StyleBoxFlat.new()
-	style.bg_color = UITheme.BG_LIGHT
-	style.border_color = UITheme.TEXT_DISABLED
-	style.border_width_left = 2
-	style.border_width_right = 2
-	style.border_width_top = 2
-	style.border_width_bottom = 2
-	style.corner_radius_top_left = UITheme.CARD_RADIUS
-	style.corner_radius_top_right = UITheme.CARD_RADIUS
-	style.corner_radius_bottom_left = UITheme.CARD_RADIUS
-	style.corner_radius_bottom_right = UITheme.CARD_RADIUS
-	slot.add_theme_stylebox_override("panel", style)
+	# Reset style to empty using sprite-based panel
+	UISpriteLoader.apply_panel_style(slot, UISpriteLoader.PanelColor.WHITE, "Panel")
+	slot.modulate = Color(0.7, 0.7, 0.75, 1.0)  # Slightly dimmed for empty state
 
 	# Plus sign
 	var plus_label = Label.new()
@@ -429,6 +404,10 @@ func _on_slot_remove_clicked(instance_id: String):
 			var style = card.get_meta("style") as StyleBoxFlat
 			if style and unit_data:
 				style.border_color = UITheme.get_rarity_color(unit_data.star_rating)
+				style.border_width_left = 3
+				style.border_width_right = 3
+				style.border_width_top = 3
+				style.border_width_bottom = 3
 			var check_mark = card.get_node_or_null("CheckMark")
 			if check_mark:
 				check_mark.visible = false
@@ -597,9 +576,13 @@ func _create_unit_card(unit_entry: Dictionary) -> Control:
 	check_label.visible = is_selected
 	card.add_child(check_label)
 
-	# Update border color if already selected
+	# Update border style if already selected
 	if is_selected:
-		style.border_color = UITheme.SUCCESS
+		style.border_color = UITheme.SUCCESS.lightened(0.2)
+		style.border_width_left = 5
+		style.border_width_right = 5
+		style.border_width_top = 5
+		style.border_width_bottom = 5
 
 	# Make clickable
 	var button = Button.new()
@@ -617,9 +600,13 @@ func _on_unit_clicked(instance_id: String, card: Panel):
 	var check_mark = card.get_node_or_null("CheckMark")
 
 	if instance_id in selected_instance_ids:
-		# Deselect
+		# Deselect - restore rarity border
 		selected_instance_ids.erase(instance_id)
 		style.border_color = UITheme.get_rarity_color(unit_data.star_rating)
+		style.border_width_left = 3
+		style.border_width_right = 3
+		style.border_width_top = 3
+		style.border_width_bottom = 3
 		if check_mark:
 			check_mark.visible = false
 	else:
@@ -628,7 +615,12 @@ func _on_unit_clicked(instance_id: String, card: Panel):
 			print("Team is full! Deselect a unit first.")
 			return
 		selected_instance_ids.append(instance_id)
-		style.border_color = UITheme.SUCCESS  # Green border for selected
+		# Use brighter SUCCESS color with increased border width for better visibility
+		style.border_color = UITheme.SUCCESS.lightened(0.2)
+		style.border_width_left = 5
+		style.border_width_right = 5
+		style.border_width_top = 5
+		style.border_width_bottom = 5
 		if check_mark:
 			check_mark.visible = true
 
@@ -712,12 +704,16 @@ func _on_auto_select():
 	selected_instance_ids.clear()
 
 	# Reset all card visuals
-	for instance_id in unit_cards:
-		var card = unit_cards[instance_id]
+	for inst_id in unit_cards:
+		var card = unit_cards[inst_id]
 		var unit_data = card.get_meta("unit_data") as UnitData
 		var style = card.get_meta("style") as StyleBoxFlat
 		if style and unit_data:
 			style.border_color = UITheme.get_rarity_color(unit_data.star_rating)
+			style.border_width_left = 3
+			style.border_width_right = 3
+			style.border_width_top = 3
+			style.border_width_bottom = 3
 		var check_mark = card.get_node_or_null("CheckMark")
 		if check_mark:
 			check_mark.visible = false
@@ -726,15 +722,19 @@ func _on_auto_select():
 	var to_select = mini(MIN_TEAM_SIZE, units_with_cp.size())
 	for i in range(to_select):
 		var unit_entry = units_with_cp[i].entry
-		var instance_id = unit_entry.instance_id
-		selected_instance_ids.append(instance_id)
+		var inst_id = unit_entry.instance_id
+		selected_instance_ids.append(inst_id)
 
 		# Update card visual if visible
-		if unit_cards.has(instance_id):
-			var card = unit_cards[instance_id]
+		if unit_cards.has(inst_id):
+			var card = unit_cards[inst_id]
 			var style = card.get_meta("style") as StyleBoxFlat
 			if style:
-				style.border_color = UITheme.SUCCESS
+				style.border_color = UITheme.SUCCESS.lightened(0.2)
+				style.border_width_left = 5
+				style.border_width_right = 5
+				style.border_width_top = 5
+				style.border_width_bottom = 5
 			var check_mark = card.get_node_or_null("CheckMark")
 			if check_mark:
 				check_mark.visible = true
