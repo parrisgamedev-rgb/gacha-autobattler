@@ -45,15 +45,17 @@ func _ready():
 	_update_stones_display()
 
 func _apply_theme():
-	# Background
+	# Apply themed background
+	UISpriteLoader.apply_background_to_scene(self, UISpriteLoader.BackgroundTheme.RUINS, UISpriteLoader.BackgroundVariant.PALE, 0.4)
+	# Hide the old solid color background if it exists
 	var bg = get_node_or_null("Background")
 	if bg:
-		bg.color = UITheme.BG_DARK
+		bg.visible = false
 
-	# Top bar
+	# Top bar - use sprite panel
 	var top_bar = get_node_or_null("TopBar")
 	if top_bar and top_bar is Panel:
-		top_bar.add_theme_stylebox_override("panel", UITheme.create_panel_style(UITheme.BG_MEDIUM))
+		UISpriteLoader.apply_panel_style(top_bar, UISpriteLoader.PanelColor.BLACK, "Panel")
 
 	# Title
 	var title = get_node_or_null("TopBar/Title")
@@ -62,13 +64,9 @@ func _apply_theme():
 		title.add_theme_font_size_override("font_size", UITheme.FONT_TITLE_LARGE)
 		title.add_theme_color_override("font_color", UITheme.TEXT_PRIMARY)
 
-	# Back button
+	# Back button - use sprite button
 	if back_btn:
-		back_btn.add_theme_stylebox_override("normal", UITheme.create_button_style(Color.TRANSPARENT))
-		back_btn.add_theme_stylebox_override("hover", UITheme.create_button_style(UITheme.BG_LIGHT))
-		back_btn.add_theme_stylebox_override("pressed", UITheme.create_button_style(UITheme.BG_LIGHT))
-		back_btn.add_theme_color_override("font_color", UITheme.TEXT_SECONDARY)
-		back_btn.add_theme_font_size_override("font_size", UITheme.FONT_BODY)
+		UISpriteLoader.apply_button_style(back_btn, UISpriteLoader.ButtonColor.PURPLE, "ButtonA")
 
 	# Difficulty section label
 	var diff_label = get_node_or_null("DungeonInfoPanel/VBox/DifficultyLabel")
@@ -77,9 +75,9 @@ func _apply_theme():
 		diff_label.add_theme_font_size_override("font_size", UITheme.FONT_TITLE_SMALL)
 		diff_label.add_theme_color_override("font_color", UITheme.TEXT_SECONDARY)
 
-	# Info panel
+	# Info panel - use sprite panel
 	if dungeon_info_panel and dungeon_info_panel is Panel:
-		dungeon_info_panel.add_theme_stylebox_override("panel", UITheme.create_panel_style(UITheme.BG_MEDIUM))
+		UISpriteLoader.apply_panel_style(dungeon_info_panel, UISpriteLoader.PanelColor.BLUE, "Panel")
 
 	# Currency display
 	_style_currency_display()
@@ -137,13 +135,9 @@ func _style_info_panel():
 		diff_label.add_theme_font_size_override("font_size", UITheme.FONT_TITLE_SMALL)
 		diff_label.add_theme_color_override("font_color", UITheme.TEXT_SECONDARY)
 
-	# Start button
+	# Start button - use sprite button
 	if start_button:
-		start_button.add_theme_stylebox_override("normal", UITheme.create_button_style(UITheme.PRIMARY))
-		start_button.add_theme_stylebox_override("hover", UITheme.create_button_style(UITheme.PRIMARY.lightened(0.1)))
-		start_button.add_theme_stylebox_override("pressed", UITheme.create_button_style(UITheme.PRIMARY.darkened(0.1)))
-		start_button.add_theme_font_size_override("font_size", UITheme.FONT_BODY)
-		start_button.add_theme_color_override("font_color", UITheme.TEXT_PRIMARY)
+		UISpriteLoader.apply_button_style(start_button, UISpriteLoader.ButtonColor.BLUE, "ButtonA")
 
 func _style_difficulty_buttons():
 	if not difficulty_container:
@@ -160,18 +154,11 @@ func _style_difficulty_buttons():
 
 	for item in buttons:
 		var btn = item.btn
-		btn.add_theme_font_size_override("font_size", UITheme.FONT_BODY)
-
+		# Use sprite-based buttons for difficulty selection
 		if selected_tier == item.tier:
-			btn.add_theme_stylebox_override("normal", UITheme.create_button_style(UITheme.PRIMARY))
-			btn.add_theme_stylebox_override("hover", UITheme.create_button_style(UITheme.PRIMARY.lightened(0.1)))
-			btn.add_theme_stylebox_override("pressed", UITheme.create_button_style(UITheme.PRIMARY.darkened(0.1)))
-			btn.add_theme_color_override("font_color", UITheme.TEXT_PRIMARY)
+			UISpriteLoader.apply_button_style(btn, UISpriteLoader.ButtonColor.GOLD, "ButtonA")
 		else:
-			btn.add_theme_stylebox_override("normal", UITheme.create_button_style(UITheme.BG_LIGHT))
-			btn.add_theme_stylebox_override("hover", UITheme.create_button_style(UITheme.BG_LIGHT.lightened(0.1)))
-			btn.add_theme_stylebox_override("pressed", UITheme.create_button_style(UITheme.BG_LIGHT.darkened(0.1)))
-			btn.add_theme_color_override("font_color", UITheme.TEXT_SECONDARY)
+			UISpriteLoader.apply_button_style(btn, UISpriteLoader.ButtonColor.WHITE, "ButtonA")
 
 func _load_all_dungeons():
 	var dungeon_files = [
