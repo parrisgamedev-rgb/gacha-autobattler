@@ -183,40 +183,68 @@ func _ready():
 func _load_chapter_theme():
 	"""Load chapter-specific board and cell textures."""
 	var chapter = 0
-
-	# Determine chapter from current stage
-	if PlayerData.is_campaign_mode() and PlayerData.current_stage:
-		var stage_id = PlayerData.current_stage.stage_id
-		if stage_id.begins_with("1-"):
-			chapter = 1
-		elif stage_id.begins_with("2-"):
-			chapter = 2
-		elif stage_id.begins_with("3-"):
-			chapter = 3
-
-	# Load board texture based on chapter
 	var board_path = ""
-	match chapter:
-		1:
-			board_path = "res://assets/board/boards/chapter_1_board.png"
-		2:
-			board_path = "res://assets/board/boards/chapter_2_board.png"
-		3:
-			board_path = "res://assets/board/boards/chapter_3_board.png"
-		_:
-			board_path = "res://assets/board/dungeon_board.png"  # Default
+
+	# Check for dungeon mode first - use dungeon-specific boards
+	if PlayerData.is_dungeon_mode() and PlayerData.current_dungeon:
+		board_path = _get_dungeon_board_path()
+		print("Dungeon mode detected, using themed board: ", board_path)
+	else:
+		# Determine chapter from current stage (campaign mode)
+		if PlayerData.is_campaign_mode() and PlayerData.current_stage:
+			var stage_id = PlayerData.current_stage.stage_id
+			if stage_id.begins_with("1-"):
+				chapter = 1
+			elif stage_id.begins_with("2-"):
+				chapter = 2
+			elif stage_id.begins_with("3-"):
+				chapter = 3
+
+		# Load board texture based on chapter
+		match chapter:
+			1:
+				board_path = "res://assets/board/boards/chapter_1_board.png"
+			2:
+				board_path = "res://assets/board/boards/chapter_2_board.png"
+			3:
+				board_path = "res://assets/board/boards/chapter_3_board.png"
+			_:
+				board_path = "res://assets/board/dungeon_board.png"  # Default
 
 	# Update the GameBoard texture
 	if has_node("GameBoard") and ResourceLoader.exists(board_path):
 		var board_texture = load(board_path)
 		$GameBoard.texture = board_texture
-		print("Loaded chapter ", chapter, " board: ", board_path)
+		print("Loaded board: ", board_path)
 
 	# Set chapter on BoardAssetLoader for themed overlays
 	BoardAssetLoader.set_chapter(chapter)
 
 	# Store chapter for grid cell loading
 	set_meta("current_chapter", chapter)
+
+
+func _get_dungeon_board_path() -> String:
+	"""Get the board texture path based on dungeon stat type."""
+	if not PlayerData.current_dungeon:
+		return "res://assets/board/dungeon_board.png"
+
+	# Map dungeon stat type to themed boards
+	match PlayerData.current_dungeon.drops_stat_type:
+		GearData.StatType.HP:
+			# HP dungeon uses nature/forest theme
+			return "res://assets/board/forest_board.png"
+		GearData.StatType.ATTACK:
+			# Attack dungeon uses fire/lava theme (chapter 1)
+			return "res://assets/board/boards/chapter_1_board.png"
+		GearData.StatType.DEFENSE:
+			# Defense dungeon uses fortress/ruins theme (chapter 2)
+			return "res://assets/board/boards/chapter_2_board.png"
+		GearData.StatType.SPEED:
+			# Speed dungeon uses mystical/arcane theme (chapter 3)
+			return "res://assets/board/boards/chapter_3_board.png"
+		_:
+			return "res://assets/board/dungeon_board.png"
 
 
 func _get_chapter_cell_texture() -> Texture2D:
