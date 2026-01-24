@@ -23,12 +23,12 @@ var owner_overlay: ColorRect = null
 var active_effect_node: Node2D = null
 var field_tween: Tween = null
 
-# Ownership colors
+# Ownership colors (disabled - all transparent)
 const OWNER_COLORS = {
-	0: Color(0, 0, 0, 0),           # Empty - transparent
-	1: Color(0.3, 0.5, 1.0, 0.35),  # Player - blue
-	2: Color(1.0, 0.3, 0.3, 0.35),  # Enemy - red
-	3: Color(0.7, 0.3, 0.9, 0.35),  # Contested - purple
+	0: Color(0, 0, 0, 0),  # Empty
+	1: Color(0, 0, 0, 0),  # Player
+	2: Color(0, 0, 0, 0),  # Enemy
+	3: Color(0, 0, 0, 0),  # Contested
 }
 
 func _ready():

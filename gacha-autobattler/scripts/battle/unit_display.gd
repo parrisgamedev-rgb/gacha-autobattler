@@ -184,11 +184,11 @@ func update_hp_display():
 	if not unit_instance or not unit_instance.unit_data:
 		return
 
-	var hp_percent = float(unit_instance.current_hp) / float(unit_instance.unit_data.max_hp)
+	var hp_percent = float(unit_instance.current_hp) / float(unit_instance.max_hp)
 
 	# Update HP text
 	if hp_label:
-		hp_label.text = str(unit_instance.current_hp) + "/" + str(unit_instance.unit_data.max_hp)
+		hp_label.text = str(unit_instance.current_hp) + "/" + str(unit_instance.max_hp)
 
 	if uses_sprite_hp_bar:
 		# Update sprite-based HP bar

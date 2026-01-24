@@ -10,6 +10,7 @@ z_index = 10
 script = ExtResource("1_unit")
 
 [node name="SpriteBacking" type="ColorRect" parent="."]
+visible = false
 mouse_filter = 2
 offset_left = -50.0
 offset_top = -50.0

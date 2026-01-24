@@ -5,7 +5,7 @@ extends Node2D
 # Grid settings
 const GRID_SIZE = 3
 const CELL_SIZE = 48   # Tile size (3x scale of 16px Kenney tiles)
-const CELL_GAP = 0     # No gap - tiles are adjacent
+const CELL_GAP = 24    # Gap between cells for spacing
 const ACTIONS_PER_TURN = 3
 const MAX_TURNS = 25  # Turn limit to prevent infinite stalemates
 
@@ -259,18 +259,19 @@ func _get_cell_size_for_row(_row: int) -> float:
 
 
 func _get_cell_position(row: int, col: int) -> Vector2:
-	"""Calculate cell position in a simple flat grid."""
+	"""Calculate cell position in a simple flat grid with gaps."""
 	# Grid is centered on GridContainer (0,0 local)
-	var grid_width = CELL_SIZE * GRID_SIZE
-	var grid_height = CELL_SIZE * GRID_SIZE
+	var cell_with_gap = CELL_SIZE + CELL_GAP
+	var grid_width = (CELL_SIZE * GRID_SIZE) + (CELL_GAP * (GRID_SIZE - 1))
+	var grid_height = (CELL_SIZE * GRID_SIZE) + (CELL_GAP * (GRID_SIZE - 1))
 
 	# Top-left corner offset
 	var x_offset = -grid_width / 2.0
 	var y_offset = -grid_height / 2.0
 
 	# Cell center position
-	var x = x_offset + (col * CELL_SIZE) + CELL_SIZE / 2.0
-	var y = y_offset + (row * CELL_SIZE) + CELL_SIZE / 2.0
+	var x = x_offset + (col * cell_with_gap) + CELL_SIZE / 2.0
+	var y = y_offset + (row * cell_with_gap) + CELL_SIZE / 2.0
 
 	return Vector2(x, y)
 
@@ -447,33 +448,38 @@ func _show_no_units_message():
 			end_turn_button.visible = false
 
 func _create_roster_displays():
+	var roster_scale = Vector2(0.45, 0.45)  # Smaller scale for 1024x768
+	var roster_spacing = 75  # Vertical spacing between units
+	var roster_start_y = 50  # Starting Y position
+	var roster_center_x = 50  # Center X position in roster panel
+
 	var y_offset = 0
 	for i in range(player_units.size()):
 		var unit = player_units[i]
 		var display = UnitDisplayScene.instantiate()
 		player_roster.add_child(display)
-		display.position = Vector2(60, 60 + y_offset)
+		display.position = Vector2(roster_center_x, roster_start_y + y_offset)
 		display.setup(unit)
 		display.set_enemy(false)
-		display.scale = Vector2(0.7, 0.7)
+		display.scale = roster_scale
 
 		# Connect click and drag signals for player roster units
 		display.unit_clicked.connect(_on_roster_unit_clicked)
 		display.unit_drag_started.connect(_on_roster_drag_started)
 		roster_displays.append(display)
 
-		y_offset += 110
+		y_offset += roster_spacing
 
 	y_offset = 0
 	for unit in enemy_units:
 		var display = UnitDisplayScene.instantiate()
 		enemy_roster.add_child(display)
-		display.position = Vector2(60, 60 + y_offset)
+		display.position = Vector2(roster_center_x, roster_start_y + y_offset)
 		display.setup(unit)
 		display.set_enemy(true)
-		display.scale = Vector2(0.7, 0.7)
+		display.scale = roster_scale
 		display.drag_enabled = false  # Enemies can't be dragged
-		y_offset += 110
+		y_offset += roster_spacing
 
 func _on_cell_clicked(row: int, col: int):
 	if current_phase != GamePhase.PLAYER_TURN:
