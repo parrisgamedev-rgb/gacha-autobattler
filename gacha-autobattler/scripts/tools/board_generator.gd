@@ -321,3 +321,104 @@ func generate_all_boards():
 
 func _on_generate_pressed():
 	generate_all_boards()
+	await get_tree().process_frame
+	await generate_ownership_tiles()
+
+
+func generate_ownership_tiles():
+	"""Generate ownership tiles (player/enemy/contested) using Kenney floor tiles."""
+	status_label.text = "Generating ownership tiles..."
+
+	# Ownership tile settings
+	const OWNERSHIP_SIZE = 170  # Match CELL_SIZE in battle.gd
+	const OWNERSHIP_TILE_SCALE = 6  # Scale for ownership tiles
+	const OWNERSHIP_SCALED = TILE_SIZE * OWNERSHIP_TILE_SCALE
+	const OWNERSHIP_PATH = "res://assets/board/ownership/"
+
+	# Color tints for each ownership type
+	var ownership_colors = {
+		"player": Color(0.4, 0.6, 1.0, 1.0),      # Blue tint
+		"enemy": Color(1.0, 0.4, 0.4, 1.0),       # Red tint
+		"contested": Color(0.8, 0.5, 0.9, 1.0),   # Purple tint
+	}
+
+	# Load floor tiles
+	var floor_tiles: Array[Texture2D] = []
+	for path in themes["dungeon"]["floor_tiles"]:
+		var tex = _load_tile(path)
+		if tex:
+			floor_tiles.append(tex)
+
+	if floor_tiles.is_empty():
+		push_error("No floor tiles found for ownership generation")
+		return
+
+	# Resize viewport for ownership tiles
+	capture_viewport.size = Vector2i(OWNERSHIP_SIZE, OWNERSHIP_SIZE)
+	await get_tree().process_frame
+
+	# Generate each ownership type
+	for ownership_name in ownership_colors:
+		await _clear_board()
+
+		var tint = ownership_colors[ownership_name]
+		var cols = ceili(float(OWNERSHIP_SIZE) / OWNERSHIP_SCALED) + 1
+		var rows = ceili(float(OWNERSHIP_SIZE) / OWNERSHIP_SCALED) + 1
+
+		# Fill with tinted floor tiles
+		for row in range(rows):
+			for col in range(cols):
+				var tex = floor_tiles[randi() % floor_tiles.size()]
+				var sprite = Sprite2D.new()
+				sprite.texture = tex
+				sprite.scale = Vector2(OWNERSHIP_TILE_SCALE, OWNERSHIP_TILE_SCALE)
+				sprite.centered = false
+				sprite.position = Vector2(col * OWNERSHIP_SCALED, row * OWNERSHIP_SCALED)
+				sprite.modulate = tint
+				board_root.add_child(sprite)
+
+		# Add a subtle border
+		var border = ColorRect.new()
+		border.color = tint * 0.7
+		border.color.a = 0.8
+		border.size = Vector2(OWNERSHIP_SIZE, 4)
+		border.position = Vector2(0, 0)
+		board_root.add_child(border)
+
+		var border_bottom = ColorRect.new()
+		border_bottom.color = tint * 0.7
+		border_bottom.color.a = 0.8
+		border_bottom.size = Vector2(OWNERSHIP_SIZE, 4)
+		border_bottom.position = Vector2(0, OWNERSHIP_SIZE - 4)
+		board_root.add_child(border_bottom)
+
+		var border_left = ColorRect.new()
+		border_left.color = tint * 0.7
+		border_left.color.a = 0.8
+		border_left.size = Vector2(4, OWNERSHIP_SIZE)
+		border_left.position = Vector2(0, 0)
+		board_root.add_child(border_left)
+
+		var border_right = ColorRect.new()
+		border_right.color = tint * 0.7
+		border_right.color.a = 0.8
+		border_right.size = Vector2(4, OWNERSHIP_SIZE)
+		border_right.position = Vector2(OWNERSHIP_SIZE - 4, 0)
+		board_root.add_child(border_right)
+
+		await get_tree().process_frame
+		var image = await _capture_board()
+
+		var save_path = OWNERSHIP_PATH + ownership_name + ".png"
+		var error = image.save_png(save_path)
+		if error != OK:
+			push_error("Failed to save ownership tile: " + save_path)
+		else:
+			print("Saved: " + save_path)
+
+	# Restore viewport size
+	capture_viewport.size = Vector2i(BOARD_WIDTH, BOARD_HEIGHT)
+	await get_tree().process_frame
+
+	status_label.text = "Done! Generated boards and ownership tiles."
+	print("Ownership tile generation complete!")
