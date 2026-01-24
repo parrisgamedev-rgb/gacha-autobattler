@@ -17,6 +17,25 @@ const BOTTOM_ROW_EXTRA_OFFSET = 135    # Push bottom row down more
 const ACTIONS_PER_TURN = 3
 const MAX_TURNS = 25  # Turn limit to prevent infinite stalemates
 
+# Chapter-specific board backgrounds
+const CHAPTER_BOARDS = {
+	1: [
+		"res://assets/board/boards/forest_1.png",
+		"res://assets/board/boards/forest_2.png",
+		"res://assets/board/boards/forest_3.png"
+	],
+	2: [
+		"res://assets/board/boards/dungeon_1.png",
+		"res://assets/board/boards/dungeon_2.png",
+		"res://assets/board/boards/dungeon_3.png"
+	],
+	3: [
+		"res://assets/board/boards/dark_forest_1.png",
+		"res://assets/board/boards/dark_forest_2.png",
+		"res://assets/board/boards/dark_forest_3.png"
+	]
+}
+
 # AI Difficulty
 enum AIDifficulty { EASY, MEDIUM, HARD }
 var ai_difficulty: AIDifficulty = AIDifficulty.MEDIUM
@@ -199,27 +218,12 @@ func _load_chapter_theme():
 		elif stage_id.begins_with("3-"):
 			chapter = 3
 
-		# Load board texture based on chapter
-		match chapter:
-			1:
-				board_path = "res://assets/board/boards/chapter_1_board.png"
-			2:
-				board_path = "res://assets/board/boards/chapter_2_board.png"
-			3:
-				board_path = "res://assets/board/boards/chapter_3_board.png"
-			_:
-				board_path = "res://assets/board/dungeon_board.png"
+		# Load board texture based on chapter using new themed boards
+		board_path = _get_board_for_chapter(chapter)
 	else:
-		# Quick Battle - random board selection
-		var quick_battle_boards = [
-			"res://assets/board/boards/chapter_1_board.png",
-			"res://assets/board/boards/chapter_2_board.png",
-			"res://assets/board/boards/chapter_3_board.png",
-			"res://assets/board/forest_board.png",
-			"res://assets/board/dungeon_board.png"
-		]
-		board_path = quick_battle_boards[randi() % quick_battle_boards.size()]
-		chapter = randi() % 4  # Random chapter for cell overlays
+		# Quick Battle - random board selection from all chapter boards
+		board_path = _get_random_board()
+		chapter = (randi() % 3) + 1  # Random chapter 1-3 for cell overlays
 		print("Quick Battle mode, random board: ", board_path)
 
 	# Update the GameBoard texture
@@ -238,24 +242,40 @@ func _load_chapter_theme():
 func _get_dungeon_board_path() -> String:
 	"""Get the board texture path based on dungeon stat type."""
 	if not PlayerData.current_dungeon:
-		return "res://assets/board/dungeon_board.png"
+		return _get_board_for_chapter(1)  # Default to forest theme
 
 	# Map dungeon stat type to themed boards
 	match PlayerData.current_dungeon.drops_stat_type:
 		GearData.StatType.HP:
-			# HP dungeon uses nature/forest theme
-			return "res://assets/board/forest_board.png"
+			# HP dungeon uses nature/forest theme (chapter 1)
+			return _get_board_for_chapter(1)
 		GearData.StatType.ATTACK:
-			# Attack dungeon uses fire/lava theme (chapter 1)
-			return "res://assets/board/boards/chapter_1_board.png"
+			# Attack dungeon uses dungeon theme (chapter 2)
+			return _get_board_for_chapter(2)
 		GearData.StatType.DEFENSE:
-			# Defense dungeon uses fortress/ruins theme (chapter 2)
-			return "res://assets/board/boards/chapter_2_board.png"
+			# Defense dungeon uses dungeon theme (chapter 2)
+			return _get_board_for_chapter(2)
 		GearData.StatType.SPEED:
-			# Speed dungeon uses mystical/arcane theme (chapter 3)
-			return "res://assets/board/boards/chapter_3_board.png"
+			# Speed dungeon uses dark forest theme (chapter 3)
+			return _get_board_for_chapter(3)
 		_:
-			return "res://assets/board/dungeon_board.png"
+			return _get_board_for_chapter(1)  # Default to forest theme
+
+
+func _get_board_for_chapter(chapter_num: int) -> String:
+	"""Get a random board texture for the given chapter."""
+	if chapter_num in CHAPTER_BOARDS:
+		var boards = CHAPTER_BOARDS[chapter_num]
+		return boards[randi() % boards.size()]
+	return CHAPTER_BOARDS[1][0]  # Fallback to forest
+
+
+func _get_random_board() -> String:
+	"""Get a random board texture from all available boards."""
+	var all_boards: Array[String] = []
+	for boards in CHAPTER_BOARDS.values():
+		all_boards.append_array(boards)
+	return all_boards[randi() % all_boards.size()]
 
 
 func _get_chapter_cell_texture() -> Texture2D:
