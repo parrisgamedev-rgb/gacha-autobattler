@@ -37,64 +37,64 @@ environment = SubResource("Environment_hd2d")
 
 [node name="Background" type="ColorRect" parent="."]
 mouse_filter = 2
-offset_right = 1920.0
-offset_bottom = 1080.0
+offset_right = 1024.0
+offset_bottom = 768.0
 color = Color(0.02, 0.02, 0.04, 1)
 
 [node name="GameBoard" type="TextureRect" parent="."]
 mouse_filter = 2
-offset_left = 360.0
-offset_top = -20.0
-offset_right = 1560.0
-offset_bottom = 1100.0
+offset_left = 192.0
+offset_top = -15.0
+offset_right = 832.0
+offset_bottom = 783.0
 texture = ExtResource("3_gameboard")
 expand_mode = 1
 stretch_mode = 5
 
 [node name="GridContainer" type="Node2D" parent="."]
-position = Vector2(955, 480)
+position = Vector2(512, 340)
 
 [node name="UI" type="CanvasLayer" parent="."]
 
 [node name="TurnLabel" type="Label" parent="UI"]
 mouse_filter = 2
-offset_left = 860.0
-offset_top = 20.0
-offset_right = 1060.0
-offset_bottom = 60.0
+offset_left = 412.0
+offset_top = 15.0
+offset_right = 612.0
+offset_bottom = 45.0
 horizontal_alignment = 1
 text = "Turn: 1"
 
 [node name="PhaseLabel" type="Label" parent="UI"]
 mouse_filter = 2
-offset_left = 860.0
-offset_top = 55.0
-offset_right = 1060.0
-offset_bottom = 95.0
+offset_left = 412.0
+offset_top = 45.0
+offset_right = 612.0
+offset_bottom = 75.0
 horizontal_alignment = 1
 text = "YOUR TURN"
 
 [node name="ActionsLabel" type="Label" parent="UI"]
 mouse_filter = 2
-offset_left = 860.0
-offset_top = 90.0
-offset_right = 1060.0
-offset_bottom = 130.0
+offset_left = 412.0
+offset_top = 75.0
+offset_right = 612.0
+offset_bottom = 105.0
 horizontal_alignment = 1
 text = "Actions: 2/2"
 
 [node name="EndTurnButton" type="Button" parent="UI"]
-offset_left = 885.0
-offset_top = 140.0
-offset_right = 1035.0
-offset_bottom = 180.0
+offset_left = 437.0
+offset_top = 110.0
+offset_right = 587.0
+offset_bottom = 145.0
 text = "END TURN"
 
 [node name="BottomBar" type="HBoxContainer" parent="UI"]
-offset_left = 660.0
-offset_top = 980.0
-offset_right = 1260.0
-offset_bottom = 1030.0
+offset_left = 312.0
+offset_top = 698.0
+offset_right = 712.0
+offset_bottom = 738.0
 theme_override_constants/separation = 10
 alignment = 1
 
@@ -128,51 +128,51 @@ text = "3x"
 
 [node name="PlayerRosterBG" type="ColorRect" parent="UI"]
 mouse_filter = 2
-offset_left = 20.0
-offset_top = 120.0
-offset_right = 200.0
-offset_bottom = 750.0
+offset_left = 10.0
+offset_top = 90.0
+offset_right = 110.0
+offset_bottom = 530.0
 color = Color(0.15, 0.15, 0.2, 1)
 
 [node name="PlayerRosterLabel" type="Label" parent="UI"]
 mouse_filter = 2
-offset_left = 20.0
-offset_top = 90.0
-offset_right = 200.0
-offset_bottom = 120.0
+offset_left = 10.0
+offset_top = 65.0
+offset_right = 110.0
+offset_bottom = 90.0
 horizontal_alignment = 1
 text = "YOUR UNITS"
 
 [node name="PlayerRoster" type="Node2D" parent="UI"]
-position = Vector2(20, 120)
+position = Vector2(10, 90)
 
 [node name="EnemyRosterBG" type="ColorRect" parent="UI"]
 mouse_filter = 2
-offset_left = 1720.0
-offset_top = 120.0
-offset_right = 1900.0
-offset_bottom = 750.0
+offset_left = 914.0
+offset_top = 90.0
+offset_right = 1014.0
+offset_bottom = 530.0
 color = Color(0.2, 0.15, 0.15, 1)
 
 [node name="EnemyRosterLabel" type="Label" parent="UI"]
 mouse_filter = 2
-offset_left = 1720.0
-offset_top = 90.0
-offset_right = 1900.0
-offset_bottom = 120.0
+offset_left = 914.0
+offset_top = 65.0
+offset_right = 1014.0
+offset_bottom = 90.0
 horizontal_alignment = 1
 text = "ENEMY UNITS"
 
 [node name="EnemyRoster" type="Node2D" parent="UI"]
-position = Vector2(1720, 120)
+position = Vector2(914, 90)
 
 [node name="CombatAnnouncement" type="Label" parent="UI"]
 visible = false
-offset_left = 460.0
-offset_top = 400.0
-offset_right = 1460.0
-offset_bottom = 500.0
-theme_override_font_sizes/font_size = 32
+offset_left = 212.0
+offset_top = 280.0
+offset_right = 812.0
+offset_bottom = 360.0
+theme_override_font_sizes/font_size = 28
 theme_override_colors/font_color = Color(1, 0.9, 0.5, 1)
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
 theme_override_constants/outline_size = 4
@@ -182,20 +182,20 @@ text = "DUEL!"
 
 [node name="Instructions" type="Label" parent="UI"]
 mouse_filter = 2
-offset_left = 560.0
-offset_top = 920.0
-offset_right = 1360.0
-offset_bottom = 1060.0
+offset_left = 200.0
+offset_top = 655.0
+offset_right = 824.0
+offset_bottom = 755.0
 horizontal_alignment = 1
 text = "Click unit: Select | Drag unit: Place on grid | Click ability: Choose
 Click pending: Cancel | ESC: Deselect | SPACE: End turn"
 
 [node name="AbilityPanel" type="Panel" parent="UI"]
 visible = false
-offset_left = 760.0
-offset_top = 750.0
-offset_right = 1160.0
-offset_bottom = 900.0
+offset_left = 312.0
+offset_top = 530.0
+offset_right = 712.0
+offset_bottom = 650.0
 
 [node name="AbilityLabel" type="Label" parent="UI/AbilityPanel"]
 offset_left = 10.0
@@ -236,10 +236,10 @@ text = "A balanced attack."
 
 [node name="ResultsPanel" type="Panel" parent="UI"]
 visible = false
-offset_left = 660.0
-offset_top = 340.0
-offset_right = 1260.0
-offset_bottom = 740.0
+offset_left = 212.0
+offset_top = 184.0
+offset_right = 812.0
+offset_bottom = 584.0
 
 [node name="ResultsBackground" type="ColorRect" parent="UI/ResultsPanel"]
 offset_left = 0.0
@@ -292,13 +292,13 @@ layer = 100
 [node name="LightRays" type="ColorRect" parent="PostProcessing"]
 material = SubResource("ShaderMaterial_lightrays")
 mouse_filter = 2
-offset_right = 1920.0
-offset_bottom = 1080.0
+offset_right = 1024.0
+offset_bottom = 768.0
 color = Color(1, 1, 1, 0)
 
 [node name="Vignette" type="ColorRect" parent="PostProcessing"]
 material = SubResource("ShaderMaterial_vignette")
 mouse_filter = 2
-offset_right = 1920.0
-offset_bottom = 1080.0
+offset_right = 1024.0
+offset_bottom = 768.0
 color = Color(1, 1, 1, 0)

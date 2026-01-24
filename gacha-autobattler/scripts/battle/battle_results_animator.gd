@@ -38,13 +38,18 @@ func _ready():
 
 
 func _create_overlay_nodes():
+	# Get viewport size for responsive overlays
+	var viewport_size = Vector2(1024, 768)  # Default fallback
+	if get_viewport():
+		viewport_size = get_viewport().get_visible_rect().size
+
 	# Screen flash overlay (white, initially invisible)
 	screen_flash = ColorRect.new()
 	screen_flash.name = "ScreenFlash"
 	screen_flash.color = Color(1, 1, 1, 0)
 	screen_flash.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	screen_flash.position = Vector2.ZERO
-	screen_flash.size = Vector2(1920, 1080)
+	screen_flash.size = viewport_size
 	screen_flash.z_index = 50
 	screen_flash.visible = true
 
@@ -54,7 +59,7 @@ func _create_overlay_nodes():
 	dim_overlay.color = Color(0, 0, 0, 0)
 	dim_overlay.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	dim_overlay.position = Vector2.ZERO
-	dim_overlay.size = Vector2(1920, 1080)
+	dim_overlay.size = viewport_size
 	dim_overlay.z_index = 49
 	dim_overlay.visible = true
 
