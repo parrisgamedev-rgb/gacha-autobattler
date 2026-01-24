@@ -40,6 +40,7 @@ gacha-autobattler/
 |---------|---------|
 | `PlayerData` | Save/load, currency, unit collection, leveling, gear |
 | `AchievementManager` | Achievement tracking and unlocking |
+| `CheatManager` | Global cheat menu (F12), currency/unit/progression cheats |
 | `AudioManager` | Music, SFX, volume control |
 | `UITheme` | Design system constants (colors, spacing, fonts) |
 | `AISpriteLoader` | Character sprite loading |
@@ -84,6 +85,11 @@ Fire > Nature > Water > Fire (triangle), Dark <-> Light (mutual advantage)
 - Imprinting: Combine duplicate units (up to 5 levels)
 - Gear enhancement: +0 to +6/9/12/15 based on rarity
 
+### Combat Power (CP)
+- Calculated from: stats + level + imprint level + gear bonuses
+- Used for team strength comparison and auto-select
+- Auto-select team: Automatically picks top 3 units by CP
+
 ## Coding Conventions
 
 ### File Naming
@@ -114,6 +120,7 @@ func my_function() -> ReturnType:
 - Connect button signals for interactions
 - Use `AudioManager.play_ui_click()` on all button presses
 - `@onready var` for node references
+- `CurrencyBar` component for displaying gems/gold in headers
 
 ### Save System
 - JSON serialization to `user://save_data.json`
@@ -144,6 +151,7 @@ func my_function() -> ReturnType:
 3. Auto-checks trigger on relevant events
 
 ## Development/Testing
+- **F12 anywhere:** Opens global cheat menu (currency, units, progression)
 - **F1 in gacha screen:** Add 10000 gems
 - **Cheat menu in battle:** F keys for various cheats
 - **Collection screen:** Max level/reset buttons for testing
