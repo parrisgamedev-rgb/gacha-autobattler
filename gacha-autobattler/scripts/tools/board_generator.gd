@@ -223,7 +223,22 @@ func generate_board(theme_name: String, variation: int) -> void:
 
 
 func generate_all_boards():
-	pass  # Will implement in Task 7
+	status_label.text = "Generating boards..."
+
+	var theme_names = ["forest", "dungeon", "dark_forest"]
+	var variations = 3
+	var total = theme_names.size() * variations
+	var current = 0
+
+	for theme_name in theme_names:
+		for v in range(1, variations + 1):
+			current += 1
+			status_label.text = "Generating %s_%d... (%d/%d)" % [theme_name, v, current, total]
+			await generate_board(theme_name, v)
+			await get_tree().process_frame
+
+	status_label.text = "Done! Generated %d boards." % total
+	print("Board generation complete!")
 
 func _on_generate_pressed():
 	generate_all_boards()
