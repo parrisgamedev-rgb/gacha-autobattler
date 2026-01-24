@@ -617,6 +617,36 @@ func get_unit_stats_at_level(unit_data: UnitData, level: int, imprint_level: int
 		"speed": int(unit_data.speed * total_mult)
 	}
 
+func calculate_unit_cp(unit_entry: Dictionary) -> int:
+	"""Calculate Combat Power for a unit including gear."""
+	if unit_entry.is_empty():
+		return 0
+
+	var unit_data = unit_entry.unit_data as UnitData
+	var level = unit_entry.get("level", 1)
+	var imprint_level = unit_entry.get("imprint_level", 0)
+
+	# Get base stats at level
+	var stats = get_unit_stats_at_level(unit_data, level, imprint_level)
+
+	# Base CP from stats (HP weighted less since it's larger numbers)
+	var base_cp = int(stats.max_hp / 10.0) + stats.attack + stats.defense + stats.speed
+
+	# Add gear bonuses
+	var gear_bonuses = get_gear_bonuses(unit_entry.instance_id)
+	var gear_cp = 0
+	gear_cp += int(gear_bonuses.flat_hp / 10.0)
+	gear_cp += gear_bonuses.flat_attack
+	gear_cp += gear_bonuses.flat_defense
+	gear_cp += gear_bonuses.flat_speed
+	# Percentage bonuses add to base
+	gear_cp += int(stats.max_hp * gear_bonuses.percent_hp / 10.0)
+	gear_cp += int(stats.attack * gear_bonuses.percent_attack)
+	gear_cp += int(stats.defense * gear_bonuses.percent_defense)
+	gear_cp += int(stats.speed * gear_bonuses.percent_speed)
+
+	return base_cp + gear_cp
+
 func add_gems(amount: int):
 	gems += amount
 	print("+", amount, " gems (Total: ", gems, ")")
