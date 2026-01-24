@@ -4,7 +4,7 @@ extends Node2D
 
 # Grid settings
 const GRID_SIZE = 3
-const CELL_SIZE = 80   # Tile size (5x scale of 16px Kenney tiles)
+const CELL_SIZE = 48   # Tile size (3x scale of 16px Kenney tiles)
 const CELL_GAP = 0     # No gap - tiles are adjacent
 const ACTIONS_PER_TURN = 3
 const MAX_TURNS = 25  # Turn limit to prevent infinite stalemates
