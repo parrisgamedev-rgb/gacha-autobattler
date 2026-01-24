@@ -34,6 +34,20 @@ func _ready():
 	_setup_mode_ui()
 	_update_ui()
 
+	# Create auto-select button
+	var auto_btn = Button.new()
+	auto_btn.name = "AutoSelectButton"
+	auto_btn.text = "AUTO SELECT"
+	auto_btn.custom_minimum_size = Vector2(150, 50)
+	auto_btn.pressed.connect(_on_auto_select)
+	UISpriteLoader.apply_button_style(auto_btn, UISpriteLoader.ButtonColor.GOLD, "ButtonA")
+	auto_btn.add_theme_font_size_override("font_size", UITheme.FONT_BODY)
+
+	var bottom_bar = get_node_or_null("BottomBarPanel/BottomBar")
+	if bottom_bar:
+		bottom_bar.add_child(auto_btn)
+		bottom_bar.move_child(auto_btn, 1)
+
 func _apply_theme():
 	# Background - use jungle theme image
 	UISpriteLoader.apply_background_to_scene(self, UISpriteLoader.BackgroundTheme.JUNGLE, UISpriteLoader.BackgroundVariant.BRIGHT, 0.35)
@@ -657,6 +671,56 @@ func _on_back():
 		SceneTransition.change_scene("res://scenes/ui/dungeon_select_screen.tscn")
 	else:
 		SceneTransition.change_scene("res://scenes/ui/main_menu.tscn")
+
+func _on_auto_select():
+	AudioManager.play_ui_click()
+
+	# Get all owned units with their CP
+	var owned = PlayerData.get_owned_unit_list()
+	if owned.is_empty():
+		return
+
+	# Calculate CP for each unit and create sortable array
+	var units_with_cp: Array = []
+	for unit_entry in owned:
+		var cp = PlayerData.calculate_unit_cp(unit_entry)
+		units_with_cp.append({"entry": unit_entry, "cp": cp})
+
+	# Sort by CP descending
+	units_with_cp.sort_custom(func(a, b): return a.cp > b.cp)
+
+	# Clear current selection
+	selected_instance_ids.clear()
+
+	# Reset all card visuals
+	for instance_id in unit_cards:
+		var card = unit_cards[instance_id]
+		var unit_data = card.get_meta("unit_data") as UnitData
+		var style = card.get_meta("style") as StyleBoxFlat
+		if style and unit_data:
+			style.border_color = UITheme.get_rarity_color(unit_data.star_rating)
+		var check_mark = card.get_node_or_null("CheckMark")
+		if check_mark:
+			check_mark.visible = false
+
+	# Select top MIN_TEAM_SIZE units
+	var to_select = mini(MIN_TEAM_SIZE, units_with_cp.size())
+	for i in range(to_select):
+		var unit_entry = units_with_cp[i].entry
+		var instance_id = unit_entry.instance_id
+		selected_instance_ids.append(instance_id)
+
+		# Update card visual if visible
+		if unit_cards.has(instance_id):
+			var card = unit_cards[instance_id]
+			var style = card.get_meta("style") as StyleBoxFlat
+			if style:
+				style.border_color = UITheme.SUCCESS
+			var check_mark = card.get_node_or_null("CheckMark")
+			if check_mark:
+				check_mark.visible = true
+
+	_update_ui()
 
 func _setup_mode_ui():
 	# Show/hide mode-specific UI
