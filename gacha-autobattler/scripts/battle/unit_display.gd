@@ -336,8 +336,8 @@ func _setup_sprite(data: UnitData):
 		uses_ai_sprite = false
 
 	# Check if this unit has an AI sprite
-	if AISpriteLoader.has_ai_sprite(data.unit_id):
-		ai_sprite = AISpriteLoader.create_animated_sprite(data.unit_id)
+	if UnitSpriteLoader.has_ai_sprite(data.unit_id):
+		ai_sprite = UnitSpriteLoader.create_animated_sprite(data.unit_id)
 		if ai_sprite:
 			uses_ai_sprite = true
 			body.visible = false

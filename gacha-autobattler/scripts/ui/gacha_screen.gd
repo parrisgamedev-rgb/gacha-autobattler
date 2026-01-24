@@ -1,8 +1,6 @@
 extends Control
 ## Gacha/Summon screen for pulling new units with cinematic animations
 
-var CurrencyBarScene = preload("res://scenes/ui/currency_bar.tscn")
-
 @onready var gems_label = $TopBar/GemsLabel
 @onready var pity_label = $TopBar/PityLabel
 @onready var single_pull_btn = $PullButtons/SinglePullButton
@@ -30,12 +28,6 @@ var pending_results: Array = []
 var revealed_displays: Array = []  # Track revealed unit displays during animation
 
 func _ready():
-	# Add currency bar to top bar
-	var currency_bar = CurrencyBarScene.instantiate()
-	var top_bar = get_node_or_null("TopBar")
-	if top_bar:
-		top_bar.add_child(currency_bar)
-
 	_apply_theme()
 	_update_ui()
 
@@ -389,7 +381,7 @@ func _show_final_results():
 
 func _create_star_label(star_rating: int) -> Label:
 	var label = Label.new()
-	label.text = "".join(["★"] * star_rating)
+	label.text = "★".repeat(star_rating)
 	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	label.add_theme_font_size_override("font_size", UITheme.FONT_BODY)
 	label.add_theme_color_override("font_color", UITheme.get_rarity_color(star_rating))

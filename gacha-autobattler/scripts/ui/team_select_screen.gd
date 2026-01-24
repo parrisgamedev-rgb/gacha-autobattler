@@ -718,8 +718,8 @@ func _on_auto_select():
 		if check_mark:
 			check_mark.visible = false
 
-	# Select top MIN_TEAM_SIZE units
-	var to_select = mini(MIN_TEAM_SIZE, units_with_cp.size())
+	# Select top MAX_TEAM_SIZE units
+	var to_select = mini(MAX_TEAM_SIZE, units_with_cp.size())
 	for i in range(to_select):
 		var unit_entry = units_with_cp[i].entry
 		var inst_id = unit_entry.instance_id

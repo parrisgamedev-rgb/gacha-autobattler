@@ -131,19 +131,3 @@ grow_horizontal = 2
 grow_vertical = 0
 theme_override_constants/separation = 24
 alignment = 1
-
-[node name="GoldLabel" type="Label" parent="CurrencyBar"]
-layout_mode = 2
-text = "Gold: 0"
-
-[node name="MaterialsLabel" type="Label" parent="CurrencyBar"]
-layout_mode = 2
-text = "Materials: 0"
-
-[node name="GemsLabel" type="Label" parent="CurrencyBar"]
-layout_mode = 2
-text = "Gems: 0"
-
-[node name="StonesLabel" type="Label" parent="CurrencyBar"]
-layout_mode = 2
-text = "Stones: 0"

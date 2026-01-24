@@ -43,7 +43,7 @@ gacha-autobattler/
 | `CheatManager` | Global cheat menu (F12), currency/unit/progression cheats |
 | `AudioManager` | Music, SFX, volume control |
 | `UITheme` | Design system constants (colors, spacing, fonts) |
-| `AISpriteLoader` | Character sprite loading |
+| `UnitSpriteLoader` | Character sprite loading |
 | `BoardAssetLoader` | Battle board backgrounds |
 | `UISpriteLoader` | UI element sprites |
 | `SceneTransition` | Scene change animations |

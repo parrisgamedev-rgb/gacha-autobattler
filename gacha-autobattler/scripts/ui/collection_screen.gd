@@ -330,11 +330,12 @@ func _update_cp_label(cp: int):
 	if not detail_cp_label:
 		detail_cp_label = Label.new()
 		detail_cp_label.name = "DetailCPLabel"
-		# Position it prominently near the top of the detail panel
-		detail_cp_label.position = Vector2(240, 60)
-		detail_cp_label.size = Vector2(200, 40)
-		detail_cp_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
-		detail_cp_label.add_theme_font_size_override("font_size", UITheme.FONT_TITLE_MEDIUM)
+		# Position below stars (stars is at y=60-90, so CP at y=90)
+		detail_cp_label.set_anchors_preset(Control.PRESET_TOP_WIDE)
+		detail_cp_label.offset_top = 88
+		detail_cp_label.offset_bottom = 118
+		detail_cp_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		detail_cp_label.add_theme_font_size_override("font_size", UITheme.FONT_TITLE_SMALL)
 		detail_cp_label.add_theme_color_override("font_color", UITheme.GOLD)
 		detail_panel.add_child(detail_cp_label)
 
@@ -360,13 +361,13 @@ func _update_detail_sprite(unit_data: UnitData):
 		detail_ai_sprite = null
 
 	# Check if unit has AI sprites
-	if AISpriteLoader.has_ai_sprite(unit_data.unit_id):
+	if UnitSpriteLoader.has_ai_sprite(unit_data.unit_id):
 		# Use AI sprite
 		detail_sprite.visible = false
-		detail_ai_sprite = AISpriteLoader.create_animated_sprite(unit_data.unit_id)
+		detail_ai_sprite = UnitSpriteLoader.create_animated_sprite(unit_data.unit_id)
 		if detail_ai_sprite:
 			detail_ai_sprite.position = Vector2(100, 100)
-			detail_ai_sprite.scale = Vector2(1.5, 1.5)  # AI sprites are larger, scale appropriately
+			detail_ai_sprite.scale = Vector2(4.0, 4.0)  # Larger scale for detail view
 			detail_sprite_container.add_child(detail_ai_sprite)
 			detail_ai_sprite.play("idle")
 			# No need for tween animation - AI sprite has its own idle
@@ -729,13 +730,16 @@ func _populate_gear_select_grid():
 	# Get unequipped gear of the right type
 	var available_gear = PlayerData.get_unequipped_gear()
 	for gear_entry in available_gear:
-		var template = PlayerData.get_gear_template(gear_entry.gear_id)
+		var gear_data = gear_entry.gear_data as GearData
+		if not gear_data:
+			continue
+		var template = gear_data
 		if template and template.gear_type == slot_type:
 			var gear_btn = _create_gear_select_button(gear_entry)
 			gear_select_grid.add_child(gear_btn)
 
 func _create_gear_select_button(gear_entry: Dictionary) -> Button:
-	var template = PlayerData.get_gear_template(gear_entry.gear_id)
+	var template = gear_entry.gear_data as GearData
 
 	var btn = Button.new()
 	btn.custom_minimum_size = Vector2(140, 80)
@@ -778,6 +782,9 @@ func _on_gear_selected(gear_instance_id: String):
 	current_unit_entry = PlayerData.get_owned_unit(unit_instance_id)
 	if not current_unit_entry.is_empty():
 		_on_unit_clicked(current_unit_entry)
+
+	# Rebuild grid to update CP on cards
+	_populate_collection()
 
 func _on_cancel_gear_select():
 	AudioManager.play_ui_click()

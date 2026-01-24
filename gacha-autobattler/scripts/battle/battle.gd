@@ -189,16 +189,15 @@ func _load_chapter_theme():
 	if PlayerData.is_dungeon_mode() and PlayerData.current_dungeon:
 		board_path = _get_dungeon_board_path()
 		print("Dungeon mode detected, using themed board: ", board_path)
-	else:
+	elif PlayerData.is_campaign_mode() and PlayerData.current_stage:
 		# Determine chapter from current stage (campaign mode)
-		if PlayerData.is_campaign_mode() and PlayerData.current_stage:
-			var stage_id = PlayerData.current_stage.stage_id
-			if stage_id.begins_with("1-"):
-				chapter = 1
-			elif stage_id.begins_with("2-"):
-				chapter = 2
-			elif stage_id.begins_with("3-"):
-				chapter = 3
+		var stage_id = PlayerData.current_stage.stage_id
+		if stage_id.begins_with("1-"):
+			chapter = 1
+		elif stage_id.begins_with("2-"):
+			chapter = 2
+		elif stage_id.begins_with("3-"):
+			chapter = 3
 
 		# Load board texture based on chapter
 		match chapter:
@@ -209,7 +208,19 @@ func _load_chapter_theme():
 			3:
 				board_path = "res://assets/board/boards/chapter_3_board.png"
 			_:
-				board_path = "res://assets/board/dungeon_board.png"  # Default
+				board_path = "res://assets/board/dungeon_board.png"
+	else:
+		# Quick Battle - random board selection
+		var quick_battle_boards = [
+			"res://assets/board/boards/chapter_1_board.png",
+			"res://assets/board/boards/chapter_2_board.png",
+			"res://assets/board/boards/chapter_3_board.png",
+			"res://assets/board/forest_board.png",
+			"res://assets/board/dungeon_board.png"
+		]
+		board_path = quick_battle_boards[randi() % quick_battle_boards.size()]
+		chapter = randi() % 4  # Random chapter for cell overlays
+		print("Quick Battle mode, random board: ", board_path)
 
 	# Update the GameBoard texture
 	if has_node("GameBoard") and ResourceLoader.exists(board_path):

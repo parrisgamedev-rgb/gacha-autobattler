@@ -17,25 +17,16 @@ var CurrencyBarScene = preload("res://scenes/ui/currency_bar.tscn")
 @onready var settings_button = $CenterContainer/VBoxContainer/SecondaryButtons/SettingsButton
 @onready var achievements_button = $CenterContainer/VBoxContainer/SecondaryButtons/AchievementsButton
 
-# Currency labels
-@onready var gold_label = $CurrencyBar/GoldLabel
-@onready var materials_label = $CurrencyBar/MaterialsLabel
-@onready var gems_label = $CurrencyBar/GemsLabel
-@onready var stones_label = $CurrencyBar/StonesLabel
-
 func _ready():
 	# Reset PvP mode and campaign mode when returning to main menu
 	PlayerData.pvp_mode = false
 	PlayerData.end_campaign_stage()
 	PlayerData.end_dungeon()
 
-	# Add currency bar to the existing CurrencyBar container
+	# Add currency bar component to the container
 	var currency_bar = CurrencyBarScene.instantiate()
 	var currency_bar_container = get_node_or_null("CurrencyBar")
 	if currency_bar_container:
-		# Clear existing labels and add the new currency bar
-		for child in currency_bar_container.get_children():
-			child.queue_free()
 		currency_bar_container.add_child(currency_bar)
 
 	# Apply theme styling
@@ -73,13 +64,6 @@ func _ready():
 
 	if achievements_button:
 		achievements_button.pressed.connect(_on_achievements_pressed)
-
-	# Update currency display
-	_update_currency_display()
-
-	# Connect to PlayerData currency changes if available
-	if PlayerData.has_signal("currency_changed"):
-		PlayerData.currency_changed.connect(_update_currency_display)
 
 	# Start menu music
 	AudioManager.play_music("menu")
@@ -151,37 +135,7 @@ func _style_currency_bar():
 	bar.offset_bottom = -UITheme.SPACING_MD
 	bar.offset_left = UITheme.SPACING_XL
 	bar.offset_right = -UITheme.SPACING_XL
-
-	# Style currency labels
-	var currency_labels = [gold_label, materials_label, gems_label, stones_label]
-	for label in currency_labels:
-		if label:
-			label.add_theme_font_size_override("font_size", UITheme.FONT_CAPTION)
-			label.add_theme_color_override("font_color", UITheme.TEXT_SECONDARY)
-
-	# Apply specific colors
-	if gold_label:
-		gold_label.add_theme_color_override("font_color", UITheme.GOLD)
-	if gems_label:
-		gems_label.add_theme_color_override("font_color", UITheme.PRIMARY)
-	if stones_label:
-		stones_label.add_theme_color_override("font_color", UITheme.SECONDARY)
-
-
-func _update_currency_display():
-	if gold_label and PlayerData.has_method("get_gold"):
-		gold_label.text = "Gold: %d" % PlayerData.get_gold()
-	elif gold_label:
-		gold_label.text = "Gold: %d" % PlayerData.gold if "gold" in PlayerData else "Gold: 0"
-
-	if materials_label:
-		materials_label.text = "Materials: %d" % PlayerData.materials if "materials" in PlayerData else "Materials: 0"
-
-	if gems_label:
-		gems_label.text = "Gems: %d" % PlayerData.gems if "gems" in PlayerData else "Gems: 0"
-
-	if stones_label:
-		stones_label.text = "Stones: %d" % PlayerData.summon_stones if "summon_stones" in PlayerData else "Stones: 0"
+	# CurrencyBar component handles its own styling
 
 
 func _on_campaign_pressed():

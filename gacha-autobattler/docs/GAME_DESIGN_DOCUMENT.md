@@ -470,7 +470,7 @@ New players receive:
 ### Autoloads (Singletons)
 - `PlayerData` - Player state and progression
 - `UITheme` - Visual styling constants
-- `AISpriteLoader` - Unit sprite management
+- `UnitSpriteLoader` - Unit sprite management
 - `BoardAssetLoader` - Battle board textures
 - `SceneTransition` - Screen fade transitions
 - `NetworkManager` - PvP multiplayer

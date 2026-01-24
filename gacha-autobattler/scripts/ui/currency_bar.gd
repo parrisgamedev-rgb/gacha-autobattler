@@ -2,8 +2,12 @@ extends HBoxContainer
 ## Reusable currency display bar showing gems, gold, materials, stones
 
 func _ready():
+	# Ensure the bar has minimum size to be visible
+	custom_minimum_size = Vector2(400, 30)
+	size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_build_ui()
 	_update_display()
+	print("[CurrencyBar] Created - visible:", visible, " size:", size, " parent:", get_parent().name if get_parent() else "none")
 
 func _process(_delta):
 	if visible:
@@ -23,11 +27,13 @@ func _add_currency_display(currency_name: String):
 	var container = HBoxContainer.new()
 	container.name = currency_name.capitalize() + "Container"
 	container.add_theme_constant_override("separation", 4)
+	container.custom_minimum_size = Vector2(80, 24)
 
 	var icon_label = Label.new()
 	icon_label.name = "Icon"
 	icon_label.text = _get_currency_icon(currency_name)
 	icon_label.add_theme_font_size_override("font_size", UITheme.FONT_BODY)
+	icon_label.add_theme_color_override("font_color", UITheme.TEXT_PRIMARY)
 	container.add_child(icon_label)
 
 	var value_label = Label.new()
