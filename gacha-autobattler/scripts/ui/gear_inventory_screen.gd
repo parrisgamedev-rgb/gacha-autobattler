@@ -174,6 +174,8 @@ func _create_gear_card(gear_entry: Dictionary) -> Control:
 	btn.set_anchors_preset(Control.PRESET_FULL_RECT)
 	btn.flat = true
 	btn.modulate = Color(1, 1, 1, 0)  # Invisible but clickable
+	btn.mouse_filter = Control.MOUSE_FILTER_STOP
+	btn.focus_mode = Control.FOCUS_NONE
 	btn.pressed.connect(_on_gear_selected.bind(gear_entry.instance_id))
 	card.add_child(btn)
 

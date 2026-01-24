@@ -228,6 +228,8 @@ func _create_unit_card(unit_entry: Dictionary) -> Control:
 	var button = Button.new()
 	button.flat = true
 	button.set_anchors_preset(Control.PRESET_FULL_RECT)
+	button.mouse_filter = Control.MOUSE_FILTER_STOP
+	button.focus_mode = Control.FOCUS_NONE
 	button.pressed.connect(_on_unit_clicked.bind(unit_entry))
 	card.add_child(button)
 
@@ -467,6 +469,8 @@ func _create_fodder_card(unit_entry: Dictionary) -> Control:
 	var button = Button.new()
 	button.flat = true
 	button.set_anchors_preset(Control.PRESET_FULL_RECT)
+	button.mouse_filter = Control.MOUSE_FILTER_STOP
+	button.focus_mode = Control.FOCUS_NONE
 	button.pressed.connect(_on_fodder_selected.bind(instance_id))
 	card.add_child(button)
 
