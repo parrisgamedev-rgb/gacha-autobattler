@@ -1,6 +1,8 @@
 extends Control
 ## Team selection screen - choose 3-5 units for battle
 
+var CurrencyBarScene = preload("res://scenes/ui/currency_bar.tscn")
+
 const MIN_TEAM_SIZE = 3
 const MAX_TEAM_SIZE = 5
 const TEAM_SLOT_SIZE = Vector2(120, 140)
@@ -25,6 +27,12 @@ var team_slot_nodes: Array = []  # Array of slot Panel nodes
 var current_filter: int = 0  # 0 = All, 1 = 3-star, 2 = 4-star, 3 = 5-star
 
 func _ready():
+	# Add currency bar to top bar
+	var currency_bar = CurrencyBarScene.instantiate()
+	var top_bar = get_node_or_null("TopBarPanel/TopBar")
+	if top_bar:
+		top_bar.add_child(currency_bar)
+
 	_apply_theme()
 	back_btn.pressed.connect(_on_back)
 	start_btn.pressed.connect(_on_start)

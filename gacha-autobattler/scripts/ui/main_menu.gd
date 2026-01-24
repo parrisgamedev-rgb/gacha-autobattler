@@ -1,6 +1,8 @@
 extends Control
 ## Main menu screen with new design system
 
+var CurrencyBarScene = preload("res://scenes/ui/currency_bar.tscn")
+
 # Primary buttons
 @onready var campaign_button = $CenterContainer/VBoxContainer/PrimaryButtons/CampaignButton
 @onready var dungeons_button = $CenterContainer/VBoxContainer/PrimaryButtons/DungeonsButton
@@ -26,6 +28,15 @@ func _ready():
 	PlayerData.pvp_mode = false
 	PlayerData.end_campaign_stage()
 	PlayerData.end_dungeon()
+
+	# Add currency bar to the existing CurrencyBar container
+	var currency_bar = CurrencyBarScene.instantiate()
+	var currency_bar_container = get_node_or_null("CurrencyBar")
+	if currency_bar_container:
+		# Clear existing labels and add the new currency bar
+		for child in currency_bar_container.get_children():
+			child.queue_free()
+		currency_bar_container.add_child(currency_bar)
 
 	# Apply theme styling
 	_apply_theme()

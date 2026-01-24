@@ -1,6 +1,8 @@
 extends Control
 ## Dungeon selection screen for gear farming with new design system
 
+var CurrencyBarScene = preload("res://scenes/ui/currency_bar.tscn")
+
 @onready var back_btn = $TopBar/BackButton
 @onready var dungeons_container = $DungeonsGrid
 @onready var dungeon_info_panel = $DungeonInfoPanel
@@ -17,6 +19,12 @@ var selected_dungeon = null
 var selected_tier: int = 0
 
 func _ready():
+	# Add currency bar to top bar
+	var currency_bar = CurrencyBarScene.instantiate()
+	var top_bar = get_node_or_null("TopBar")
+	if top_bar:
+		top_bar.add_child(currency_bar)
+
 	back_btn.pressed.connect(_on_back)
 	start_button.pressed.connect(_on_start_dungeon)
 

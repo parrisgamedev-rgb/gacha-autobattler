@@ -1,6 +1,8 @@
 extends Control
 ## Gear inventory management screen
 
+var CurrencyBarScene = preload("res://scenes/ui/currency_bar.tscn")
+
 @onready var back_btn = $TopBar/HBox/BackButton
 @onready var currency_label = $TopBar/HBox/CurrencyLabel
 @onready var gear_grid = $ScrollContainer/GearGrid
@@ -24,6 +26,12 @@ var selected_gear_instance_id: String = ""
 var current_filter: int = -1  # -1 = all, 0 = weapon, 1 = armor, 2 = accessory
 
 func _ready():
+	# Add currency bar to top bar
+	var currency_bar = CurrencyBarScene.instantiate()
+	var top_bar = get_node_or_null("TopBar/HBox")
+	if top_bar:
+		top_bar.add_child(currency_bar)
+
 	back_btn.pressed.connect(_on_back)
 	enhance_btn.pressed.connect(_on_enhance)
 	close_btn.pressed.connect(_on_close_detail)

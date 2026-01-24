@@ -1,6 +1,8 @@
 extends Control
 ## Collection screen for viewing owned units
 
+var CurrencyBarScene = preload("res://scenes/ui/currency_bar.tscn")
+
 @onready var back_btn = $TopBar/BackButton
 @onready var units_container = $ScrollContainer/UnitsGrid
 @onready var unit_count_label = $TopBar/UnitCountLabel
@@ -45,6 +47,12 @@ var detail_sprite_container: Control = null
 var idle_animation_tween: Tween = null
 
 func _ready():
+	# Add currency bar to top bar
+	var currency_bar = CurrencyBarScene.instantiate()
+	var top_bar = get_node_or_null("TopBar")
+	if top_bar:
+		top_bar.add_child(currency_bar)
+
 	_apply_theme()
 	back_btn.pressed.connect(_on_back)
 	close_detail_btn.pressed.connect(_on_close_detail)
