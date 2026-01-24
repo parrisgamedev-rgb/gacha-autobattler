@@ -3,7 +3,12 @@ extends Node2D
 const BOARD_WIDTH = 1200
 const BOARD_HEIGHT = 1120
 const TILE_SIZE = 16
+const TILE_SCALE = 5  # Scale up 16px tiles to be visible
+const SCALED_TILE = TILE_SIZE * TILE_SCALE  # 80px per tile
 const OUTPUT_PATH = "res://assets/board/boards/"
+
+# Kenney Tiny Dungeon tile paths
+const KENNEY_PATH = "res://assets/kenney_tiny-dungeon/Tiles/"
 
 # Safe zone where decorations are sparse (center play area)
 const CENTER_SAFE_ZONE = Rect2(300, 260, 600, 600)
@@ -19,45 +24,83 @@ func _ready():
 	$UI/GenerateButton.pressed.connect(_on_generate_pressed)
 
 func _init_themes():
-	themes["forest"] = {
-		"base_texture": "res://assets/board/forest tileset/grass.png",
-		"base_color": Color(0.486, 0.678, 0.227),  # Grass green
-		"decorations": [
-			"res://assets/board/forest tileset/decor_bush1.png",
-			"res://assets/board/forest tileset/decor_bush2.png",
-			"res://assets/board/forest tileset/decor_bush3.png",
-			"res://assets/board/forest tileset/decor_grass1.png",
-			"res://assets/board/forest tileset/decor_grass2.png",
-			"res://assets/board/forest tileset/decor_mushroom1.png",
-			"res://assets/board/forest tileset/decor_mushroom2.png",
-			"res://assets/board/forest tileset/decor_stone1.png",
-			"res://assets/board/forest tileset/decor_stone2.png",
-		],
-		"decoration_density": 40,
-		"border_color": Color(0.2, 0.4, 0.1),  # Darker green
-	}
+	# Kenney Tiny Dungeon tiles (by index)
+	# Floor tiles: 48-51 (stone floor variations)
+	# Wall tiles: 0-23 (various wall configurations)
+	# Props: 70 (chest), 73 (barrel), 74 (crate), 84-87 (items), etc.
 
 	themes["dungeon"] = {
-		"base_texture": "res://assets/board/Tiles/Dungeon_WallsAndFloors.png",
-		"base_color": Color(0.3, 0.35, 0.3),  # Stone gray
-		"decorations": [],  # Empty for now
-		"decoration_density": 20,
-		"border_color": Color(0.15, 0.15, 0.2),  # Dark wall
+		"floor_tiles": [
+			KENNEY_PATH + "tile_0048.png",  # Plain floor
+			KENNEY_PATH + "tile_0049.png",  # Floor variation
+			KENNEY_PATH + "tile_0050.png",  # Floor variation
+			KENNEY_PATH + "tile_0051.png",  # Floor variation
+		],
+		"wall_tiles": [
+			KENNEY_PATH + "tile_0024.png",  # Stone wall
+			KENNEY_PATH + "tile_0025.png",  # Stone wall variation
+		],
+		"wall_top_tiles": [
+			KENNEY_PATH + "tile_0012.png",  # Wall top
+			KENNEY_PATH + "tile_0013.png",  # Wall top variation
+		],
+		"decorations": [
+			KENNEY_PATH + "tile_0073.png",  # Barrel
+			KENNEY_PATH + "tile_0074.png",  # Crate
+			KENNEY_PATH + "tile_0070.png",  # Chest
+			KENNEY_PATH + "tile_0061.png",  # Table
+			KENNEY_PATH + "tile_0058.png",  # Chair
+			KENNEY_PATH + "tile_0075.png",  # Pot
+		],
+		"decoration_density": 25,
+		"bg_color": Color(0.15, 0.12, 0.1),  # Dark background behind walls
 	}
 
-	themes["dark_forest"] = {
-		"base_texture": "res://assets/board/forest tileset/grass_dark.png",
-		"base_color": Color(0.3, 0.45, 0.2),  # Darker grass
-		"decorations": [
-			"res://assets/board/forest tileset/decor_bush1_purple.png",
-			"res://assets/board/forest tileset/decor_bush2_purple.png",
-			"res://assets/board/forest tileset/decor_bush3_purple.png",
-			"res://assets/board/forest tileset/decor_mushroom1.png",
-			"res://assets/board/forest tileset/decor_mushroom2.png",
-			"res://assets/board/forest tileset/decor_stone1.png",
+	# Dark dungeon variant
+	themes["dark_dungeon"] = {
+		"floor_tiles": [
+			KENNEY_PATH + "tile_0048.png",
+			KENNEY_PATH + "tile_0049.png",
 		],
-		"decoration_density": 50,
-		"border_color": Color(0.1, 0.2, 0.1),  # Very dark green
+		"wall_tiles": [
+			KENNEY_PATH + "tile_0036.png",  # Different wall style
+			KENNEY_PATH + "tile_0037.png",
+		],
+		"wall_top_tiles": [
+			KENNEY_PATH + "tile_0012.png",
+			KENNEY_PATH + "tile_0013.png",
+		],
+		"decorations": [
+			KENNEY_PATH + "tile_0073.png",  # Barrel
+			KENNEY_PATH + "tile_0070.png",  # Chest
+			KENNEY_PATH + "tile_0057.png",  # Skull/bones
+		],
+		"decoration_density": 15,
+		"bg_color": Color(0.1, 0.08, 0.08),
+	}
+
+	# Arena variant (more open)
+	themes["arena"] = {
+		"floor_tiles": [
+			KENNEY_PATH + "tile_0048.png",
+			KENNEY_PATH + "tile_0049.png",
+			KENNEY_PATH + "tile_0050.png",
+			KENNEY_PATH + "tile_0051.png",
+		],
+		"wall_tiles": [
+			KENNEY_PATH + "tile_0024.png",
+			KENNEY_PATH + "tile_0025.png",
+		],
+		"wall_top_tiles": [
+			KENNEY_PATH + "tile_0000.png",  # Top edge
+			KENNEY_PATH + "tile_0001.png",
+		],
+		"decorations": [
+			KENNEY_PATH + "tile_0073.png",  # Barrel
+			KENNEY_PATH + "tile_0074.png",  # Crate
+		],
+		"decoration_density": 10,
+		"bg_color": Color(0.12, 0.1, 0.08),
 	}
 
 func _clear_board():
@@ -66,70 +109,97 @@ func _clear_board():
 	await get_tree().process_frame
 
 
+func _load_tile(path: String) -> Texture2D:
+	if ResourceLoader.exists(path):
+		return load(path) as Texture2D
+	return null
+
+
+func _place_tile(texture: Texture2D, pos: Vector2, scale_factor: float = TILE_SCALE):
+	if not texture:
+		return
+	var sprite = Sprite2D.new()
+	sprite.texture = texture
+	sprite.scale = Vector2(scale_factor, scale_factor)
+	sprite.centered = false
+	sprite.position = pos
+	board_root.add_child(sprite)
+
+
 func _fill_base_terrain(theme: Dictionary):
-	# Create colored background as base
+	# Dark background first
 	var bg = ColorRect.new()
-	bg.color = theme["base_color"]
+	bg.color = theme["bg_color"]
 	bg.size = Vector2(BOARD_WIDTH, BOARD_HEIGHT)
 	board_root.add_child(bg)
 
-	# Add subtle darker region at top for depth
-	var top_shade = ColorRect.new()
-	top_shade.color = theme["border_color"]
-	top_shade.color.a = 0.3
-	top_shade.size = Vector2(BOARD_WIDTH, 200)
-	top_shade.position = Vector2(0, 0)
-	board_root.add_child(top_shade)
+	# Load floor tiles
+	var floor_textures: Array[Texture2D] = []
+	for path in theme["floor_tiles"]:
+		var tex = _load_tile(path)
+		if tex:
+			floor_textures.append(tex)
+
+	if floor_textures.is_empty():
+		return
+
+	# Calculate grid dimensions
+	var cols = ceili(float(BOARD_WIDTH) / SCALED_TILE) + 1
+	var rows = ceili(float(BOARD_HEIGHT) / SCALED_TILE) + 1
+
+	# Tile the floor (leave border area for walls)
+	var border_tiles = 2  # 2 tiles for wall border
+	for row in range(border_tiles, rows):
+		for col in range(border_tiles, cols - border_tiles):
+			var tex = floor_textures[randi() % floor_textures.size()]
+			var pos = Vector2(col * SCALED_TILE, row * SCALED_TILE)
+			_place_tile(tex, pos)
 
 
 func _add_borders(theme: Dictionary):
-	# Top border (thicker, represents tree line / wall)
-	var top_border = ColorRect.new()
-	top_border.color = theme["border_color"]
-	top_border.size = Vector2(BOARD_WIDTH, 180)
-	top_border.position = Vector2(0, 0)
-	board_root.add_child(top_border)
+	# Load wall tiles
+	var wall_textures: Array[Texture2D] = []
+	for path in theme["wall_tiles"]:
+		var tex = _load_tile(path)
+		if tex:
+			wall_textures.append(tex)
 
-	# Left border
-	var left_border = ColorRect.new()
-	left_border.color = theme["border_color"]
-	left_border.size = Vector2(120, BOARD_HEIGHT)
-	left_border.position = Vector2(0, 0)
-	board_root.add_child(left_border)
+	var wall_top_textures: Array[Texture2D] = []
+	for path in theme["wall_top_tiles"]:
+		var tex = _load_tile(path)
+		if tex:
+			wall_top_textures.append(tex)
 
-	# Right border
-	var right_border = ColorRect.new()
-	right_border.color = theme["border_color"]
-	right_border.size = Vector2(120, BOARD_HEIGHT)
-	right_border.position = Vector2(BOARD_WIDTH - 120, 0)
-	board_root.add_child(right_border)
+	if wall_textures.is_empty():
+		return
+
+	var cols = ceili(float(BOARD_WIDTH) / SCALED_TILE) + 1
+	var rows = ceili(float(BOARD_HEIGHT) / SCALED_TILE) + 1
+
+	# Top wall (2 rows)
+	for row in range(2):
+		for col in range(cols):
+			var tex = wall_textures[randi() % wall_textures.size()]
+			if row == 1 and not wall_top_textures.is_empty():
+				tex = wall_top_textures[randi() % wall_top_textures.size()]
+			_place_tile(tex, Vector2(col * SCALED_TILE, row * SCALED_TILE))
+
+	# Left wall
+	for row in range(2, rows):
+		for col in range(2):
+			var tex = wall_textures[randi() % wall_textures.size()]
+			_place_tile(tex, Vector2(col * SCALED_TILE, row * SCALED_TILE))
+
+	# Right wall
+	for row in range(2, rows):
+		for col in range(cols - 2, cols):
+			var tex = wall_textures[randi() % wall_textures.size()]
+			_place_tile(tex, Vector2(col * SCALED_TILE, row * SCALED_TILE))
 
 
 func _add_border_gradient(theme: Dictionary):
-	# Create softer transition from border to play area
-	var gradient_color = theme["border_color"]
-	gradient_color.a = 0.4
-
-	# Top gradient (below top border)
-	var top_grad = ColorRect.new()
-	top_grad.color = gradient_color
-	top_grad.size = Vector2(BOARD_WIDTH, 80)
-	top_grad.position = Vector2(0, 180)
-	board_root.add_child(top_grad)
-
-	# Left gradient
-	var left_grad = ColorRect.new()
-	left_grad.color = gradient_color
-	left_grad.size = Vector2(60, BOARD_HEIGHT)
-	left_grad.position = Vector2(120, 0)
-	board_root.add_child(left_grad)
-
-	# Right gradient
-	var right_grad = ColorRect.new()
-	right_grad.color = gradient_color
-	right_grad.size = Vector2(60, BOARD_HEIGHT)
-	right_grad.position = Vector2(BOARD_WIDTH - 180, 0)
-	board_root.add_child(right_grad)
+	# Not needed with tile-based approach - walls provide natural border
+	pass
 
 
 func _load_decorations(paths: Array) -> Array[Texture2D]:
@@ -151,24 +221,30 @@ func _scatter_decorations(theme: Dictionary, rng: RandomNumberGenerator):
 	var count = theme["decoration_density"]
 	var attempts = count * 3  # Allow extra attempts for failed placements
 
+	# Define play area bounds (inside the wall borders)
+	var min_x = SCALED_TILE * 3  # After left wall
+	var max_x = BOARD_WIDTH - SCALED_TILE * 3  # Before right wall
+	var min_y = SCALED_TILE * 3  # After top wall
+	var max_y = BOARD_HEIGHT - SCALED_TILE  # Near bottom
+
 	for i in attempts:
 		if placed_positions.size() >= count:
 			break
 
 		var pos = Vector2(
-			rng.randf_range(100, BOARD_WIDTH - 100),
-			rng.randf_range(200, BOARD_HEIGHT - 50)
+			rng.randf_range(min_x, max_x),
+			rng.randf_range(min_y, max_y)
 		)
 
-		# Reduce chance of placement in center safe zone (80% skip)
+		# Reduce chance of placement in center safe zone (70% skip)
 		if CENTER_SAFE_ZONE.has_point(pos):
-			if rng.randf() > 0.2:
+			if rng.randf() > 0.3:
 				continue
 
 		# Check minimum distance from other decorations
 		var too_close = false
 		for placed in placed_positions:
-			if pos.distance_to(placed) < 50:
+			if pos.distance_to(placed) < SCALED_TILE * 1.5:
 				too_close = true
 				break
 
@@ -179,7 +255,8 @@ func _scatter_decorations(theme: Dictionary, rng: RandomNumberGenerator):
 		var sprite = Sprite2D.new()
 		sprite.texture = decorations[rng.randi() % decorations.size()]
 		sprite.position = pos
-		sprite.scale = Vector2(3.0, 3.0)  # Scale up pixel art
+		sprite.scale = Vector2(TILE_SCALE, TILE_SCALE)
+		sprite.centered = false
 		board_root.add_child(sprite)
 		placed_positions.append(pos)
 
@@ -227,7 +304,7 @@ func generate_board(theme_name: String, variation: int) -> void:
 func generate_all_boards():
 	status_label.text = "Generating boards..."
 
-	var theme_names = ["forest", "dungeon", "dark_forest"]
+	var theme_names = ["dungeon", "dark_dungeon", "arena"]
 	var variations = 3
 	var total = theme_names.size() * variations
 	var current = 0

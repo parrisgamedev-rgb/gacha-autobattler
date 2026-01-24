@@ -17,22 +17,22 @@ const BOTTOM_ROW_EXTRA_OFFSET = 135    # Push bottom row down more
 const ACTIONS_PER_TURN = 3
 const MAX_TURNS = 25  # Turn limit to prevent infinite stalemates
 
-# Chapter-specific board backgrounds
+# Chapter-specific board backgrounds (Kenney Tiny Dungeon themed)
 const CHAPTER_BOARDS = {
 	1: [
-		"res://assets/board/boards/forest_1.png",
-		"res://assets/board/boards/forest_2.png",
-		"res://assets/board/boards/forest_3.png"
-	],
-	2: [
 		"res://assets/board/boards/dungeon_1.png",
 		"res://assets/board/boards/dungeon_2.png",
 		"res://assets/board/boards/dungeon_3.png"
 	],
+	2: [
+		"res://assets/board/boards/dark_dungeon_1.png",
+		"res://assets/board/boards/dark_dungeon_2.png",
+		"res://assets/board/boards/dark_dungeon_3.png"
+	],
 	3: [
-		"res://assets/board/boards/dark_forest_1.png",
-		"res://assets/board/boards/dark_forest_2.png",
-		"res://assets/board/boards/dark_forest_3.png"
+		"res://assets/board/boards/arena_1.png",
+		"res://assets/board/boards/arena_2.png",
+		"res://assets/board/boards/arena_3.png"
 	]
 }
 
