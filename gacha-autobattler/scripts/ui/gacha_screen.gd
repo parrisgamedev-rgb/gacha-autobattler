@@ -62,6 +62,7 @@ func _unhandled_input(event: InputEvent):
 func _update_ui():
 	gems_label.text = str(PlayerData.gems) + " Gems"
 	pity_label.text = "Pity: " + str(PlayerData.pity_counter) + "/" + str(PlayerData.HARD_PITY)
+	_update_pity_color()
 
 	single_pull_btn.disabled = not PlayerData.can_afford_single()
 	multi_pull_btn.disabled = not PlayerData.can_afford_multi()
@@ -69,6 +70,25 @@ func _update_ui():
 	# Update button text with costs
 	single_pull_btn.text = "Single Pull\n" + str(PlayerData.SINGLE_PULL_COST) + " Gems"
 	multi_pull_btn.text = "10x Pull\n" + str(PlayerData.MULTI_PULL_COST) + " Gems"
+
+func _update_pity_color():
+	# Color coding for pity counter based on proximity to guaranteed 5-star
+	var pity = PlayerData.pity_counter
+	var soft_pity = PlayerData.SOFT_PITY_START
+	var hard_pity = PlayerData.HARD_PITY
+
+	var pity_color: Color
+	if pity >= hard_pity - 10:
+		# Very close to hard pity (90+) - bright orange/red
+		pity_color = Color("#ff6b35")
+	elif pity >= soft_pity:
+		# In soft pity range (50-89) - yellow/gold
+		pity_color = UITheme.GOLD
+	else:
+		# Normal range (0-49) - standard text color
+		pity_color = UITheme.TEXT_PRIMARY
+
+	pity_label.add_theme_color_override("font_color", pity_color)
 
 func _on_single_pull():
 	AudioManager.play_ui_click()
@@ -124,6 +144,11 @@ func _show_results(unit_entries: Array):
 		# Color the display based on rarity using UITheme colors
 		var rarity_color = UITheme.get_rarity_color(unit_data.star_rating)
 		display.modulate = rarity_color.lightened(0.3)
+
+		# Add star rating label below the unit
+		var stars_label = _create_star_label(unit_data.star_rating)
+		results_container.add_child(stars_label)
+		stars_label.position = Vector2(start_x + i * unit_width, y_pos + 50)
 
 func _on_continue():
 	AudioManager.play_ui_click()
@@ -352,10 +377,29 @@ func _show_final_results():
 		var rarity_color = UITheme.get_rarity_color(unit_data.star_rating)
 		display.modulate = rarity_color.lightened(0.3)
 
+		# Add star rating label below the unit
+		var stars_label = _create_star_label(unit_data.star_rating)
+		results_container.add_child(stars_label)
+		stars_label.position = Vector2(start_x + i * unit_width, y_pos + 50)
+
 	# Hide overlay, show results panel
 	summon_overlay.visible = false
 	summon_circle.visible = true  # Reset for next time
 	results_panel.visible = true
+
+func _create_star_label(star_rating: int) -> Label:
+	var label = Label.new()
+	label.text = "".join(["★"] * star_rating)
+	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	label.add_theme_font_size_override("font_size", UITheme.FONT_BODY)
+	label.add_theme_color_override("font_color", UITheme.get_rarity_color(star_rating))
+	label.add_theme_color_override("font_outline_color", Color.BLACK)
+	label.add_theme_constant_override("outline_size", 2)
+	# Center the label by setting a fixed size and centering
+	label.custom_minimum_size = Vector2(100, 20)
+	label.size = Vector2(100, 20)
+	label.pivot_offset = Vector2(50, 10)
+	return label
 
 func _wait_or_skip(duration: float):
 	var elapsed = 0.0
@@ -404,10 +448,12 @@ func _apply_theme():
 	# Back button - transparent with muted text
 	_style_back_button(back_btn)
 
-	# Pity label
+	# Pity label - more prominent styling
 	if pity_label:
-		pity_label.add_theme_font_size_override("font_size", UITheme.FONT_BODY)
-		pity_label.add_theme_color_override("font_color", UITheme.TEXT_SECONDARY)
+		pity_label.add_theme_font_size_override("font_size", UITheme.FONT_TITLE_MEDIUM)
+		pity_label.add_theme_color_override("font_color", UITheme.TEXT_PRIMARY)
+		pity_label.add_theme_color_override("font_outline_color", Color.BLACK)
+		pity_label.add_theme_constant_override("outline_size", 2)
 
 	# Gem icon
 	var gem_icon = get_node_or_null("TopBar/GemIcon")
