@@ -32,6 +32,7 @@ gacha-autobattler/
 │   ├── gear/
 │   └── achievements/
 └── docs/                 # Design documents
+    └── plans/            # Feature design docs (YYYY-MM-DD-topic-design.md)
 ```
 
 ## Autoload Managers (Global Singletons)
@@ -147,6 +148,9 @@ func my_function() -> ReturnType:
 - **Cheat menu in battle:** F keys for various cheats
 - **Collection screen:** Max level/reset buttons for testing
 - Battle has auto-battle toggle and speed controls (1x/2x/3x)
+
+## Design Documents
+Feature designs are stored in `docs/plans/` with the naming convention `YYYY-MM-DD-topic-design.md`. Check this directory for planned features and implementation details before starting new work.
 
 ## Current Content
 - 20 playable units across 3 star ratings
