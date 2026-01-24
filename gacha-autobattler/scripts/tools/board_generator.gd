@@ -3,8 +3,8 @@ extends Node2D
 const BOARD_WIDTH = 1200
 const BOARD_HEIGHT = 1120
 const TILE_SIZE = 16
-const TILE_SCALE = 5  # Scale up 16px tiles to be visible
-const SCALED_TILE = TILE_SIZE * TILE_SCALE  # 80px per tile
+const TILE_SCALE = 3  # Scale up 16px tiles to be visible
+const SCALED_TILE = TILE_SIZE * TILE_SCALE  # 48px per tile
 const OUTPUT_PATH = "res://assets/board/boards/"
 
 # Kenney Tiny Dungeon tile paths
