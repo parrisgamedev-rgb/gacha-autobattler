@@ -184,6 +184,44 @@ func _scatter_decorations(theme: Dictionary, rng: RandomNumberGenerator):
 		placed_positions.append(pos)
 
 
+func _capture_board() -> Image:
+	await RenderingServer.frame_post_draw
+	var image = capture_viewport.get_texture().get_image()
+	return image
+
+
+func _save_board(image: Image, filename: String):
+	var path = OUTPUT_PATH + filename
+	var error = image.save_png(path)
+	if error != OK:
+		push_error("Failed to save board: " + path + " Error: " + str(error))
+	else:
+		print("Saved: " + path)
+
+
+func generate_board(theme_name: String, variation: int) -> void:
+	if not theme_name in themes:
+		push_error("Unknown theme: " + theme_name)
+		return
+
+	var theme = themes[theme_name]
+	var rng = RandomNumberGenerator.new()
+	rng.seed = hash(theme_name) + variation  # Deterministic per variation
+
+	await _clear_board()
+
+	_fill_base_terrain(theme)
+	_add_borders(theme)
+	_add_border_gradient(theme)
+	_scatter_decorations(theme, rng)
+
+	await get_tree().process_frame
+
+	var image = await _capture_board()
+	var filename = "%s_%d.png" % [theme_name, variation]
+	_save_board(image, filename)
+
+
 func generate_all_boards():
 	pass  # Will implement in Task 7
 
