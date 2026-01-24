@@ -1,33 +1,35 @@
 extends Area2D
 ## A single cell in the 3x3 battle grid
-## Handles click detection only - background image provides visuals
+## Handles click detection and visual overlays (hover, ownership)
+## Floor tiles are rendered separately by BoardBuilder
 
 signal cell_clicked(row: int, col: int)
 
 # Cell position in grid
 var grid_row: int = 0
 var grid_col: int = 0
-var cell_size: int = 150
+var cell_size: int = 80
 
 # Cell state
-var ownership: int = 0  # 0 = empty, 1 = player, 2 = enemy
+var ownership: int = 0  # 0 = empty, 1 = player, 2 = enemy, 3 = contested
 var is_hovered: bool = false
 var current_field_effect: String = ""
 
-# Visual references
-@onready var background = $Background
-@onready var owner_indicator = $OwnerIndicator
-@onready var hover_effect = $HoverEffect
-@onready var collision_shape = $CollisionShape2D
+# Visual overlays (created dynamically)
+var hover_overlay: ColorRect = null
+var owner_overlay: ColorRect = null
 
-# Field effect visuals - particle-based (fallback)
+# Field effect visuals
 var active_effect_node: Node2D = null
 var field_tween: Tween = null
 
-# AI-generated overlay sprites
-var ownership_overlay: Sprite2D = null
-var field_effect_overlay: Sprite2D = null
-var use_ai_board_assets: bool = false
+# Ownership colors
+const OWNER_COLORS = {
+	0: Color(0, 0, 0, 0),           # Empty - transparent
+	1: Color(0.3, 0.5, 1.0, 0.35),  # Player - blue
+	2: Color(1.0, 0.3, 0.3, 0.35),  # Enemy - red
+	3: Color(0.7, 0.3, 0.9, 0.35),  # Contested - purple
+}
 
 func _ready():
 	# Connect mouse signals
@@ -35,150 +37,76 @@ func _ready():
 	mouse_exited.connect(_on_mouse_exited)
 	input_event.connect(_on_input_event)
 
-func setup(row: int, col: int, size: int, cell_texture: Texture2D = null):
+
+func setup(row: int, col: int, size: int):
 	grid_row = row
 	grid_col = col
 	cell_size = size
 
-	# Create collision shape based on cell size
+	var half_size = size / 2.0
+
+	# Create collision shape
+	var collision_shape = CollisionShape2D.new()
 	var shape = RectangleShape2D.new()
 	shape.size = Vector2(size, size)
 	collision_shape.shape = shape
+	add_child(collision_shape)
 
-	var half_size = size / 2.0
+	# Create ownership overlay
+	owner_overlay = ColorRect.new()
+	owner_overlay.size = Vector2(size, size)
+	owner_overlay.position = Vector2(-half_size, -half_size)
+	owner_overlay.color = OWNER_COLORS[0]
+	owner_overlay.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(owner_overlay)
 
-	# Set custom cell texture if provided
-	if cell_texture and background:
-		background.texture = cell_texture
-
-	# Show tile background, hide owner indicator until needed
-	background.visible = true
-	owner_indicator.visible = false
-
-	# Hide border if it exists (using tile-based visuals now)
-	if has_node("Border"):
-		$Border.visible = true  # Show the stylized border
-
-	# Hover effect uses texture now - just control visibility
-	hover_effect.visible = false
-
-	# Setup AI board asset overlays if available
-	_setup_ai_overlays(size)
-
-func _setup_ai_overlays(size: int):
-	"""Create overlay sprites for AI-generated board assets."""
-	use_ai_board_assets = BoardAssetLoader.has_board_assets()
-
-	if not use_ai_board_assets:
-		return
-
-	# Store cell size for dynamic scaling (assets have varying sizes)
-	var target_size = size * 1.05  # Fill out the cell more
-
-	# Create field effect overlay (rendered below ownership but above background)
-	field_effect_overlay = Sprite2D.new()
-	field_effect_overlay.z_index = 1
-	field_effect_overlay.visible = false
-	add_child(field_effect_overlay)
-
-	# Create ownership overlay (rendered above field effect)
-	ownership_overlay = Sprite2D.new()
-	ownership_overlay.z_index = 2
-	ownership_overlay.visible = false
-	add_child(ownership_overlay)
-
-	# Store target size for use when setting textures
-	set_meta("overlay_target_size", target_size)
-
-	print("GridCell [", grid_row, ",", grid_col, "]: Overlays created, target size = ", target_size)
+	# Create hover overlay
+	hover_overlay = ColorRect.new()
+	hover_overlay.size = Vector2(size, size)
+	hover_overlay.position = Vector2(-half_size, -half_size)
+	hover_overlay.color = Color(1, 1, 1, 0.25)
+	hover_overlay.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	hover_overlay.visible = false
+	add_child(hover_overlay)
 
 
 func set_ownership(new_owner: int):
 	ownership = new_owner
-
-	# Update AI board overlay if available
-	if use_ai_board_assets and ownership_overlay:
-		var board_ownership: BoardAssetLoader.Ownership
-		match new_owner:
-			1:
-				board_ownership = BoardAssetLoader.Ownership.PLAYER
-			2:
-				board_ownership = BoardAssetLoader.Ownership.ENEMY
-			3:
-				board_ownership = BoardAssetLoader.Ownership.CONTESTED
-			_:
-				board_ownership = BoardAssetLoader.Ownership.NONE
-
-		var texture = BoardAssetLoader.get_ownership_texture(board_ownership)
-		if texture:
-			ownership_overlay.texture = texture
-			# Scale based on actual texture size
-			var target_size = get_meta("overlay_target_size", 180.0)
-			var tex_size = texture.get_size().x  # Assume square
-			var scale_factor = target_size / tex_size
-			ownership_overlay.scale = Vector2(scale_factor, scale_factor)
-			_fade_in_overlay(ownership_overlay)
-		else:
-			_fade_out_overlay(ownership_overlay)
+	if owner_overlay:
+		var target_color = OWNER_COLORS.get(new_owner, OWNER_COLORS[0])
+		# Animate color change
+		var tween = create_tween()
+		tween.tween_property(owner_overlay, "color", target_color, 0.2)
 
 
 func set_contested(is_contested: bool):
 	"""Set the cell as contested (both player and enemy present)."""
-	if use_ai_board_assets and ownership_overlay and is_contested:
-		var texture = BoardAssetLoader.get_ownership_texture(BoardAssetLoader.Ownership.CONTESTED)
-		if texture:
-			ownership_overlay.texture = texture
-			_fade_in_overlay(ownership_overlay)
+	if is_contested:
+		set_ownership(3)
 
 
-func _fade_in_overlay(overlay: Sprite2D):
-	"""Fade in an overlay sprite with scale animation."""
-	# Store the target scale
-	var target_size = get_meta("overlay_target_size", 180.0)
-	var tex_size = overlay.texture.get_size().x if overlay.texture else 150.0
-	var target_scale = target_size / tex_size
+func clear_ownership():
+	"""Clear the ownership overlay."""
+	set_ownership(0)
 
-	if not overlay.visible:
-		overlay.modulate.a = 0.0
-		overlay.scale = Vector2(target_scale * 0.5, target_scale * 0.5)  # Start small
-		overlay.visible = true
-
-	# Animate scale and alpha together
-	var tween = create_tween()
-	tween.set_ease(Tween.EASE_OUT)
-	tween.set_trans(Tween.TRANS_BACK)
-	tween.set_parallel(true)
-	tween.tween_property(overlay, "modulate:a", 1.0, 0.35)  # Full opacity
-	tween.tween_property(overlay, "scale", Vector2(target_scale, target_scale), 0.35)
-
-
-func _fade_out_overlay(overlay: Sprite2D):
-	"""Fade out an overlay sprite with scale animation."""
-	if not overlay.visible:
-		return
-
-	var current_scale = overlay.scale
-
-	var tween = create_tween()
-	tween.set_ease(Tween.EASE_IN)
-	tween.set_trans(Tween.TRANS_QUAD)
-	tween.set_parallel(true)
-	tween.tween_property(overlay, "modulate:a", 0.0, 0.25)
-	tween.tween_property(overlay, "scale", current_scale * 0.7, 0.25)
-	tween.chain().tween_callback(func(): overlay.visible = false)
 
 func _on_mouse_entered():
 	is_hovered = true
-	hover_effect.visible = true
+	if hover_overlay:
+		hover_overlay.visible = true
+
 
 func _on_mouse_exited():
 	is_hovered = false
-	hover_effect.visible = false
+	if hover_overlay:
+		hover_overlay.visible = false
+
 
 func _on_input_event(_viewport, event, _shape_idx):
 	if event is InputEventMouseButton:
 		if event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
 			cell_clicked.emit(grid_row, grid_col)
+
 
 func show_field_effect(field_data: FieldEffectData):
 	if not field_data:
@@ -188,81 +116,13 @@ func show_field_effect(field_data: FieldEffectData):
 	# Clear any existing effect
 	clear_field_effect()
 
-	# Try AI board assets first
-	if use_ai_board_assets and field_effect_overlay:
-		var effect_type = _field_type_to_board_effect(field_data.field_type)
-		var texture = BoardAssetLoader.get_field_effect_texture(effect_type)
+	current_field_effect = field_data.field_name
 
-		if texture:
-			current_field_effect = field_data.field_name
-			field_effect_overlay.texture = texture
-			_fade_in_field_effect()
-			return
-
-	# Fallback to particle effects
+	# Create particle effects
 	active_effect_node = _create_effect_for_type(field_data.field_type, field_data.field_color)
 	if active_effect_node:
 		add_child(active_effect_node)
 
-
-func _field_type_to_board_effect(field_type: FieldEffectData.FieldType) -> BoardAssetLoader.FieldEffect:
-	"""Convert FieldEffectData type to BoardAssetLoader effect enum."""
-	match field_type:
-		FieldEffectData.FieldType.THERMAL:
-			return BoardAssetLoader.FieldEffect.THERMAL
-		FieldEffectData.FieldType.REPAIR:
-			return BoardAssetLoader.FieldEffect.REPAIR
-		FieldEffectData.FieldType.BOOST:
-			return BoardAssetLoader.FieldEffect.BOOST
-		FieldEffectData.FieldType.SUPPRESSION:
-			return BoardAssetLoader.FieldEffect.SUPPRESSION
-		_:
-			return BoardAssetLoader.FieldEffect.NONE
-
-
-func _fade_in_field_effect():
-	"""Fade in the field effect overlay with animation."""
-	# Calculate target scale
-	var target_size = get_meta("overlay_target_size", 180.0)
-	var tex_size = field_effect_overlay.texture.get_size().x if field_effect_overlay.texture else 150.0
-	var target_scale = target_size / tex_size
-
-	if not field_effect_overlay.visible:
-		field_effect_overlay.modulate.a = 0.0
-		field_effect_overlay.scale = Vector2(target_scale * 0.3, target_scale * 0.3)  # Start very small
-		field_effect_overlay.visible = true
-
-	# Animate with a "pop in" effect
-	var tween = create_tween()
-	tween.set_ease(Tween.EASE_OUT)
-	tween.set_trans(Tween.TRANS_ELASTIC)
-	tween.set_parallel(true)
-	tween.tween_property(field_effect_overlay, "modulate:a", 1.0, 0.5)  # Full opacity
-	tween.tween_property(field_effect_overlay, "scale", Vector2(target_scale, target_scale), 0.5)
-
-	# Start a subtle pulse animation after the initial animation
-	tween.chain().tween_callback(_start_field_effect_pulse.bind(target_scale))
-
-
-func _start_field_effect_pulse(base_scale: float):
-	"""Start a subtle pulsing animation for field effects."""
-	if not field_effect_overlay or not field_effect_overlay.visible:
-		return
-
-	# Create a looping pulse tween
-	if field_tween:
-		field_tween.kill()
-
-	field_tween = create_tween()
-	field_tween.set_loops()  # Loop forever
-
-	var pulse_amount = 0.05
-	var pulse_duration = 1.2
-
-	field_tween.tween_property(field_effect_overlay, "scale",
-		Vector2(base_scale * (1 + pulse_amount), base_scale * (1 + pulse_amount)), pulse_duration / 2).set_ease(Tween.EASE_IN_OUT).set_trans(Tween.TRANS_SINE)
-	field_tween.tween_property(field_effect_overlay, "scale",
-		Vector2(base_scale, base_scale), pulse_duration / 2).set_ease(Tween.EASE_IN_OUT).set_trans(Tween.TRANS_SINE)
 
 func _create_effect_for_type(field_type: FieldEffectData.FieldType, color: Color) -> Node2D:
 	var effect_container = Node2D.new()
@@ -270,22 +130,18 @@ func _create_effect_for_type(field_type: FieldEffectData.FieldType, color: Color
 
 	match field_type:
 		FieldEffectData.FieldType.THERMAL:
-			# Fire effect - rising flames
 			effect_container.add_child(_create_fire_particles(half_size))
 		FieldEffectData.FieldType.REPAIR:
-			# Healing effect - green sparkles rising
 			effect_container.add_child(_create_heal_particles(half_size))
 		FieldEffectData.FieldType.SUPPRESSION:
-			# Suppression - dark energy swirling
 			effect_container.add_child(_create_suppression_particles(half_size, color))
 		FieldEffectData.FieldType.BOOST:
-			# Boost - golden energy rising
 			effect_container.add_child(_create_boost_particles(half_size))
 		_:
-			# Default - use color-based particles
 			effect_container.add_child(_create_generic_particles(half_size, color))
 
 	return effect_container
+
 
 func _create_fire_particles(half_size: float) -> GPUParticles2D:
 	var particles = GPUParticles2D.new()
@@ -302,10 +158,9 @@ func _create_fire_particles(half_size: float) -> GPUParticles2D:
 	material.scale_min = 3.0
 	material.scale_max = 8.0
 
-	# Fire color gradient
 	var gradient = Gradient.new()
-	gradient.set_color(0, Color(1.0, 0.8, 0.2, 0.8))  # Yellow core
-	gradient.set_color(1, Color(1.0, 0.3, 0.0, 0.0))  # Red fade out
+	gradient.set_color(0, Color(1.0, 0.8, 0.2, 0.8))
+	gradient.set_color(1, Color(1.0, 0.3, 0.0, 0.0))
 	var gradient_tex = GradientTexture1D.new()
 	gradient_tex.gradient = gradient
 	material.color_ramp = gradient_tex
@@ -316,6 +171,7 @@ func _create_fire_particles(half_size: float) -> GPUParticles2D:
 	particles.visibility_rect = Rect2(-half_size, -half_size * 2, half_size * 2, half_size * 2)
 
 	return particles
+
 
 func _create_heal_particles(half_size: float) -> GPUParticles2D:
 	var particles = GPUParticles2D.new()
@@ -332,10 +188,9 @@ func _create_heal_particles(half_size: float) -> GPUParticles2D:
 	material.scale_min = 2.0
 	material.scale_max = 5.0
 
-	# Healing green gradient
 	var gradient = Gradient.new()
-	gradient.set_color(0, Color(0.3, 1.0, 0.5, 0.9))  # Bright green
-	gradient.set_color(1, Color(0.5, 1.0, 0.7, 0.0))  # Fade out
+	gradient.set_color(0, Color(0.3, 1.0, 0.5, 0.9))
+	gradient.set_color(1, Color(0.5, 1.0, 0.7, 0.0))
 	var gradient_tex = GradientTexture1D.new()
 	gradient_tex.gradient = gradient
 	material.color_ramp = gradient_tex
@@ -346,6 +201,7 @@ func _create_heal_particles(half_size: float) -> GPUParticles2D:
 	particles.visibility_rect = Rect2(-half_size, -half_size * 2, half_size * 2, half_size * 2)
 
 	return particles
+
 
 func _create_suppression_particles(half_size: float, color: Color) -> GPUParticles2D:
 	var particles = GPUParticles2D.new()
@@ -366,7 +222,6 @@ func _create_suppression_particles(half_size: float, color: Color) -> GPUParticl
 	material.scale_min = 2.0
 	material.scale_max = 4.0
 
-	# Dark swirling gradient
 	var gradient = Gradient.new()
 	gradient.set_color(0, Color(color.r, color.g, color.b, 0.7))
 	gradient.set_color(1, Color(color.r * 0.5, color.g * 0.5, color.b * 0.5, 0.0))
@@ -380,6 +235,7 @@ func _create_suppression_particles(half_size: float, color: Color) -> GPUParticl
 	particles.visibility_rect = Rect2(-half_size, -half_size, half_size * 2, half_size * 2)
 
 	return particles
+
 
 func _create_boost_particles(half_size: float) -> GPUParticles2D:
 	var particles = GPUParticles2D.new()
@@ -396,10 +252,9 @@ func _create_boost_particles(half_size: float) -> GPUParticles2D:
 	material.scale_min = 2.0
 	material.scale_max = 6.0
 
-	# Golden boost gradient
 	var gradient = Gradient.new()
-	gradient.set_color(0, Color(1.0, 0.85, 0.3, 0.9))  # Gold
-	gradient.set_color(1, Color(1.0, 0.95, 0.6, 0.0))  # Fade
+	gradient.set_color(0, Color(1.0, 0.85, 0.3, 0.9))
+	gradient.set_color(1, Color(1.0, 0.95, 0.6, 0.0))
 	var gradient_tex = GradientTexture1D.new()
 	gradient_tex.gradient = gradient
 	material.color_ramp = gradient_tex
@@ -410,6 +265,7 @@ func _create_boost_particles(half_size: float) -> GPUParticles2D:
 	particles.visibility_rect = Rect2(-half_size, -half_size * 2, half_size * 2, half_size * 2)
 
 	return particles
+
 
 func _create_generic_particles(half_size: float, color: Color) -> GPUParticles2D:
 	var particles = GPUParticles2D.new()
@@ -440,16 +296,10 @@ func _create_generic_particles(half_size: float, color: Color) -> GPUParticles2D
 
 	return particles
 
+
 func clear_field_effect():
 	current_field_effect = ""
 
-	# Clear AI overlay
-	if field_effect_overlay and field_effect_overlay.visible:
-		var tween = create_tween()
-		tween.tween_property(field_effect_overlay, "modulate:a", 0.0, 0.3)
-		tween.tween_callback(func(): field_effect_overlay.visible = false)
-
-	# Clear particle fallback
 	if field_tween:
 		field_tween.kill()
 		field_tween = null
@@ -457,10 +307,3 @@ func clear_field_effect():
 	if active_effect_node:
 		active_effect_node.queue_free()
 		active_effect_node = null
-
-
-func clear_ownership():
-	"""Clear the ownership overlay."""
-	ownership = 0
-	if ownership_overlay and ownership_overlay.visible:
-		_fade_out_overlay(ownership_overlay)

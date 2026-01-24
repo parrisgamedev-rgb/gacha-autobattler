@@ -4,37 +4,21 @@ extends Node2D
 
 # Grid settings
 const GRID_SIZE = 3
-const CELL_SIZE = 90   # Base cell size (scaled for 1024x768)
-const CELL_GAP = 60    # Gap between cells (scaled for 1024x768)
-
-# Perspective settings for 2.5D effect (disabled for flat AI grid)
-const PERSPECTIVE_SCALE_TOP = 1.0      # Scale for top row (1.0 = no perspective)
-const PERSPECTIVE_SCALE_BOTTOM = 1.0   # Scale for bottom row
-const PERSPECTIVE_Y_SQUEEZE = 1.0      # Vertical compression (1.0 = none)
-const PERSPECTIVE_Y_OFFSET = 0         # No offset needed
-const MIDDLE_ROW_EXTRA_OFFSET = 27     # Push middle row down (scaled)
-const BOTTOM_ROW_EXTRA_OFFSET = 72     # Push bottom row down more (scaled)
+const CELL_SIZE = 80   # Tile size (5x scale of 16px Kenney tiles)
+const CELL_GAP = 0     # No gap - tiles are adjacent
 const ACTIONS_PER_TURN = 3
 const MAX_TURNS = 25  # Turn limit to prevent infinite stalemates
 
-# Chapter-specific board backgrounds (Kenney Tiny Dungeon themed)
-const CHAPTER_BOARDS = {
-	1: [
-		"res://assets/board/boards/dungeon_1.png",
-		"res://assets/board/boards/dungeon_2.png",
-		"res://assets/board/boards/dungeon_3.png"
-	],
-	2: [
-		"res://assets/board/boards/dark_dungeon_1.png",
-		"res://assets/board/boards/dark_dungeon_2.png",
-		"res://assets/board/boards/dark_dungeon_3.png"
-	],
-	3: [
-		"res://assets/board/boards/arena_1.png",
-		"res://assets/board/boards/arena_2.png",
-		"res://assets/board/boards/arena_3.png"
-	]
+# Chapter-to-theme mapping for BoardBuilder
+const CHAPTER_THEMES = {
+	1: "dungeon",
+	2: "dark_dungeon",
+	3: "arena"
 }
+
+# Board builder instance
+var board_builder: BoardBuilder = null
+var board_data: Dictionary = {}
 
 # AI Difficulty
 enum AIDifficulty { EASY, MEDIUM, HARD }
@@ -200,14 +184,14 @@ func _ready():
 
 
 func _load_chapter_theme():
-	"""Load chapter-specific board and cell textures."""
-	var chapter = 0
-	var board_path = ""
+	"""Build the board using BoardBuilder based on chapter/dungeon."""
+	var chapter = 1
+	var theme_name = "dungeon"
 
-	# Check for dungeon mode first - use dungeon-specific boards
+	# Check for dungeon mode first
 	if PlayerData.is_dungeon_mode() and PlayerData.current_dungeon:
-		board_path = _get_dungeon_board_path()
-		print("Dungeon mode detected, using themed board: ", board_path)
+		chapter = _get_dungeon_chapter()
+		print("Dungeon mode detected, chapter: ", chapter)
 	elif PlayerData.is_campaign_mode() and PlayerData.current_stage:
 		# Determine chapter from current stage (campaign mode)
 		var stage_id = PlayerData.current_stage.stage_id
@@ -217,120 +201,68 @@ func _load_chapter_theme():
 			chapter = 2
 		elif stage_id.begins_with("3-"):
 			chapter = 3
-
-		# Load board texture based on chapter using new themed boards
-		board_path = _get_board_for_chapter(chapter)
 	else:
-		# Quick Battle - random board selection from all chapter boards
-		board_path = _get_random_board()
-		chapter = (randi() % 3) + 1  # Random chapter 1-3 for cell overlays
-		print("Quick Battle mode, random board: ", board_path)
+		# Quick Battle - random chapter
+		chapter = (randi() % 3) + 1
+		print("Quick Battle mode, random chapter: ", chapter)
 
-	# Update the GameBoard texture
-	if has_node("GameBoard") and ResourceLoader.exists(board_path):
-		var board_texture = load(board_path)
-		$GameBoard.texture = board_texture
-		print("Loaded board: ", board_path)
+	# Get theme for chapter
+	theme_name = CHAPTER_THEMES.get(chapter, "dungeon")
+
+	# Build the board
+	board_builder = BoardBuilder.new()
+	add_child(board_builder)
+
+	# Center position for the grid (where GridContainer is)
+	var center_pos = $GridContainer.position
+	board_data = board_builder.build_board(self, theme_name, center_pos)
+
+	# Move board behind GridContainer
+	move_child(board_data["root"], get_node("GridContainer").get_index())
+
+	print("Built board with theme: ", theme_name)
 
 	# Set chapter on BoardAssetLoader for themed overlays
 	BoardAssetLoader.set_chapter(chapter)
 
-	# Store chapter for grid cell loading
+	# Store chapter for reference
 	set_meta("current_chapter", chapter)
 
 
-func _get_dungeon_board_path() -> String:
-	"""Get the board texture path based on dungeon stat type."""
+func _get_dungeon_chapter() -> int:
+	"""Get the chapter/theme based on dungeon stat type."""
 	if not PlayerData.current_dungeon:
-		return _get_board_for_chapter(1)  # Default to forest theme
+		return 1
 
-	# Map dungeon stat type to themed boards
+	# Map dungeon stat type to chapters
 	match PlayerData.current_dungeon.drops_stat_type:
 		GearData.StatType.HP:
-			# HP dungeon uses nature/forest theme (chapter 1)
-			return _get_board_for_chapter(1)
+			return 1  # Dungeon theme
 		GearData.StatType.ATTACK:
-			# Attack dungeon uses dungeon theme (chapter 2)
-			return _get_board_for_chapter(2)
+			return 2  # Dark dungeon theme
 		GearData.StatType.DEFENSE:
-			# Defense dungeon uses dungeon theme (chapter 2)
-			return _get_board_for_chapter(2)
+			return 2  # Dark dungeon theme
 		GearData.StatType.SPEED:
-			# Speed dungeon uses dark forest theme (chapter 3)
-			return _get_board_for_chapter(3)
+			return 3  # Arena theme
 		_:
-			return _get_board_for_chapter(1)  # Default to forest theme
+			return 1
 
-
-func _get_board_for_chapter(chapter_num: int) -> String:
-	"""Get a random board texture for the given chapter."""
-	if chapter_num in CHAPTER_BOARDS:
-		var boards = CHAPTER_BOARDS[chapter_num]
-		return boards[randi() % boards.size()]
-	return CHAPTER_BOARDS[1][0]  # Fallback to forest
-
-
-func _get_random_board() -> String:
-	"""Get a random board texture from all available boards."""
-	var all_boards: Array[String] = []
-	for boards in CHAPTER_BOARDS.values():
-		all_boards.append_array(boards)
-	return all_boards[randi() % all_boards.size()]
-
-
-func _get_chapter_cell_texture() -> Texture2D:
-	"""Get the grid cell texture for the current chapter."""
-	var chapter = get_meta("current_chapter", 0)
-
-	var cell_path = ""
-	match chapter:
-		1:
-			cell_path = "res://assets/board/cells/chapter_1_cell.png"
-		2:
-			cell_path = "res://assets/board/cells/chapter_2_cell.png"
-		3:
-			cell_path = "res://assets/board/cells/chapter_3_cell.png"
-		_:
-			cell_path = "res://assets/board/grid_cell_tile.png"  # Default
-
-	if ResourceLoader.exists(cell_path):
-		return load(cell_path)
-	return null
-
-
-func _get_perspective_scale(row: int) -> float:
-	# Interpolate scale based on row (0 = top/far, 2 = bottom/near)
-	var t = float(row) / float(GRID_SIZE - 1)
-	return lerp(PERSPECTIVE_SCALE_TOP, PERSPECTIVE_SCALE_BOTTOM, t)
 
 func _get_cell_position(row: int, col: int) -> Vector2:
-	# Calculate position with perspective
-	var row_scale = _get_perspective_scale(row)
+	"""Calculate cell position in a simple flat grid."""
+	# Grid is centered on GridContainer (0,0 local)
+	var grid_width = CELL_SIZE * GRID_SIZE
+	var grid_height = CELL_SIZE * GRID_SIZE
 
-	# Base grid calculation
-	var base_cell_size = CELL_SIZE * row_scale
-	var base_gap = CELL_GAP * row_scale
+	# Top-left corner offset
+	var x_offset = -grid_width / 2.0
+	var y_offset = -grid_height / 2.0
 
-	# X position (centered, scaled per row for perspective convergence)
-	var row_width = (base_cell_size * GRID_SIZE) + (base_gap * (GRID_SIZE - 1))
-	var x_offset = -row_width / 2
-	var x = x_offset + (col * (base_cell_size + base_gap)) + base_cell_size / 2
-
-	# Y position (compressed vertically for isometric look)
-	var y_spacing = CELL_SIZE * PERSPECTIVE_Y_SQUEEZE
-	var total_height = y_spacing * (GRID_SIZE - 1)
-	var y = -total_height / 2 + (row * y_spacing) + PERSPECTIVE_Y_OFFSET
-
-	# Add extra offset for middle and bottom rows
-	if row == 1:
-		y += MIDDLE_ROW_EXTRA_OFFSET
-	elif row == GRID_SIZE - 1:
-		y += BOTTOM_ROW_EXTRA_OFFSET
+	# Cell center position
+	var x = x_offset + (col * CELL_SIZE) + CELL_SIZE / 2.0
+	var y = y_offset + (row * CELL_SIZE) + CELL_SIZE / 2.0
 
 	return Vector2(x, y)
-
-func _get_cell_size_for_row(row: int) -> float:
-	return CELL_SIZE * _get_perspective_scale(row)
 
 func _create_grid():
 	grid_ownership = []
@@ -341,9 +273,6 @@ func _create_grid():
 	grid_enemy_displays = []
 	grid_field_effects = []
 
-	# Get chapter-specific cell texture
-	var cell_texture = _get_chapter_cell_texture()
-
 	for row in range(GRID_SIZE):
 		var cell_row = []
 		var ownership_row = []
@@ -353,18 +282,15 @@ func _create_grid():
 		var enemy_display_row = []
 		var field_row = []
 
-		var row_scale = _get_perspective_scale(row)
-		var cell_size_for_row = _get_cell_size_for_row(row)
-
 		for col in range(GRID_SIZE):
 			var cell = GridCellScene.instantiate()
 			grid_container.add_child(cell)
 
 			var pos = _get_cell_position(row, col)
 			cell.position = pos
-			cell.scale = Vector2(row_scale, row_scale)
 
-			cell.setup(row, col, int(cell_size_for_row), cell_texture)
+			# Setup cell as interaction-only (no texture needed)
+			cell.setup(row, col, CELL_SIZE)
 			cell.cell_clicked.connect(_on_cell_clicked)
 
 			cell_row.append(cell)
