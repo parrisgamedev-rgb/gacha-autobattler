@@ -6,8 +6,9 @@
 script = ExtResource("1_script")
 
 [node name="CaptureViewport" type="SubViewport" parent="."]
-transparent_bg = true
+transparent_bg = false
 size = Vector2i(1200, 1120)
+render_target_update_mode = 4
 
 [node name="BoardRoot" type="Node2D" parent="CaptureViewport"]
 

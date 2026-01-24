@@ -185,6 +185,8 @@ func _scatter_decorations(theme: Dictionary, rng: RandomNumberGenerator):
 
 
 func _capture_board() -> Image:
+	# Wait for rendering to complete
+	await get_tree().process_frame
 	await RenderingServer.frame_post_draw
 	var image = capture_viewport.get_texture().get_image()
 	return image
